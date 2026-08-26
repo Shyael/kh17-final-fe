@@ -72,6 +72,12 @@ export default function Menu() {
                     <Nav>
                         <Nav.Link as={Link} to="/employee/login">로그인</Nav.Link>
                     </Nav>
+                    <Nav className="me-auto">
+                        <NavDropdown title="외부정보관리" id="basic-nav-dropdown">
+                            <NavDropdown.Item as={Link} to="/employee/academy">학원정보관리</NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/employee/tutor">강사정보관리</NavDropdown.Item>
+                        </NavDropdown>
+                    </Nav>
                 </Navbar.Collapse>
             </Container>
             </>)}
