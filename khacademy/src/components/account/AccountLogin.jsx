@@ -111,5 +111,11 @@ export default function AccountLogin() {
                 </Button>
             </Col>
         </Row>
+
+        <Row className="mt-5">
+            <Col>
+                {/* 아이디 비밀번호 찾기 들어가야함 */}
+            </Col>
+        </Row>
     </>)
 }
