@@ -41,12 +41,11 @@ export default function AccountLogin() {
             await Swal.fire("모든 정보를 입력하세요");
             return;
         }
-
         try {
             //const {data} = await axios.post("/service/auth/login", account);
             const {data} = await authClient.post("/login", account);
             //로그인 성공 → data를 jotai storage에 저장하자!
-            //console.log(data);
+            console.log(data);
             //setLoginUser(data);//jotai storage에 저장 완료
             //loginAction(data);//jotai setter atom 사용
 
@@ -71,6 +70,7 @@ export default function AccountLogin() {
             //console.log(e.response);
             //console.log(e.status);//우리가 원하는거
             //console.log(typeof e.status);//자료형 확인
+
             if(e.status === 403) {
                 navigate("/account/block");
             }
