@@ -66,11 +66,11 @@ export default function Menu() {
             </Container>
             </>) : (<>
             <Container fluid>
-                <Navbar.Brand as={Link} to="/account/login">KH정보교육원</Navbar.Brand>
+                <Navbar.Brand as={Link} to="/employee/login">KH정보교육원</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav>
-                        <Nav.Link as={Link} to="/account/login">로그인</Nav.Link>
+                        <Nav.Link as={Link} to="/employee/login">로그인</Nav.Link>
                     </Nav>
                 </Navbar.Collapse>
             </Container>
