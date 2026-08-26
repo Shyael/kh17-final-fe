@@ -1,7 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import Home from "@components/Home";
 
-import AccountLogin from "@components/account/AccountLogin";
+import EmployeeLogin from "@components/employee/EmployeeLogin";
 
 import ConsultReservation from "@components/consult/ConsultReservation";
 
@@ -13,8 +13,8 @@ export default function Body() {
 
     return (
         <Routes>
-            {/* 계정 */}
-            <Route path="/account/login" element={<AccountLogin/>} />
+            {/* 직원 로그인 */}
+            <Route path="/employee/login" element={<EmployeeLogin/>} />
 
             {/* 직원 페이지 */}
             <Route path="/" element={<Employee><Home/></Employee>} />
