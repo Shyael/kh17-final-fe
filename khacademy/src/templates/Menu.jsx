@@ -58,6 +58,11 @@ export default function Menu() {
                             <NavDropdown.Item as={Link} to="/consult/"></NavDropdown.Item>
                         </NavDropdown>
                     </Nav>
+                    <Nav className="me-auto">
+                        <NavDropdown title="직원관리" id="basic-nav-dropdown">
+                            <NavDropdown.Item as={Link} to="/employee/register">직원 등록</NavDropdown.Item>
+                        </NavDropdown>
+                    </Nav>
                     <Nav>
                         <Nav.Link as={Link} to="/account/mypage">내정보</Nav.Link>
                         <Nav.Link onClick={logout}>로그아웃</Nav.Link>
