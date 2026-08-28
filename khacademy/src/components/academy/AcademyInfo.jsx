@@ -5,9 +5,18 @@ import { FaArrowRight, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 
+import {
+    Map,
+    MapMarker,
+    CustomOverlayMap,
+    useKakaoLoader
+} from "react-kakao-maps-sdk";
+
 export default function AcademyInfo() {
 
+
     //state
+    //학원 정보
     const [academy, setAcademy] = useState({
         academy: {
             academyName: "",
@@ -22,6 +31,11 @@ export default function AcademyInfo() {
 
     const [tutorList, setTutorList] = useState([]);
 
+    //지도 좌표
+    const [position, setPosition] = useState(null);
+
+    //커스텀 오버레이
+    const [overlayOpen, setOverlayOpen] = useState(true);
     //데이터 조회
     //학원정보
     const loadAcademy = useCallback(async () => {
@@ -46,10 +60,48 @@ export default function AcademyInfo() {
     // 강사 소개 미리보기(최대 3명)
     const previewTutorList = tutorList.slice(0, 3);
 
+    //카카오맵 SDK
+    const [mapLoading, mapError] = useKakaoLoader({
+        appkey: import.meta.env.VITE_KAKAO_MAP_KEY,
+        libraries: ["services"],
+    });
+
+    useEffect(() => {
+
+        if (mapLoading) return;
+        if (!info.academyAddress) return;
+        if (!window.kakao) return;
+
+        // SDK 내부 모듈 로드 완료 후 실행
+        window.kakao.maps.load(() => {
+            const geocoder = new window.kakao.maps.services.Geocoder();
+
+            geocoder.addressSearch(
+                info.academyAddress,
+                (result, status) => {
+
+                    if (status === window.kakao.maps.services.Status.OK) {
+
+                        setPosition({
+                            lat: Number(result[0].y),
+                            lng: Number(result[0].x),
+                        });
+
+                    }
+                    else {
+                        console.error("주소 검색 실패");
+                    }
+
+                }
+            );
+        });
+
+    }, [mapLoading, mapError, info.academyAddress]);
+
     return (
         <>
             <Jumbotron
-                title={info.academyName || "학원 소개"}/>
+                title={info.academyName || "학원 소개"} />
 
             {/* 메인 배너 이미지 (Lorem Picsum 자리잡기) */}
             <Row>
@@ -58,7 +110,7 @@ export default function AcademyInfo() {
                         src="https://picsum.photos/seed/academy-main/1200/400"
                         alt="메인 배너 이미지"
                         className="img-fluid rounded w-100"
-                        style={{ objectFit: "cover", maxHeight: "400px" }}/>
+                        style={{ objectFit: "cover", maxHeight: "400px" }} />
                 </Col>
             </Row>
 
@@ -121,17 +173,91 @@ export default function AcademyInfo() {
             </Row>
             <Row className="align-items-center">
                 <Col md={7}>
-                    {/* 지도 영역 (나중에 지도 API 연동) */}
-                    <img
-                        src="https://picsum.photos/seed/academy-map/800/450"
-                        alt="지도 영역"
-                        className="img-fluid rounded w-100"
-                        style={{ objectFit: "cover", maxHeight: "300px" }}
-                    />
+                    {!mapError && !position && (
+                        <div
+                            className="d-flex justify-content-center align-items-center border rounded"
+                            style={{ height: "300px" }}
+                        >
+                            위치 정보를 불러오는 중...
+                        </div>
+                    )}
+
+                    {!mapError && position && (
+                        <Map
+                            center={position}
+                            style={{
+                                width: "100%",
+                                height: "300px"
+                            }}
+                            level={3}
+                            onCreate={(map) => {
+                                map.panBy(10, 80);
+                            }}
+                        >
+                            <MapMarker
+                                position={position}
+                                onClick={() => setOverlayOpen(true)}
+                            />
+
+                            {overlayOpen && (
+                                <CustomOverlayMap
+                                    position={position}
+                                    yAnchor={1.4}
+                                >
+                                    <div
+                                        className="bg-white border rounded shadow-sm"
+                                        style={{
+                                            minWidth: "240px",
+                                            overflow: "hidden"
+                                        }}
+                                    >
+                                        <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                            <strong>
+                                                {info.academyName}
+                                            </strong>
+
+                                            <button
+                                                type="button"
+                                                className="btn-close"
+                                                onClick={() => setOverlayOpen(false)}
+                                            />
+                                        </div>
+
+                                        <div className="p-3">
+                                            <div className="text-muted small mb-2">
+                                                {info.academyAddress}
+                                            </div>
+
+                                            <div className="d-flex gap-3">
+                                                <a
+                                                    href={`https://map.kakao.com/link/map/${encodeURIComponent(info.academyName)},${position.lat},${position.lng}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-decoration-none"
+                                                >
+                                                    큰지도보기
+                                                </a>
+
+                                                <a
+                                                    href={`https://map.kakao.com/link/to/${encodeURIComponent(info.academyName)},${position.lat},${position.lng}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-decoration-none"
+                                                >
+                                                    길찾기
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </CustomOverlayMap>
+                            )}
+                        </Map>
+                    )}
                 </Col>
                 <Col md={5} className="mt-3 mt-md-0">
-                    {/* 주소는 단순 텍스트 (나중에 API 연동) */}
-                    <p className="fw-bold fs-5 mb-1">{info.academyAddress}</p>
+                    <p className="fw-bold fs-5 mb-2">
+                        {info.academyAddress}
+                    </p>
                 </Col>
             </Row>
 
@@ -180,7 +306,7 @@ export default function AcademyInfo() {
                         to="/academy/tutor"
                         className="text-decoration-none fw-bold">
                         <span>강사진 전체보기</span>
-                        <FaArrowRight className="ms-2"/>
+                        <FaArrowRight className="ms-2" />
                     </Link>
                 </Col>
             </Row>
