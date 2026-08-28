@@ -8,6 +8,8 @@ import ConsultReservation from "@components/consult/ConsultReservation";
 import NotFound from "@error/NotFound";
 
 import Employee from "@guard/Employee";
+import StudentList from "@components/student/StudentList";
+import StudentDetail from "@components/student/StudentDetail";
 
 export default function Body() {
 
@@ -21,6 +23,10 @@ export default function Body() {
             
             {/* 상담 */}
             <Route path="/consult/reservation" element={<Employee><ConsultReservation/></Employee>} />
+
+            {/* 학생 */}
+            <Route path="/student/list" element={<Employee><StudentList/></Employee>} />
+            <Route path="/student/detail" element={<Employee><StudentDetail/></Employee>} />
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>
