@@ -13,7 +13,7 @@ import ContractAdd from "@components/contract/ContractAdd";
 import ContractEditBeforeSigned from "@components/contract/ContractEditBeforeSigned";
 import ContractSign from "@components/contract/ContractSign";
 import ContractDetail from "@components/contract/ContractDetail";
-import ContractHistory from "../components/contract/ContractHistory";
+import ContractHistory from "@components/contract/ContractHistory";
 
 export default function Body() {
 
