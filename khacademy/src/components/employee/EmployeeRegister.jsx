@@ -26,7 +26,7 @@ export default function EmployeeRegister() {
         employeeType: "",
         employeeHtime: today, //고용일자
         accountStatus: "Y",
-        roleNames: [],
+        roleNos: [],
     });
     const [result, setResult] = useState({
         accountId: { clazz: null, code: null },
@@ -38,7 +38,7 @@ export default function EmployeeRegister() {
         employeeType: null,
         employeeHtime: null,
         accountStatus: null,
-        roleNames: [],
+        roleNos: [],
     });
 
     //비밀번호와 비밀번호 확인을 한번에 다루겠다
@@ -60,21 +60,21 @@ export default function EmployeeRegister() {
 
     const changeEmployeeType = useCallback((e) => {
         const { value } = e.target;
-        let roleNames = [];
+        let roleNos = [];
         if (value === "데스크") {
-            roleNames = ["DESK"];
+            roleNos = [3];
         }
         else if (value === "강사") {
-            roleNames = ["TEACHER"];
+            roleNos = [4];
         }
         else if (value === "원장") {
-            roleNames = ["ADMIN"];
+            roleNos = [5];
         }
 
         setAccount(prev => ({
             ...prev,
             employeeType: value,
-            roleNames: roleNames
+            roleNos: roleNos
         }));
 
         // 직원 유형 검증 결과 초기화
@@ -112,7 +112,7 @@ export default function EmployeeRegister() {
             return;
         }
         //형식 통과 → 중복 검사
-        const { data } = await apiClient.get(`/account/check-id/${account.accountId}`);
+        const { data } = await apiClient.get(`/employee/check-id/${account.accountId}`);
         const clazz = data ? "" : "is-invalid"; //형식과 중복검사를 통과하더라도 아직 인증번호가 남아있음
         const code = data ? null : "duplicate";
         setResult(prev => ({
@@ -209,7 +209,7 @@ export default function EmployeeRegister() {
         try {
             setSending(true);
             const response = await certClient.post(
-                "/service/cert/send",
+                "/send",
                 { certEmail: account.accountId }
             );
             console.log("이메일 발송 완료");
@@ -236,7 +236,7 @@ export default function EmployeeRegister() {
     const checkCert = useCallback(async () => {
         //data는 CertCheckResponseVO의 valid값
         const { data } = await certClient.post(
-            "/service/cert/check",
+            "/check",
             { certEmail: account.accountId, certNumber: certNumber }
         );
         // console.log("결과 : ", data.valid);
@@ -255,11 +255,11 @@ export default function EmployeeRegister() {
         if (result.accountId.clazz !== "is-valid") return false; //필수
         if (result.accountPassword !== "is-valid") return false; //필수
         if (result.accountPassword2 !== "is-valid") return false; //필수
-        if (result.accountName.clazz !== "is-valid") return false; //필수
-        if (result.accountStatus !== "is-invalid") return false; //필수
-        if (result.accountPhone !== "is-invalid") return false; //필수
-        if (result.employeeType !== "is-invalid") return false;
-        if (result.employeeHtime !== "is-invalid") return false;
+        if (result.accountName !== "is-valid") return false; //필수
+        if (result.accountStatus !== "is-valid") return false; //필수
+        if (result.accountPhone !== "is-valid") return false; //필수
+        if (result.employeeType !== "is-valid") return false;
+        if (result.employeeHtime !== "is-valid") return false;
 
         if (certNumberResult !== "is-valid") return false; //인증번호
 
@@ -337,7 +337,7 @@ export default function EmployeeRegister() {
         {/* 인증번호 입력화면은 발송이 완료된 경우 + 인증완료가 안된 상황에서만 나와야 함 */}
         {(certNumberResult !== "is-valid" && sending === false) && (
             <Row className="mt-2">
-                <Col sm={{ sm: 9, offset: 3 }}>
+                <Col sm={{ span: 9, offset: 3 }}>
                     <div className="d-flex flex-wrap">
                         <Form.Control type="text" placeholder="인증번호"
                             value={certNumber} onChange={changeCertNumber}
@@ -410,7 +410,21 @@ export default function EmployeeRegister() {
                 <div className="invalid-feedback">비밀번호를 입력하시거나 비밀번호가 일치하지 않습니다</div>
             </Col>
         </Row>
-
+        {/* 이름 */}
+        <Row className="mt-4">
+            <Form.Check column sm={3}>
+                <span>이름</span>
+            </Form.Check>
+            <Col sm={9}>
+                <Form.Control type="text" name="accountName"
+                    value={account.accountName}
+                    onChange={changeStringValue}
+                    onBlur={checkAccountName}
+                    className={result.accountName}
+                    placeholder="" />
+                <div className="valid-feedback"></div>
+            </Col>
+        </Row>
         {/* 생년월일 */}
         <Row className="mt-4">
             <Form.Label column sm={3}>
@@ -500,7 +514,11 @@ export default function EmployeeRegister() {
                     name="accountStatus"
                     value="Y"
                     checked={account.accountStatus === "Y"}
-                    onChange={changeStringValue}
+                    onChange={e=>
+                        {
+                            changeStringValue(e);
+                            setResult(prev=>({...prev, accountStatus:"is-valid"}))}
+                        }
                 />
                 <Form.Check
                     type="radio"
@@ -508,10 +526,15 @@ export default function EmployeeRegister() {
                     name="accountStatus"
                     value="N"
                     checked={account.accountStatus === "N"}
-                    onChange={changeStringValue}
+                    onChange={e=>
+                    {
+                        changeStringValue(e);
+                        setResult(prev=>({...prev, accountStatus:"in-valid"}))}
+                    }
                 />
             </Col>
         </Row>
+        
 
         {/* 버튼 */}
         <Row className="my-5">
