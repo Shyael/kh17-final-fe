@@ -54,8 +54,8 @@ export default function Menu() {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto">
                         <NavDropdown title="상담관리" id="basic-nav-dropdown">
-                            <NavDropdown.Item as={Link} to="/consult/reservation">상담 예약 목록</NavDropdown.Item>
-                            <NavDropdown.Item as={Link} to="/consult/"></NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/employee/consult/reservation">상담 예약 목록</NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/employee/consult/manage">상담 관리</NavDropdown.Item>
                         </NavDropdown>
                     </Nav>
                     <Nav>

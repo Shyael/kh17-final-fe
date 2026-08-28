@@ -3,7 +3,8 @@ import Home from "@components/Home";
 
 import EmployeeLogin from "@components/employee/EmployeeLogin";
 
-import ConsultReservation from "@components/consult/ConsultReservation";
+import ConsultReservation from "@components/employee/consult/ConsultReservation";
+import ConsultManage from "@components/employee/consult/ConsultManage";
 
 import NotFound from "@error/NotFound";
 
@@ -20,7 +21,8 @@ export default function Body() {
             <Route path="/" element={<Employee><Home/></Employee>} />
             
             {/* 상담 */}
-            <Route path="/consult/reservation" element={<Employee><ConsultReservation/></Employee>} />
+            <Route path="/employee/consult/reservation" element={<Employee><ConsultReservation/></Employee>} />
+            <Route path="/employee/consult/manage" element={<Employee><ConsultManage /></Employee>} />
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>
