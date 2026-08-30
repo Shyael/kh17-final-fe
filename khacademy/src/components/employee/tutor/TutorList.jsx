@@ -3,25 +3,36 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Col, Form, Row, Table } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import { Link } from "react-router-dom";
+import { FaXmark } from "react-icons/fa6";
 
-export default function TutorList(){
+export default function TutorList() {
 
     //state
     const [tutorList, setTutorList] = useState([]);
 
     //callback
-    const loadData = useCallback(async()=>{
+    const loadData = useCallback(async () => {
         const response = await apiClient.get("/tutor/")
-        setTutorList(response.data); 
-    },[]);    
-    
+        setTutorList(response.data);
+    }, []);
+
     //effect
-    useEffect(()=>{
+    useEffect(() => {
         loadData();
     }, []);
 
-    return(<>
-        <Jumbotron title="강사정보 리스트"/>
+    return (<>
+        <Jumbotron title="강사정보 리스트" />
+
+        <Row className="mt-4">
+            <Col className="text-end">
+                {/* 위치 나중에 생기면 수정 */}
+                <Button as={Link} to={`/employee/tutor/add`} variant="success" className="ms-2">
+                    <FaXmark className="me-2" />
+                    <span>강사정보생성</span>
+                </Button>
+            </Col>
+        </Row>
 
         <Row className="mt-4">
             <Col className="text-end">
@@ -49,7 +60,7 @@ export default function TutorList(){
                         </tr>
                     </thead>
                     <tbody>
-                        {tutorList.map(tutor =>(
+                        {tutorList.map(tutor => (
                             <tr key={tutor.tutorNo}>
                                 <td>{tutor.tutorNo}</td>
                                 <td>

@@ -17,6 +17,9 @@ import AcademyInfo from "@components/academy/AcademyInfo";
 import AcademyTutorList from "@components/academy/AcademyTutorList";
 import AcademyTutorDetail from "@components/academy/AcademyTutorDetail";
 
+import AssignmentList from "@components/assignment/AssignmentList";
+import AssignmentManage from "@components/assignment/AssignmentManage";
+
 export default function Body() {
 
     return (
@@ -40,6 +43,11 @@ export default function Body() {
             <Route path="/academy" element={<AcademyInfo />} />
             <Route path="/academy/tutor" element={<AcademyTutorList />} />
             <Route path="/academy/tutor/:tutorNo" element={<AcademyTutorDetail />} />
+
+            {/* 과제(관리) */}
+            <Route path="/assignment" element={<AssignmentList />} />
+            <Route path="/assignment/add" element={<AssignmentManage />} />
+            <Route path="/assignment/:assignmentNo" element={<AssignmentManage />} />
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>

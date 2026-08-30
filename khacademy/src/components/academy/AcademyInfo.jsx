@@ -1,5 +1,5 @@
 import Jumbotron from "@templates/Jumbotron";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge, Button, Card, Col, Row } from "react-bootstrap";
 import { FaArrowRight, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
 import { Link } from "react-router-dom";
@@ -11,6 +11,9 @@ import {
     CustomOverlayMap,
     useKakaoLoader
 } from "react-kakao-maps-sdk";
+
+//오버레이가 마커 위쪽으로 열리므로 지도를 아래로 내려 상단이 잘리지 않게 하는 픽셀 값
+const MAP_OFFSET_Y = -100;
 
 export default function AcademyInfo() {
 
@@ -33,6 +36,11 @@ export default function AcademyInfo() {
 
     //지도 좌표
     const [position, setPosition] = useState(null);
+
+    //카카오맵 인스턴스
+    const mapRef = useRef(null);
+    //지도 생성 완료 여부 (페이지 재진입 시에도 오프셋을 다시 적용하기 위함)
+    const [mapReady, setMapReady] = useState(false);
 
     //커스텀 오버레이
     const [overlayOpen, setOverlayOpen] = useState(true);
@@ -97,6 +105,28 @@ export default function AcademyInfo() {
         });
 
     }, [mapLoading, mapError, info.academyAddress]);
+
+    //지도 생성 완료 or 좌표 변경 시: 마커 중심으로 맞춘 뒤 지도를 살짝 내려 오버레이 상단이 잘리지 않게 함
+    //(다른 페이지 갔다가 재진입하면 지도가 컨테이너 크기를 모른 채 생성되므로 relayout 후 적용)
+    useEffect(() => {
+
+        if (!mapReady) return;
+
+        const map = mapRef.current;
+
+        if (!map) return;
+        if (!position) return;
+        if (!window.kakao) return;
+
+        const id = requestAnimationFrame(() => {
+            map.relayout();
+            map.setCenter(new window.kakao.maps.LatLng(position.lat, position.lng));
+            map.panBy(0, MAP_OFFSET_Y);
+        });
+
+        return () => cancelAnimationFrame(id);
+
+    }, [mapReady, position]);
 
     return (
         <>
@@ -191,7 +221,8 @@ export default function AcademyInfo() {
                             }}
                             level={3}
                             onCreate={(map) => {
-                                map.panBy(10, 80);
+                                mapRef.current = map;
+                                setMapReady(true);
                             }}
                         >
                             <MapMarker
