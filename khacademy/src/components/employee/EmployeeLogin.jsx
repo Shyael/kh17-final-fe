@@ -70,7 +70,7 @@ export default function AccountLogin() {
             //console.log(e.response);
             //console.log(e.status);//우리가 원하는거
             //console.log(typeof e.status);//자료형 확인
-
+            
             if(e.status === 403) {
                 navigate("/account/block");
             }
