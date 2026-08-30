@@ -8,25 +8,28 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { apiClient, certClient } from "../../utils/reaxios";
 
-export default function EmployeeRegister() {
+export default function MemberJoin() {
     //kakao post
     const open = useKakaoPostcodePopup(
         "//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
     );
-    const today = new Date().toISOString().slice(0, 10);
+
+    const [accountType, setAccountType] = useState('STUDENT'); // student||parent
 
     //state
     const [account, setAccount] = useState({
+        //공통 정보 , 학부모는 회원가입 단계에서는 공통정보만 필요
         accountId: "",
         accountPassword: "",
         accountPassword2: "",
         accountName: "",
         accountBirth: "",
         accountPhone: "",
-        employeeType: "", //데스크, 강사, 원장
-        employeeHtime: today, //고용일자
-        accountStatus: "Y",
-        roleNos: [],
+        //학생 정보
+        studentSchool: "",
+        studentGrade: "",
+        studentGender: "",
+        studentEtc: "",
     });
     const [result, setResult] = useState({
         accountId: { clazz: null, code: null },
@@ -35,21 +38,24 @@ export default function EmployeeRegister() {
         accountName: null,
         accountBirth: null,
         accountPhone: null,
-        employeeType: null,
-        employeeHtime: null,
-        accountStatus: null,
-        roleNos: [],
+        //학생 정보
+        studentSchool: null,
+        studentGrade: null,
+        studentGender: null,
     });
 
-    //비밀번호와 비밀번호 확인을 한번에 다루겠다
-    // const [visible, setVisible] = useState(false);
-    // 따로 다루겠다
+    //비밀번호 보이기 / 숨기기
     const [visible, setVisible] = useState({
         accountPassword: false,
         accountPassword2: false
     });
 
-    //callback
+    //이메일 인증번호 관련 상태
+    const [certNumber, setCertNumber] = useState(""); //처음에 비어있다고 (문자열)
+    const [certNumberResult, setCertNumberResult] = useState(null);
+    const [sending, setSending] = useState(null); //이메일 발송중 여부 상태(null(발송중) / true(발송) / false(미발송))
+
+    //공통 문자열 변경 callback
     const changeStringValue = useCallback(e => {
         const { name, value } = e.target;
         setAccount(prev => ({
@@ -58,32 +64,12 @@ export default function EmployeeRegister() {
         }));
     }, []);
 
-    const changeEmployeeType = useCallback((e) => {
-        const { value } = e.target;
-        let roleNos = [];
-        if (value === "데스크") {
-            roleNos = [3];
-        }
-        else if (value === "강사") {
-            roleNos = [4];
-        }
-        else if (value === "원장") {
-            roleNos = [5];
-        }
+    //탭 변경 시
+    const handleAccountTypeChange = (type) => {
+        setAccountType(type);
+    };
 
-        setAccount(prev => ({
-            ...prev,
-            employeeType: value,
-            roleNos: roleNos
-        }));
-
-        // 직원 유형 검증 결과 초기화
-        setResult(prev => ({
-            ...prev,
-            employeeType: value === "" ? "is-invalid" : "is-valid"
-        }));
-    }, []);
-
+    // 아이디 변경 callback
     const changeAccountId = useCallback(e => {
         //인증이 끝났는데 입력을 다시 한 경우 → 인증완료를 없던 일로 한다
         if (result.accountId.clazz === "is-valid") {
@@ -100,7 +86,7 @@ export default function EmployeeRegister() {
 
 
     //검사 함수
-    //[1] 아이디
+    //[1] 아이디(이메일) 형식 & 중복 검사
     const checkAccountId = useCallback(async (e) => {
         const regex = /^([a-z][a-z0-9]{4,19})@([A-Za-z0-9\-\.]{1,})(\.[a-z]{2,3})$/;
         const valid = regex.test(account.accountId);
@@ -111,8 +97,13 @@ export default function EmployeeRegister() {
             }));
             return;
         }
+        //accountType에 따라 엔드포인트 분기
+        const url = accountType === 'STUDENT'
+            ? `/student/check-id/${account.accountId}`
+            : `/parent/check-id/${account.accountId}`
+
         //형식 통과 → 중복 검사
-        const { data } = await apiClient.get(`/employee/check-id/${account.accountId}`);
+        const { data } = await apiClient.get(url);
         const clazz = data ? "" : "is-invalid"; //형식과 중복검사를 통과하더라도 아직 인증번호가 남아있음
         const code = data ? null : "duplicate";
         setResult(prev => ({
@@ -166,36 +157,39 @@ export default function EmployeeRegister() {
         setResult(prev => ({ ...prev, accountPhone: clazz }));
     }, [account]);
 
-    //[6] 직원 유형
-    const checkEmployeeType = useCallback(() => {
-        const valid = account.employeeType === '데스크'
-            || account.employeeType === "강사"
-            || account.employeeType === "원장";
+    //[6] 학생 학교 검사
+    const checkStudentSchool = useCallback(() => {
+        const valid = account.studentSchool.trim() !== "";
         const clazz = valid ? "is-valid" : "is-invalid";
-
-        setResult(prev => ({
-            ...prev,
-            employeeType: clazz
-        }), [account]);
-    }, [account])
-    //[7] 고용 일자
-    const checkEmployeeHtime = useCallback(() => {
-        const valid = account.employeeHtime !== "";
-        const clazz = valid ? "is-valid" : "is-invalid";
-        setResult(prev => ({ ...prev, employeeHtime: clazz }));
+        setResult(prev => ({ ...prev, studentSchool: clazz }));
     }, [account]);
 
-    //[8] 이용상태 
-    const checkAccountStatus = useCallback(() => {
-        const valid = account.accountStatus === 'Y'
-            || account.accountStatus === "N";
+    //[7] 학생 학년 검사
+    const checkStudentGrade = useCallback(() => {
+        const valid = account.studentGrade === "초1"
+            || account.studentGrade === "초2"
+            || account.studentGrade === "초3"
+            || account.studentGrade === "초4"
+            || account.studentGrade === "초5"
+            || account.studentGrade === "초6"
+            || account.studentGrade === "중1"
+            || account.studentGrade === "중2"
+            || account.studentGrade === "중3"
+            || account.studentGrade === "고1"
+            || account.studentGrade === "고2"
+            || account.studentGrade === "고3"
+            || account.studentGrade === "일반"
         const clazz = valid ? "is-valid" : "is-invalid";
+        setResult(prev => ({ ...prev, studentGrade: clazz }));
+    }, [account]);
 
-        setResult(prev => ({
-            ...prev,
-            accountStatus: clazz
-        }), [account]);
-    })
+    // [8] 학생 성별 검사
+    const checkStudentGender = useCallback(() => {
+        const valid = account.studentGender === "남"
+            || account.studentGender === "여"
+        const clazz = valid ? "is-valid" : "is-invalid";
+        setResult(prev => ({ ...prev, studentGender: clazz }));
+    }, [account]);
 
     //아이디(이메일) 인증
     const sendCert = useCallback(async () => {
@@ -222,17 +216,14 @@ export default function EmployeeRegister() {
         }
     }, [account.accountId]);
 
-    //인증번호 관련 state
-    const [certNumber, setCertNumber] = useState(""); //처음에 비어있다고 (문자열)
-    const [certNumberResult, setCertNumberResult] = useState(null);
-    const [sending, setSending] = useState(null); //이메일 발송중 여부 상태(null(발송중) / true(발송) / false(미발송))
-
+    //인증번호 입력 처리
     const changeCertNumber = useCallback(e => {
         const regex = /[^0-9]+/g;
         const replacement = e.target.value.replace(regex, "");
         setCertNumber(replacement);
     }, []);
 
+    //인증번호 확인
     const checkCert = useCallback(async () => {
         //data는 CertCheckResponseVO의 valid값
         const { data } = await certClient.post(
@@ -250,23 +241,27 @@ export default function EmployeeRegister() {
         }
     }, [account.accountId, certNumber]);
 
-    //memo
+    //memo : 전체 입력폼 유효성 체크
     const allValid = useMemo(() => {
+        //공통 필수값 체크
         if (result.accountId.clazz !== "is-valid") return false; //필수
         if (result.accountPassword !== "is-valid") return false; //필수
         if (result.accountPassword2 !== "is-valid") return false; //필수
         if (result.accountName !== "is-valid") return false; //필수
-        if (result.accountStatus !== "is-valid") return false; //필수
         if (result.accountPhone !== "is-valid") return false; //필수
-        if (result.employeeType !== "is-valid") return false;
-        if (result.employeeHtime !== "is-valid") return false;
+        if (result.accountBirth === "is-invalid") return false; //선택
 
         if (certNumberResult !== "is-valid") return false; //인증번호
 
-        if (result.accountBirth === "is-invalid") return false; //선택
+        //학생 선택 시 학생 필수값 추가 체크
+        if (accountType === 'STUDENT') {
+            if (result.studentSchool !== "is-valid") return false; //필수
+            if (result.studentGrade !== "is-valid") return false; //필수
+
+        }
 
         return true;
-    }, [result, certNumberResult]);
+    }, [result, certNumberResult, accountType]);
 
     // 최종 가입
     const navigate = useNavigate();
@@ -275,18 +270,59 @@ export default function EmployeeRegister() {
             // const copy = {...acount};
             // delete copy.acountPassword2; //아래 구조분해 할당 or 두줄 코드
             const { accountPassword2, ...copy } = account;
-            const response = await apiClient.post("/employee/", copy);
-            //toast.success("회원 등록이 완료되었습니다");
-            navigate("/employee/registerSuccess");
+            let response;
+
+            if (accountType === 'STUDENT') {
+                //학생 회원가입 API 호출
+                response = await apiClient.post("/student/", copy);
+            }
+            else {
+                const parentPayload = {
+                    accountId: copy.accountId,
+                    accountPassword: copy.accountPassword,
+                    accountName: copy.accountName,
+                    accountBirth: copy.accountBirth,
+                    accountPhone: copy.accountPhone
+                };
+                response = await apiClient.post("/parent/", parentPayload);
+            }
+
+            const msg = response.data?.message || "회원 등록 신청이 완료되었습니다.";
+            navigate("/member/joinSuccess");
         }
         catch (e) {
             // toast.error("회원 등록 과정에서 오류가 발생했습니다");
-            navigate("/employee/registerFail");
+            navigate("/member/joinFail");
         }
     }, [account]);
 
     return (<>
-        <Jumbotron title="직원등록" content="부정확한 정보 입력이 환인된 경우 계정 이용 불가능합니다" />
+        <Jumbotron title="회원가입" content="학생 및 학부모 회원가입 페이지입니다." />
+
+        {/* 회원 유형 선택 탭 버튼 */}
+        <Row className="mt-4 mb-3">
+            <Col sm={{ span: 9, offset: 3 }}>
+                <div className="btn-group w-100" role="group">
+                    <Button
+                        type="button"
+                        variant={accountType === 'STUDENT' ? 'primary' : 'outline-primary'}
+                        className="py-2 fw-bold"
+                        onClick={() => handleAccountTypeChange('STUDENT')}
+                    >
+                        학생 회원가입
+                    </Button>
+                    <Button
+                        type="button"
+                        variant={accountType === 'PARENT' ? 'primary' : 'outline-primary'}
+                        className="py-2 fw-bold"
+                        onClick={() => handleAccountTypeChange('PARENT')}
+                    >
+                        학부모 회원가입
+                    </Button>
+                </div>
+            </Col>
+        </Row>
+
         {/* 아이디 */}
         <Row className="mt-4">
             <Form.Label column sm={3}>
@@ -458,83 +494,110 @@ export default function EmployeeRegister() {
             </Col>
         </Row>
 
-        {/* 고용일자 */}
-        <Row className="mt-2">
-            <Form.Label column sm={3}>
-                고용일자
-            </Form.Label>
+        {/* 학생 입력 필드 */}
+        {accountType === 'STUDENT' && (<>
 
-            <Col sm={9}>
-                <Form.Control
-                    type="date"
-                    name="employeeHtime"
-                    value={account.employeeHtime}
-                    onChange={changeStringValue}
-                    onBlur={checkEmployeeHtime}
-                    className={result.employeeHtime}
-                    placeholder=""
-                />
-            </Col>
-        </Row>
+            {/* 학교명 */}
+            <Row className="mt-4">
+                <Form.Label column sm={3}>
+                    <span>학교명</span>
+                    <FaAsterisk className="text-danger" />
+                </Form.Label>
+                <Col sm={9}>
+                    <Form.Control
+                        type="text"
+                        name="studentSchool"
+                        value={account.studentSchool}
+                        onChange={changeStringValue}
+                        onBlur={checkStudentSchool}
+                        className={result.studentSchool}
+                        placeholder="학교명을 입력하세요 (예: 한국고등학교)"
+                    />
+                    <div className="invalid-feedback">학교명을 입력해주세요</div>
+                </Col>
+            </Row>
 
-        {/* 직원 유형 */}
-        <Row className="mt-2">
-            <Form.Label column sm={3}>
-                <span>직원 유형</span>
-                <FaAsterisk className="text-danger" />
-            </Form.Label>
+            {/* 학년 */}
+            <Row className="mt-2">
+                <Form.Label column sm={3}>
+                    <span>학년</span>
+                    <FaAsterisk className="text-danger" />
+                </Form.Label>
 
-            <Col sm={9}>
-                <Form.Select
-                    name="employeeType"
-                    value={account.employeeType}
-                    onChange={changeEmployeeType}
-                    className={`form-control ${result.employeeType}`}
-                >
-                    <option value="">직원 유형 선택</option>
-                    <option value="데스크">데스크</option>
-                    <option value="강사">강사</option>
-                    <option value="원장">원장</option>
-                </Form.Select>
-            </Col>
-        </Row>
+                <Col sm={9}>
+                    <Form.Select
+                        name="studentGrade"
+                        value={account.studentGrade}
+                        onChange={changeStringValue}
+                        onBlur={checkStudentGrade}
+                        className={`form-control ${result.studentGrade}`}
+                    >
+                        <option value="">학년 선택</option>
+                        <option value="초1">초1</option>
+                        <option value="초2">초2</option>
+                        <option value="초3">초3</option>
+                        <option value="초4">초4</option>
+                        <option value="초5">초5</option>
+                        <option value="초6">초6</option>
+                        <option value="중1">중1</option>
+                        <option value="중2">중2</option>
+                        <option value="중3">중3</option>
+                        <option value="고1">고1</option>
+                        <option value="고2">고2</option>
+                        <option value="고3">고3</option>
+                    </Form.Select>
+                </Col>
+            </Row>
 
+            {/* 성별 */}
+            <Row className="mt-2">
+                <Form.Label column sm={3}>
+                    <span>성별</span>
+                    <FaAsterisk className="text-danger" />
+                </Form.Label>
 
-        {/* 이용가능여부 */}
-        <Row className="mt-4">
-            <Form.Label column sm={3}>
-                이용가능여부
-                <FaAsterisk className="text-danger" />
-            </Form.Label>
+                <Col sm={9}>
+                    <Form.Select
+                        name="studentGender"
+                        value={account.studentGender}
+                        onChange={changeStringValue}
+                        onBlur={checkStudentGender}
+                        className={`form-control ${result.studentGender}`}
+                    >
+                        <option value="">성별 선택</option>
+                        <option value="남">남</option>
+                        <option value="여">여</option>
+                    </Form.Select>
+                </Col>
+            </Row>
 
-            <Col sm={9}>
-                <Form.Check
-                    type="radio"
-                    label="등록"
-                    name="accountStatus"
-                    value="Y"
-                    checked={account.accountStatus === "Y"}
-                    onChange={e=>
-                        {
-                            changeStringValue(e);
-                            setResult(prev=>({...prev, accountStatus:"is-valid"}))}
-                        }
-                />
-                <Form.Check
-                    type="radio"
-                    label="미등록"
-                    name="accountStatus"
-                    value="N"
-                    checked={account.accountStatus === "N"}
-                    onChange={e=>
-                    {
-                        changeStringValue(e);
-                        setResult(prev=>({...prev, accountStatus:"in-valid"}))}
-                    }
-                />
-            </Col>
-        </Row>
-        
+            <Row className="mt-4">
+                <Form.Label column sm={3}>
+                    <span>특이사항 / 메모</span>
+                </Form.Label>
+                <Col sm={9}>
+                    <Form.Control
+                        as="textarea"
+                        rows={2}
+                        name="studentEtc"
+                        value={account.studentEtc}
+                        onChange={changeStringValue}
+                        placeholder="추가 전달사항이 있을 경우 작성하세요 (선택)"
+                    />
+                </Col>
+            </Row>
+        </>)}
+
+        {/* ================= 학부모 전용 안내 문구 ================= */}
+        {accountType === 'PARENT' && (
+            <Row className="mt-4">
+                <Col sm={{ span: 9, offset: 3 }}>
+                    <div className="alert alert-info mb-0">
+                        학부모 회원은 가입 승인 후 <strong>마이페이지에서 자녀 발급 코드</strong>를 입력하여 자녀 연동을 진행하실 수 있습니다.
+                    </div>
+                </Col>
+            </Row>
+        )}
 
         {/* 버튼 */}
         <Row className="my-5">
@@ -542,8 +605,8 @@ export default function EmployeeRegister() {
                 <Button variant="success" size="lg" className="w-100"
                     disabled={allValid === false} onClick={sendRegister}>
                     <FaUserPlus className="me-2 mb-1" />
-                    <span>직원 등록하기</span>
-                </Button>
+                    <span>{accountType === 'STUDENT' ? '학생 회원가입 신청' : '학부모 회원가입 신청'}</span>
+                    </Button>
             </Col>
         </Row>
     </>)
