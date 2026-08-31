@@ -3,6 +3,7 @@ import { Container, Row, Col, Form, Button, Table } from 'react-bootstrap';
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+import Jumbotron from "@templates/Jumbotron";
 
 import dayjs from 'dayjs';
 import ko from 'dayjs/locale/ko';
@@ -129,6 +130,7 @@ export default function ConsultReservation() {
     }, []);
 
     return (<>
+        <Jumbotron title="상담 예약 목록" content="고객이 신청한 상담 예약 목록" />
         <Container className="p-4">
             {/* 1. 상단 검색 및 필터 영역 */}
             <Row className="mb-4 align-items-end">
