@@ -13,7 +13,7 @@ export default function AssignmentList() {
     const loadAssignmentList = useCallback(async () => {
 
         try {
-            const response = await apiClient.get("/assignment/employee");
+            const response = await apiClient.get("/assignment/manage");
 
             setAssignmentList(response.data);
         }
@@ -53,7 +53,7 @@ export default function AssignmentList() {
 
                 <Button
                     variant="primary"
-                    onClick={() => navigate("/assignment/add")}
+                    onClick={() => navigate("/employee/assignment/add")}
                 >
                     <FaPlus className="me-1" />
                     과제 등록
@@ -132,10 +132,9 @@ export default function AssignmentList() {
                                     size="sm"
                                     onClick={() =>
                                         navigate(
-                                            `/assignment/${assignment.assignmentNo}`
+                                            `/employee/assignment/${assignment.assignmentNo}`
                                         )
-                                    }
-                                >
+                                    }>
                                     상세
                                 </Button>
                             </td>

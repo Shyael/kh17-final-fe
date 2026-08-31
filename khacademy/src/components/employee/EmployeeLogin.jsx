@@ -60,7 +60,7 @@ export default function AccountLogin() {
                 navigate("/account/needUpdate");
             }
             else {//업데이트가 필요하지 않은 일반적인 상황
-                navigate("/");
+                navigate("/employeeHome");
             }
         }
         catch(e){

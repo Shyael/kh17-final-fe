@@ -41,52 +41,158 @@ export default function Menu() {
     }, []);
 
     return (<>
-        <Navbar expand="md" className="bg-body-tertiary sticky-top"
-            bg="dark" data-bs-theme="dark">
-            {isLogin === true ? (<>
-                {/* 메뉴 메인 컨테이너 */}
+        <Navbar
+            expand="md"
+            className="bg-body-tertiary sticky-top"
+            bg="dark"
+            data-bs-theme="dark"
+        >
+            {/* 비로그인 */}
+            {!isLogin && (
                 <Container fluid>
-                    {/* 메인 브랜드 로고 */}
-                    <Navbar.Brand as={Link} to="/">KH정보교육원</Navbar.Brand>
-                    {/* 접이식 버튼(좁은 화면에서만 보임) */}
+                    <Navbar.Brand as={Link} to="/">
+                        KH정보교육원
+                    </Navbar.Brand>
+
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
-                    {/* 접이식 영역(좁은 화면에서만 보임) */}
+
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
-                            <NavDropdown title="상담관리" id="basic-nav-dropdown">
-                                <NavDropdown.Item as={Link} to="/consult/reservation">상담 예약 목록</NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/consult/"></NavDropdown.Item>
-                            </NavDropdown>
-                            <NavDropdown title="외부정보관리" id="basic-nav-dropdown">
-                                <NavDropdown.Item as={Link} to="/employee/academy">학원정보관리</NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/employee/tutor">강사정보리스트</NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/assignment">과제리스트</NavDropdown.Item>
+                            <NavDropdown
+                                title="외부페이지"
+                                id="public-nav-dropdown"
+                            >
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/academy"
+                                >
+                                    학원정보
+                                </NavDropdown.Item>
+
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/academy/tutor"
+                                >
+                                    외부강사목록
+                                </NavDropdown.Item>
                             </NavDropdown>
                         </Nav>
+
                         <Nav>
-                            <Nav.Link as={Link} to="/account/mypage">내정보</Nav.Link>
-                            <Nav.Link onClick={logout}>로그아웃</Nav.Link>
+                            <Nav.Link
+                                as={Link}
+                                to="/employee/login"
+                            >
+                                로그인
+                            </Nav.Link>
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
-            </>) : (<>
+            )}
+
+            {/* 직원 */}
+            {isLogin && isEmployee && (
                 <Container fluid>
-                    <Navbar.Brand as={Link} to="/employee/login">KH정보교육원</Navbar.Brand>
+                    <Navbar.Brand as={Link} to="/">
+                        KH정보교육원
+                    </Navbar.Brand>
+
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav>
-                            <Nav.Link as={Link} to="/employee/login">로그인</Nav.Link>
-                        </Nav>
                         <Nav className="me-auto">
-                            <NavDropdown title="외부페이지" id="basic-nav-dropdown">
-                                <NavDropdown.Item as={Link} to="/academy">학원정보</NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/academy/tutor">외부강사목록</NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/academy/tutor/:tutorNo">강사상세</NavDropdown.Item>
+
+                            <NavDropdown
+                                title="상담관리"
+                                id="consult-nav-dropdown"
+                            >
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/consult/reservation"
+                                >
+                                    상담 예약 목록
+                                </NavDropdown.Item>
                             </NavDropdown>
+
+                            <NavDropdown
+                                title="외부정보관리"
+                                id="employee-nav-dropdown"
+                            >
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/employee/academy"
+                                >
+                                    학원정보관리
+                                </NavDropdown.Item>
+
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/employee/tutor"
+                                >
+                                    강사정보리스트
+                                </NavDropdown.Item>
+
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/employee/assignment"
+                                >
+                                    과제리스트
+                                </NavDropdown.Item>
+                            </NavDropdown>
+
+                        </Nav>
+
+                        <Nav>
+                            <Nav.Link
+                                as={Link}
+                                to="/account/mypage"
+                            >
+                                내정보
+                            </Nav.Link>
+
+                            <Nav.Link onClick={logout}>
+                                로그아웃
+                            </Nav.Link>
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
-            </>)}
+            )}
+
+            {/* 학생 / 학부모 */}
+            {isLogin && !isEmployee && (
+                <Container fluid>
+                    <Navbar.Brand as={Link} to="/">
+                        KH정보교육원
+                    </Navbar.Brand>
+
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="me-auto">
+                            <NavDropdown
+                                title="학습관리"
+                                id="student-nav-dropdown"
+                            >
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/student/assignment">
+                                    내 과제
+                                </NavDropdown.Item>
+                            </NavDropdown>
+                        </Nav>
+
+                        <Nav>
+                            <Nav.Link as={Link} to="/account/mypage">
+                                내정보
+                            </Nav.Link>
+
+                            <Nav.Link onClick={logout}>
+                                로그아웃
+                            </Nav.Link>
+                        </Nav>
+                    </Navbar.Collapse>
+                </Container>
+            )}
         </Navbar>
     </>)
 }
