@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { Container, Row, Col, Form, Button, Table, Modal } from 'react-bootstrap';
+import Swal from "sweetalert2";
 
 export default function ConsultManage() {
 
@@ -21,12 +22,17 @@ export default function ConsultManage() {
     }, [search]);
 
     // 검색 버튼 클릭 핸들러 (가상 데이터 테스트)
-    const handleSearch = () => {
+    const handleSearch = useCallback(() => {
+        if(search.trim().length == 0) {
+            Swal.fire("이름이나 연락처를 입력하세요");
+            return false;
+        }
+
         // 테스트용 가상 검색 결과 2건
-        const mockData = [
-        { id: 1, name: '김학생', phone: '010-1234-5678', email: 'kh1@kh.com' },
-        { id: 2, name: '김학생', phone: '010-8765-4321', email: 'kh_alt@kh.com' }
-        ];
+        // const mockData = [
+        // { id: 1, name: '김학생', phone: '010-1234-5678', email: 'kh1@kh.com' },
+        // { id: 2, name: '김학생', phone: '010-8765-4321', email: 'kh_alt@kh.com' }
+        // ];
 
         if (mockData.length >= 2) {
         setSearchResults(mockData);
@@ -35,7 +41,7 @@ export default function ConsultManage() {
         // 1개일 경우 바로 폼에 데이터 세팅하는 로직을 여기에 작성
         alert('검색 결과가 1건이거나 없습니다.');
         }
-    };
+    }, [search]);
 
     return (<>
     <Container fluid className="p-4">
