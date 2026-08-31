@@ -5,6 +5,7 @@ import { FaCheck, FaPen, FaTrash, FaLock } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
+import Swal from "sweetalert2";
 
 export default function AssignmentDetail() {
     // URL
@@ -186,7 +187,16 @@ export default function AssignmentDetail() {
     // 과제 마감
     const closeAssignment = async () => {
 
-        if (!window.confirm("과제를 마감 상태로 변경하시겠습니까?")) {
+        const result = await Swal.fire({
+            title: "정말 마감하시겠습니까?",
+            text: "마감 후에는 복구할 수 없습니다.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "마감",
+            cancelButtonText: "취소"
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
 
@@ -201,29 +211,64 @@ export default function AssignmentDetail() {
                 }
             );
 
-            toast.success("과제가 마감되었습니다.");
+            await Swal.fire({
+                title: "마감 완료",
+                text: "과제가 마감되었습니다.",
+                icon: "success",
+                confirmButtonText: "확인"
+            });
+
             loadAssignment();
         }
         catch (err) {
             console.error("과제 마감 실패", err);
+
+            Swal.fire({
+                title: "마감 실패",
+                text: "과제 마감 중 오류가 발생했습니다.",
+                icon: "error",
+                confirmButtonText: "확인"
+            });
         }
     };
 
     // 과제 삭제
     const deleteAssignment = async () => {
 
-        if (!window.confirm("과제를 삭제하시겠습니까? 삭제한 정보는 복구할 수 없습니다.")) {
+        const result = await Swal.fire({
+            title: "정말 삭제하시겠습니까?",
+            text: "삭제한 정보는 복구할 수 없습니다.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "삭제",
+            cancelButtonText: "취소"
+        });
+
+        if (!result.isConfirmed) {
             return;
         }
 
         try {
             await apiClient.delete(`/assignment/${assignmentNo}`);
 
-            toast.success("과제가 삭제되었습니다.");
+            await Swal.fire({
+                title: "삭제 완료",
+                text: "과제가 삭제되었습니다.",
+                icon: "success",
+                confirmButtonText: "확인"
+            });
+
             navigate("/employee/assignment");
         }
         catch (err) {
             console.error("과제 삭제 실패", err);
+
+            Swal.fire({
+                title: "삭제 실패",
+                text: "과제 삭제 중 오류가 발생했습니다.",
+                icon: "error",
+                confirmButtonText: "확인"
+            });
         }
     };
 

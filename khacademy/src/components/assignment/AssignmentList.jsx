@@ -46,13 +46,14 @@ export default function AssignmentList() {
 
     return (
         <>
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
                 <h3 className="mb-0">
                     과제 관리
                 </h3>
 
                 <Button
                     variant="primary"
+                    className="flex-shrink-0"
                     onClick={() => navigate("/employee/assignment/add")}
                 >
                     <FaPlus className="me-1" />
@@ -66,9 +67,10 @@ export default function AssignmentList() {
                 hover
                 responsive
                 className="align-middle text-center"
+                style={{ minWidth: 720 }}
             >
                 <thead>
-                    <tr>
+                    <tr className="text-nowrap">
                         <th>번호</th>
                         <th>강의명</th>
                         <th>과제명</th>
@@ -108,7 +110,7 @@ export default function AssignmentList() {
                                 {statusBadge(assignment.assignmentStatus)}
                             </td>
 
-                            <td>
+                            <td className="text-nowrap">
                                 {assignment.assignmentDueDate
                                     ? new Date(
                                         assignment.assignmentDueDate
@@ -117,7 +119,7 @@ export default function AssignmentList() {
                                 }
                             </td>
 
-                            <td>
+                            <td className="text-nowrap">
                                 {assignment.assignmentWtime
                                     ? new Date(
                                         assignment.assignmentWtime
@@ -126,7 +128,7 @@ export default function AssignmentList() {
                                 }
                             </td>
 
-                            <td>
+                            <td className="text-nowrap">
                                 <Button
                                     variant="outline-primary"
                                     size="sm"

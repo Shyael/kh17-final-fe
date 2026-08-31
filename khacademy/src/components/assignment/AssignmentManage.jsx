@@ -27,6 +27,9 @@ export default function AssignmentManage() {
         assignmentDueDate: ""
     });
 
+    // 마감일시는 현재 이후만 선택 가능
+    const filterFutureTime = (time) => new Date().getTime() < new Date(time).getTime();
+
     // 입력값 변경
     const changeAssignmentValue = (e) => {
         const { name, value } = e.target;
@@ -104,6 +107,12 @@ export default function AssignmentManage() {
             return;
         }
 
+        if (assignment.assignmentDueDate
+            && new Date(assignment.assignmentDueDate).getTime() <= Date.now()) {
+            toast.error("마감일시는 현재 시간 이후로 설정해주세요.");
+            return;
+        }
+
         try {
             const response = await apiClient.post(
                 "/assignment/",
@@ -134,6 +143,12 @@ export default function AssignmentManage() {
 
         if (!assignment.assignmentContent.trim()) {
             toast.error("과제 안내를 입력해주세요.");
+            return;
+        }
+
+        if (assignment.assignmentDueDate
+            && new Date(assignment.assignmentDueDate).getTime() <= Date.now()) {
+            toast.error("마감일시는 현재 시간 이후로 설정해주세요.");
             return;
         }
 
@@ -229,6 +244,8 @@ export default function AssignmentManage() {
                     }}
                     showTimeSelect
                     timeIntervals={10}
+                    minDate={new Date()}
+                    filterTime={filterFutureTime}
                     dateFormat="yyyy-MM-dd HH:mm"
                     placeholderText="마감일시를 선택하세요"
                 />
