@@ -14,7 +14,8 @@ export default function AccountLogin() {
     //state
     const [account, setAccount] = useState({
         accountId: "",
-        accountPassword: ""
+        accountPassword: "",
+        loginType: "회원"
     });
     //jotai state
     //const [loginUser, setLoginUser] = useAtom(loginUserState);
@@ -44,6 +45,7 @@ export default function AccountLogin() {
         try {
             //const {data} = await axios.post("/service/auth/login", account);
             const { data } = await authClient.post("/login", account);
+
             //로그인 성공 → data를 jotai storage에 저장하자!
             console.log(data);
             //setLoginUser(data);//jotai storage에 저장 완료
@@ -59,19 +61,22 @@ export default function AccountLogin() {
                 navigate("/account/needUpdate");
             }
             else {//업데이트가 필요하지 않은 일반적인 상황
-                navigate("/employeeHome");
+                navigate("/");
             }
         }
         catch (e) {
-            const status = e.response?.status;
+            //로그인 실패가 경우가 나눠진다
+            //- 404 : 정보 불일치
+            //- 403 : 차단된 회원
+            //console.log(Object.keys(e));
+            //console.log(e.response);
+            //console.log(e.status);//우리가 원하는거
+            //console.log(typeof e.status);//자료형 확인
 
-            console.log("에러:", e);
-            console.log("응답:", e.response);
-            console.log("상태 코드:", e.response?.data);
-            if (e.response?.status === 403) {
+            if (e.status === 403) {
                 navigate("/account/block");
             }
-            else if (e.response?.status === 404) {
+            else if (e.status === 404) {
                 await Swal.fire("정보가 일치하지 않습니다");
             }
             else {//500
@@ -81,7 +86,7 @@ export default function AccountLogin() {
     }, [account]);
 
     return (<>
-        <Jumbotron title="직원 로그인" content="로그인을 위한 정보를 입력해주세요" />
+        <Jumbotron title="회원 로그인" content="로그인을 위한 정보를 입력해주세요" />
 
         <Row className="mt-4">
             <Form.Label column sm={3}>아이디</Form.Label>
@@ -114,7 +119,7 @@ export default function AccountLogin() {
                 <Button variant="link"
                     onClick={() => navigate("/account/find", {
                         state: {
-                            loginPath: "/employee/login"
+                            loginPath: "/member/login"
                         }
                     })} >
                     아이디 찾기
@@ -123,7 +128,7 @@ export default function AccountLogin() {
                 <Button variant="link"
                     onClick={() => navigate("/account/find", {
                         state: {
-                            loginPath: "/employee/login"
+                            loginPath: "/member/login"
                         }
                     })} >
                     비밀번호 찾기
