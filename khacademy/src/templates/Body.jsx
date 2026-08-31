@@ -43,7 +43,7 @@ export default function Body() {
 
             {/* 학생 */}
             <Route path="/student/list" element={<Employee><StudentList/></Employee>} />
-            <Route path="/student/detail" element={<Employee><StudentDetail/></Employee>} />
+            <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail/></Employee>} />
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>
