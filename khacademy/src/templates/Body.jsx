@@ -56,6 +56,7 @@ export default function Body() {
             <Route path="/employee/assignment/add" element={<AssignmentManage />} />
             <Route path="/employee/assignment/:assignmentNo" element={<AssignmentDetail />} />
             <Route path="/employee/assignment/:assignmentNo/edit" element={<AssignmentManage />} />
+            <Route path="/employee/assignment/:assignmentNo/submit/:submitNo" element={<StudentAssignmentDetail />}/>
 
             {/* 비로그인 학원정보 */}
             <Route path="/academy" element={<AcademyInfo />} />
@@ -64,8 +65,8 @@ export default function Body() {
 
             {/* 학생 과제 */}
             <Route path="/student/assignment" element={<StudentAssignmentList />}/>
-            <Route path="/student/assignment/:assignmentNo" element={<StudentAssignmentDetail />}/>
             <Route path="/student/assignment/:assignmentNo/submit" element={<StudentAssignmentManage />}/>
+            <Route path="/student/assignment/:assignmentNo/submit/:submitNo" element={<StudentAssignmentDetail />}/>
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>

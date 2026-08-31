@@ -70,14 +70,15 @@ export default function StudentAssignmentList() {
 
     // 상태별 액션 버튼
     const actionButton = (assignment, status) => {
-        const to = `/student/assignment/${assignment.assignmentNo}`;
+        const to = `/student/assignment/${assignment.assignmentNo}/submit`;
+        const detail = `/student/assignment/${assignment.assignmentNo}/submit/${assignment.submitNo}`;
         switch (status) {
             case "채점완료":
                 return (
                     <Button
                         variant="outline-success"
                         size="sm"
-                        onClick={() => navigate(to)}>
+                        onClick={() => navigate(detail)}>
                         피드백보기
                     </Button>
                 );
@@ -86,7 +87,7 @@ export default function StudentAssignmentList() {
                     <Button
                         variant="outline-secondary"
                         size="sm"
-                        onClick={() => navigate(to)}>
+                        onClick={() => navigate(detail)}>
                         제출보기
                     </Button>
                 );
