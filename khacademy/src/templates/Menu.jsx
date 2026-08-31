@@ -1,10 +1,10 @@
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
+import { loginUserState } from "@utils/storage";
 import Container from 'react-bootstrap/Container';
 import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Link } from "react-router-dom";
-import { loginUserState } from "@utils/storage";
 import { useCallback, useMemo } from "react";
 import { RESET } from "jotai/utils";
 import { isLoginState, isEmployeeState } from "@utils/storage";
@@ -150,7 +150,7 @@ export default function Menu() {
                             <Nav>
                                 <Nav.Link
                                     as={Link}
-                                    to="/account/mypage"
+                                    to={`/employee/myInfo`}
                                 >
                                     내정보
                                 </Nav.Link>

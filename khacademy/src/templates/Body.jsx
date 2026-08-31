@@ -1,4 +1,6 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
+import { useAtomValue } from "jotai";
+import { isLoginState } from "@utils/storage";
 
 import EmployeeHome from "@components/EmployeeHome";
 import MemberHome from "@components/MemberHome";
@@ -42,42 +44,58 @@ import StudentAssignmentManage from "@components/student/assignment/StudentAssig
 
 export default function Body() {
 
+    const isLogin = useAtomValue(isLoginState);
+
     return (
         <Routes>
             {/* 계정 - 아이디 비밀번호 찾기 */}
-            <Route path="/account/find" element={<AccountFind/>} />
+            <Route path="/account/find" element={<AccountFind />} />
 
             {/* 직원 로그인 */}
-            <Route path="/employee/login" element={<EmployeeLogin/>} />
+            <Route
+                path="/employee/login"
+                element={
+                    isLogin
+                        ? <Navigate to="/employeeHome" replace />
+                        : <EmployeeLogin />
+                }
+            />
 
             {/* 직원 등록(원장, 데스크) */}
-            <Route path="/employee/register" element={<EmployeeRegister/>}/>
-            <Route path="/employee/registerSuccess" element={<EmployeeRegisterSuccess/>}/>
-            <Route path="/employee/registerFail" element={<EmployeeRegisterFail/>}/>
-            <Route path="/employee/password" element={<EmployeePassword/>}/>
-            <Route path="/employee/myInfo/:employeeNo" element={<EmployeeMyInfo/>}/>
+            <Route path="/employee/register" element={<EmployeeRegister />} />
+            <Route path="/employee/registerSuccess" element={<EmployeeRegisterSuccess />} />
+            <Route path="/employee/registerFail" element={<EmployeeRegisterFail />} />
+            <Route path="/employee/password" element={<EmployeePassword />} />
+            <Route path="/employee/myInfo"element={<Employee><EmployeeMyInfo /></Employee>}/>
             
             {/* 회원 가입(학생, 학부모) */}
-            <Route path="/member/login" element={<MemberLogin/>}/>
-            <Route path="/member/join" element={<MemberJoin/>}/>
-            <Route path="/member/joinSuccess" element={<MemberJoinSuccess/>}/>
-            <Route path="/member/joinFail" element={<MemberJoinFail/>}/>
+            <Route 
+                path="/member/login" 
+                element={
+                    isLogin
+                    ? <Navigate to="/memberHome" replace />
+                    : <MemberLogin />
+                } 
+            />
+            <Route path="/member/join" element={<MemberJoin />} />
+            <Route path="/member/joinSuccess" element={<MemberJoinSuccess />} />
+            <Route path="/member/joinFail" element={<MemberJoinFail />} />
             {/* 상담 */}
-            <Route path="/consult/reservation" element={<Employee><ConsultReservation/></Employee>} />
+            <Route path="/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />
 
 
             {/* 직원 홈페이지(대시보드) */}
-            <Route path="/employeeHome" element={<Employee><EmployeeHome/></Employee>} />
+            <Route path="/employeeHome" element={<Employee><EmployeeHome /></Employee>} />
 
             {/* 멤버 홈페이지(대시보드) */}
-            <Route path="/" element={<Member><MemberHome/></Member>} />
+            <Route path="/" element={<Member><MemberHome /></Member>} />
 
             {/* 상담 */}
-            <Route path="/consult/reservation" element={<Employee><ConsultReservation/></Employee>} />
+            <Route path="/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />
 
             {/* 외부화면 정보 관리(직원 로그인 완료 되면 employee 추가해야함) */}
-            <Route path="/employee/academy" element={<AcademyManage/>}/>
-            <Route path="/employee/tutor" element={<TutorList/>} />
+            <Route path="/employee/academy" element={<AcademyManage />} />
+            <Route path="/employee/tutor" element={<TutorList />} />
             <Route path="/employee/tutor/add" element={<TutorManage />} />
             <Route path="/employee/tutor/:tutorNo" element={<TutorManage />} />
 
@@ -93,12 +111,12 @@ export default function Body() {
             <Route path="/academy/tutor/:tutorNo" element={<AcademyTutorDetail />} />
 
             {/* 학생 과제 */}
-            <Route path="/student/assignment" element={<StudentAssignmentList />}/>
-            <Route path="/student/assignment/:assignmentNo" element={<StudentAssignmentDetail />}/>
-            <Route path="/student/assignment/:assignmentNo/submit" element={<StudentAssignmentManage />}/>
+            <Route path="/student/assignment" element={<StudentAssignmentList />} />
+            <Route path="/student/assignment/:assignmentNo" element={<StudentAssignmentDetail />} />
+            <Route path="/student/assignment/:assignmentNo/submit" element={<StudentAssignmentManage />} />
 
             {/* fallback route */}
-            <Route path="*" element={<NotFound/>}/>
+            <Route path="*" element={<NotFound />} />
         </Routes>
     )
 }
