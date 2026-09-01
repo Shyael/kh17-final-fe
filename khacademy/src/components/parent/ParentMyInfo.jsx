@@ -4,41 +4,56 @@ import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
 
-export default function EmployeeMyInfo() {
+export default function ParentMyInfo() {
 
-    const [employee, setEmployee] = useState(null);
+    const [parent, setParent] = useState(null);
+
+    // 비밀번호 확인 모달
     const [passwordModal, setPasswordModal] = useState(false);
+
+    // 수정 모드
     const [editMode, setEditMode] = useState(false);
+
+    // 비밀번호
     const [password, setPassword] = useState("");
     const [passwordError, setPasswordError] = useState(false);
 
-    // 직원 정보 조회
-    const loadEmployee = useCallback(async () => {
+
+    // =========================
+    // 학부모 정보 조회
+    // =========================
+    const loadParent = useCallback(async () => {
         try {
-            const { data } = await apiClient.get("/employee/me");
+            const { data } = await apiClient.get("/parent/me");
 
-            console.log("직원 정보 =", data);
+            console.log("학부모 정보 =", data);
 
-            setEmployee(data);
+            setParent(data);
         }
         catch (e) {
-            console.log("직원 정보 조회 실패 =", e);
+            console.error("학부모 정보 조회 실패 =", e);
 
             await Swal.fire(
-                "직원 정보를 불러오지 못했습니다."
+                "조회 실패",
+                "학부모 정보를 불러오지 못했습니다.",
+                "error"
             );
         }
     }, []);
 
-    useEffect(() => {
-        loadEmployee();
-    }, [loadEmployee]);
 
-    //비밀번호 확인 함수
+    useEffect(() => {
+        loadParent();
+    }, [loadParent]);
+
+
+    // =========================
+    // 비밀번호 확인
+    // =========================
     const checkPassword = useCallback(async () => {
         try {
             const { data } = await apiClient.post(
-                "/employee/password-check",
+                "/parent/password-check",
                 {
                     accountPassword: password
                 }
@@ -47,6 +62,7 @@ export default function EmployeeMyInfo() {
             if (data === true) {
                 setPasswordModal(false);
                 setEditMode(true);
+
                 setPassword("");
                 setPasswordError(false);
             }
@@ -55,62 +71,77 @@ export default function EmployeeMyInfo() {
             }
         }
         catch (error) {
-            console.error(error);
+            console.error("비밀번호 확인 실패 =", error);
+
             setPasswordError(true);
         }
     }, [password]);
 
+
+    // =========================
+    // 입력값 변경
+    // =========================
     const changeStringValue = useCallback((e) => {
         const { name, value } = e.target;
 
-        setEmployee(prev => ({
+        setParent(prev => ({
             ...prev,
             [name]: value
         }));
     }, []);
 
-    // 직원 정보 수정
+
+    // =========================
+    // 학부모 정보 수정
+    // =========================
     const sendUpdate = useCallback(async (e) => {
         e.preventDefault();
 
         try {
-            const { data } = await apiClient.put("/employee/", {
-                accountName: employee.accountName,
-                accountPhone: employee.accountPhone,
-                accountBirth: employee.accountBirth
-            });
+            const { data } = await apiClient.put(
+                "/parent/",
+                {
+                    accountName: parent.accountName,
+                    accountPhone: parent.accountPhone,
+                    accountBirth: parent.accountBirth
+                }
+            );
 
-            console.log("직원 정보 수정 결과 =", data);
+            console.log("학부모 정보 수정 결과 =", data);
 
             await Swal.fire(
                 "수정 완료",
-                "직원 정보가 수정되었습니다.",
+                "개인정보가 수정되었습니다.",
                 "success"
             );
 
             // 수정 모드 종료
             setEditMode(false);
 
-            // 수정된 최신 정보 다시 조회
-            loadEmployee();
+            // 최신 정보 다시 조회
+            loadParent();
         }
         catch (error) {
-            console.error("직원 정보 수정 실패 =", error);
+            console.error("학부모 정보 수정 실패 =", error);
 
             await Swal.fire(
                 "수정 실패",
-                "직원 정보 수정에 실패했습니다.",
+                "개인정보 수정에 실패했습니다.",
                 "error"
             );
         }
-    }, [employee, loadEmployee]);
+    }, [parent, loadParent]);
 
-    if (employee === null) {
+
+    // =========================
+    // 로딩
+    // =========================
+    if (parent === null) {
         return (
             <>
                 <Jumbotron
                     title="내 정보"
-                    content="직원 정보를 불러오는 중입니다."
+                    content="학부모 정보를 불러오는 중입니다."
                 />
 
                 <div className="text-center mt-5">
@@ -125,131 +156,166 @@ export default function EmployeeMyInfo() {
         <>
             {editMode ? (
                 <>
+                    {/* =========================
+                        수정 화면
+                    ========================= */}
+
                     <Jumbotron
                         title="내 정보 수정"
                         content="개인정보를 수정할 수 있습니다."
                     />
 
-                    <Form>
-                        {/* 이름 */}
-                        <Row className="mb-4">
-                            <Form.Label column sm={3}>
-                                이름
-                            </Form.Label>
-                            <Col sm={9}>
-                                <Form.Control
-                                    type="text"
-                                    name="accountName"
-                                    value={employee.accountName}
-                                    onChange={changeStringValue}
-                                />
-                            </Col>
-                        </Row>
+                    <Row className="mt-5">
+                        <Col md={8} className="mx-auto">
 
-                        {/* 연락처 */}
-                        <Row className="mb-4">
-                            <Form.Label column sm={3}>
-                                연락처
-                            </Form.Label>
-                            <Col sm={9}>
-                                <Form.Control
-                                    type="text"
-                                    name="accountPhone"
-                                    value={employee.accountPhone}
-                                    onChange={changeStringValue}
-                                />
-                            </Col>
-                        </Row>
+                            <Form onSubmit={sendUpdate}>
 
-                        {/* 생년월일 */}
-                        <Row className="mb-4">
-                            <Form.Label column sm={3}>
-                                생년월일
-                            </Form.Label>
-                            <Col sm={9}>
-                                <Form.Control
-                                    type="date"
-                                    name="accountBirth"
-                                    value={employee.accountBirth}
-                                    onChange={changeStringValue}
-                                />
-                            </Col>
-                        </Row>
+                                {/* 이름 */}
+                                <Row className="mb-4">
+                                    <Form.Label column sm={3}>
+                                        이름
+                                    </Form.Label>
 
-                        {/* 버튼 */}
-                        <Row className="mt-5">
-                            <Col className="text-end">
-                                <Button
-                                    variant="secondary"
-                                    className="me-2"
-                                    onClick={() => setEditMode(false)}
-                                >
-                                    취소
-                                </Button>
+                                    <Col sm={9}>
+                                        <Form.Control
+                                            type="text"
+                                            name="accountName"
+                                            value={parent.accountName ?? ""}
+                                            onChange={changeStringValue}
+                                        />
+                                    </Col>
+                                </Row>
 
-                                <Button
-                                    variant="success"
-                                    onClick={sendUpdate}
-                                >
-                                    수정
-                                </Button>
-                            </Col>
-                        </Row>
-                    </Form>
+
+                                {/* 연락처 */}
+                                <Row className="mb-4">
+                                    <Form.Label column sm={3}>
+                                        연락처
+                                    </Form.Label>
+
+                                    <Col sm={9}>
+                                        <Form.Control
+                                            type="tel"
+                                            name="accountPhone"
+                                            value={parent.accountPhone ?? ""}
+                                            onChange={changeStringValue}
+                                        />
+                                    </Col>
+                                </Row>
+
+
+                                {/* 생년월일 */}
+                                <Row className="mb-4">
+                                    <Form.Label column sm={3}>
+                                        생년월일
+                                    </Form.Label>
+
+                                    <Col sm={9}>
+                                        <Form.Control
+                                            type="date"
+                                            name="accountBirth"
+                                            value={parent.accountBirth ?? ""}
+                                            onChange={changeStringValue}
+                                        />
+                                    </Col>
+                                </Row>
+
+
+                                {/* 버튼 */}
+                                <Row className="mt-5">
+                                    <Col className="text-end">
+
+                                        <Button
+                                            type="button"
+                                            variant="secondary"
+                                            className="me-2"
+                                            onClick={() => {
+                                                setEditMode(false);
+
+                                                // 수정 취소하면 원래 정보 다시 조회
+                                                loadParent();
+                                            }}
+                                        >
+                                            취소
+                                        </Button>
+
+                                        <Button
+                                            type="submit"
+                                            variant="success"
+                                        >
+                                            수정
+                                        </Button>
+
+                                    </Col>
+                                </Row>
+
+                            </Form>
+
+                        </Col>
+                    </Row>
                 </>
             ) : (
                 <>
+                    {/* =========================
+                        조회 화면
+                    ========================= */}
+
                     <Jumbotron
                         title="내 정보"
-                        content="내 계정 및 직원 정보를 확인할 수 있습니다."
+                        content="내 계정 및 학부모 정보를 확인할 수 있습니다."
                     />
 
                     <Row className="mt-5">
                         <Col md={8} className="mx-auto">
 
-                            {/* 직원번호 */}
+
+                            {/* 학부모 번호 */}
                             <Row className="mb-4">
                                 <Form.Label column sm={3}>
-                                    직원번호
+                                    학부모번호
                                 </Form.Label>
 
                                 <Col sm={9}>
                                     <Form.Control
                                         type="text"
-                                        value={employee.employeeNo}
+                                        value={parent.parentNo ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
 
-                            {/* 유형 */}
+
+                            {/* 자녀 학생 번호 */}
                             <Row className="mb-4">
                                 <Form.Label column sm={3}>
-                                    유형
+                                    학생번호
                                 </Form.Label>
 
                                 <Col sm={9}>
                                     <Form.Control
                                         type="text"
-                                        value={employee.accountType}
+                                        value={parent.studentNo ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
-                            {/* 직원유형 */}
+
+
+                            {/* 학생과의 관계 */}
                             <Row className="mb-4">
                                 <Form.Label column sm={3}>
-                                    직원유형
+                                    학생과의 관계
                                 </Form.Label>
 
                                 <Col sm={9}>
                                     <Form.Control
                                         type="text"
-                                        value={employee.employeeType}
+                                        value={parent.relationship ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
+
 
                             {/* 아이디 */}
                             <Row className="mb-4">
@@ -260,11 +326,12 @@ export default function EmployeeMyInfo() {
                                 <Col sm={9}>
                                     <Form.Control
                                         type="email"
-                                        value={employee.accountId}
+                                        value={parent.accountId ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
+
 
                             {/* 이름 */}
                             <Row className="mb-4">
@@ -275,24 +342,28 @@ export default function EmployeeMyInfo() {
                                 <Col sm={9}>
                                     <Form.Control
                                         type="text"
-                                        value={employee.accountName}
+                                        value={parent.accountName ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
+
+
                             {/* 생년월일 */}
                             <Row className="mb-4">
                                 <Form.Label column sm={3}>
                                     생년월일
                                 </Form.Label>
+
                                 <Col sm={9}>
                                     <Form.Control
                                         type="date"
-                                        value={employee.accountBirth}
+                                        value={parent.accountBirth ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
+
 
                             {/* 연락처 */}
                             <Row className="mb-4">
@@ -303,30 +374,12 @@ export default function EmployeeMyInfo() {
                                 <Col sm={9}>
                                     <Form.Control
                                         type="tel"
-                                        value={employee.accountPhone}
+                                        value={parent.accountPhone ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
 
-                            {/* 입사일 */}
-                            <Row className="mb-4">
-                                <Form.Label column sm={3}>
-                                    입사일
-                                </Form.Label>
-
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="text"
-                                        value={
-                                            employee.employeeHtime
-                                                ? employee.employeeHtime.substring(0, 10)
-                                                : ""
-                                        }
-                                        readOnly
-                                    />
-                                </Col>
-                            </Row>
 
                             {/* 계정 상태 */}
                             <Row className="mb-4">
@@ -337,11 +390,12 @@ export default function EmployeeMyInfo() {
                                 <Col sm={9}>
                                     <Form.Control
                                         type="text"
-                                        value={employee.accountStatus}
+                                        value={parent.accountStatus ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
+
 
                             {/* 계정 유형 */}
                             <Row className="mb-4">
@@ -352,13 +406,14 @@ export default function EmployeeMyInfo() {
                                 <Col sm={9}>
                                     <Form.Control
                                         type="text"
-                                        value={employee.accountType}
+                                        value={parent.accountType ?? ""}
                                         readOnly
                                     />
                                 </Col>
                             </Row>
 
-                            {/* 수정일 */}
+
+                            {/* 정보 수정일 */}
                             <Row className="mb-4">
                                 <Form.Label column sm={3}>
                                     정보 수정일
@@ -368,8 +423,10 @@ export default function EmployeeMyInfo() {
                                     <Form.Control
                                         type="text"
                                         value={
-                                            employee.accountUtime
-                                                ? new Date(employee.accountUtime).toLocaleDateString("ko-KR")
+                                            parent.accountUtime
+                                                ? new Date(
+                                                    parent.accountUtime
+                                                ).toLocaleDateString("ko-KR")
                                                 : ""
                                         }
                                         readOnly
@@ -377,9 +434,11 @@ export default function EmployeeMyInfo() {
                                 </Col>
                             </Row>
 
-                            {/* 버튼 */}
+
+                            {/* 수정 버튼 */}
                             <Row className="mt-5">
                                 <Col className="text-end">
+
                                     <Button
                                         variant="success"
                                         onClick={() => {
@@ -390,6 +449,7 @@ export default function EmployeeMyInfo() {
                                     >
                                         정보 수정
                                     </Button>
+
                                 </Col>
                             </Row>
 
@@ -399,17 +459,27 @@ export default function EmployeeMyInfo() {
             )}
 
 
+            {/* =========================
+                비밀번호 확인 모달
+            ========================= */}
+
             <Modal
                 show={passwordModal}
                 onHide={() => setPasswordModal(false)}
                 centered
             >
                 <Modal.Header closeButton>
-                    <Modal.Title>비밀번호 확인</Modal.Title>
+                    <Modal.Title>
+                        비밀번호 확인
+                    </Modal.Title>
                 </Modal.Header>
 
+
                 <Modal.Body>
-                    <p>개인정보 수정을 위해 현재 비밀번호를 입력해주세요.</p>
+
+                    <p>
+                        개인정보 수정을 위해 현재 비밀번호를 입력해주세요.
+                    </p>
 
                     <Form.Control
                         type="password"
@@ -417,6 +487,11 @@ export default function EmployeeMyInfo() {
                         onChange={e => {
                             setPassword(e.target.value);
                             setPasswordError(false);
+                        }}
+                        onKeyDown={e => {
+                            if (e.key === "Enter" && password !== "") {
+                                checkPassword();
+                            }
                         }}
                         placeholder="현재 비밀번호"
                     />
@@ -426,11 +501,19 @@ export default function EmployeeMyInfo() {
                             비밀번호가 일치하지 않습니다.
                         </div>
                     )}
+
                 </Modal.Body>
+
+
                 <Modal.Footer>
+
                     <Button
                         variant="secondary"
-                        onClick={() => setPasswordModal(false)}
+                        onClick={() => {
+                            setPasswordModal(false);
+                            setPassword("");
+                            setPasswordError(false);
+                        }}
                     >
                         취소
                     </Button>
@@ -442,10 +525,10 @@ export default function EmployeeMyInfo() {
                     >
                         확인
                     </Button>
+
                 </Modal.Footer>
             </Modal>
+
         </>
     );
-
-
 }

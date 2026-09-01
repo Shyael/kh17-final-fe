@@ -11,6 +11,7 @@ import EmployeeRegister from "@components/employee/EmployeeRegister";
 import EmployeeRegisterSuccess from "@components/employee/EmployeeRegisterSuccess";
 import EmployeeRegisterFail from "@components/employee/EmployeeRegisterFail";
 import EmployeePassword from "@components/employee/EmployeePassword";
+import EmployeeMyInfo from "@components/employee/EmployeeMyInfo";
 
 import MemberLogin from "@components/member/MemberLogin";
 import MemberJoin from "@components/member/MemberJoin";
@@ -27,7 +28,6 @@ import Member from "@guard/Member";
 import AcademyManage from "@components/employee/academy/AcademyManage";
 import TutorManage from "@components/employee/tutor/TutorManage";
 import TutorList from "@components/employee/tutor/TutorList";
-import EmployeeMyInfo from "@components/employee/EmployeeMyInfo";
 
 import AcademyInfo from "@components/academy/AcademyInfo";
 import AcademyTutorList from "@components/academy/AcademyTutorList";
@@ -40,7 +40,9 @@ import AssignmentDetail from "@components/assignment/AssignmentDetail";
 import StudentAssignmentList from "@components/student/assignment/StudentAssignmentList";
 import StudentAssignmentDetail from "@components/student/assignment/StudentAssignmentDetail";
 import StudentAssignmentManage from "@components/student/assignment/StudentAssignmentManage";
+import StudentMyInfo from "@components/student/StudentMyInfo";
 
+import ParentMyInfo from "@components/parent/ParentMyInfo";
 
 export default function Body() {
 
@@ -61,10 +63,12 @@ export default function Body() {
                 }
             />
 
-            {/* 직원 등록(원장, 데스크) */}
+            {/* 직원(원장, 데스크) */}
             <Route path="/employee/register" element={<EmployeeRegister />} />
             <Route path="/employee/registerSuccess" element={<EmployeeRegisterSuccess />} />
             <Route path="/employee/registerFail" element={<EmployeeRegisterFail />} />
+            
+            {/* 직원(원장, 데스크, 강사) */}
             <Route path="/employee/password" element={<EmployeePassword />} />
             <Route path="/employee/myInfo"element={<Employee><EmployeeMyInfo /></Employee>}/>
             
@@ -77,6 +81,11 @@ export default function Body() {
                     : <MemberLogin />
                 } 
             />
+            {/* 학생 */}
+            <Route path="/student/myInfo"element={<Member><StudentMyInfo /></Member>}/>
+            {/* 학부모 */}
+            <Route path="/Parent/myInfo"element={<Member><ParentMyInfo /></Member>}/>
+            {/* 학부모 학생 */}
             <Route path="/member/join" element={<MemberJoin />} />
             <Route path="/member/joinSuccess" element={<MemberJoinSuccess />} />
             <Route path="/member/joinFail" element={<MemberJoinFail />} />
