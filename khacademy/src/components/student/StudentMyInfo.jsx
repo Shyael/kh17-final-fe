@@ -332,6 +332,21 @@ export default function StudentMyInfo() {
                                 </Col>
                             </Row>
 
+                            {/* 학부모 번호 */}
+                            <Row className="mb-4">
+                                <Form.Label column sm={3}>
+                                    학부모번호
+                                </Form.Label>
+
+                                <Col sm={9}>
+                                    <Form.Control
+                                        type="text"
+                                        value={student.parentNo ?? ""}
+                                        readOnly
+                                    />
+                                </Col>
+                            </Row>
+
 
                             {/* 계정 유형 */}
                             <Row className="mb-4">
@@ -514,6 +529,16 @@ export default function StudentMyInfo() {
                             <Row className="mt-5">
                                 <Col className="text-end">
 
+                                    {/* 학부모 연동 코드 */}
+                                    <Button
+                                        variant="primary"
+                                        className="me-2"
+                                        onClick={createLinkCode}
+                                    >
+                                        학부모 연동 코드
+                                    </Button>
+
+                                    {/* 정보 수정 */}
                                     <Button
                                         variant="success"
                                         onClick={() => {
