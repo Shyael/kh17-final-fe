@@ -4,6 +4,7 @@ import { Badge, Button, Card, Col, Row } from "react-bootstrap";
 import { FaArrowRight, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
+import { Carousel } from "react-bootstrap";
 
 import {
     Map,
@@ -29,7 +30,8 @@ export default function AcademyInfo() {
             academyAddress: ""
         },
         historyList: [],
-        subjectList: []
+        subjectList: [],
+        imageList: []
     });
 
     const [tutorList, setTutorList] = useState([]);
@@ -136,11 +138,32 @@ export default function AcademyInfo() {
             {/* 메인 배너 이미지 (Lorem Picsum 자리잡기) */}
             <Row>
                 <Col>
-                    <img
-                        src="https://picsum.photos/seed/academy-main/1200/400"
-                        alt="메인 배너 이미지"
-                        className="img-fluid rounded w-100"
-                        style={{ objectFit: "cover", maxHeight: "400px" }} />
+                    {academy.imageList?.length > 0 ? (
+                        <Carousel>
+                            {academy.imageList.map((image) => (
+                                <Carousel.Item key={image.attachNo}>
+                                    <img
+                                        src={`${import.meta.env.VITE_SERVER_URL}/api/attach/${image.attachNo}`}
+                                        alt={image.attachName}
+                                        className="d-block w-100 rounded"
+                                        style={{
+                                            height: "400px",
+                                            objectFit: "cover"
+                                        }}
+                                    />
+                                </Carousel.Item>
+                            ))}
+                        </Carousel>
+                    ) : (
+                        <div
+                            className="d-flex justify-content-center align-items-center bg-light rounded"
+                            style={{ height: "400px" }}
+                        >
+                            <span className="text-muted">
+                                등록된 이미지가 없습니다.
+                            </span>
+                        </div>
+                    )}
                 </Col>
             </Row>
 

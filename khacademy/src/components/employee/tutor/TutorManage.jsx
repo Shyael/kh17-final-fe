@@ -1,5 +1,5 @@
 import Jumbotron from "@templates/Jumbotron";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { FaCheck, FaPlus, FaTrash, FaXmark } from "react-icons/fa6";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -30,6 +30,42 @@ export default function TutorManage() {
 
     // 등록 가능한 직원 목록
     const [employeeList, setEmployeeList] = useState([]);
+
+    // 강사 이미지 (신규 업로드, 1장만)
+    const [image, setImage] = useState(null);
+    const imageRef = useRef();
+    const [previewImage, setPreviewImage] = useState(null);
+
+    // 기존에 등록되어 있는 이미지
+    const [beforeImage, setBeforeImage] = useState(null);
+
+    useEffect(() => {
+        if (!image) {
+            setPreviewImage(null);
+            return;
+        }
+        const url = URL.createObjectURL(image);
+        setPreviewImage(url);
+        return () => {
+            URL.revokeObjectURL(url);
+        };
+    }, [image]);
+
+    const changeImage = useCallback((e) => {
+        setImage(e.target.files[0] ?? null);
+    }, []);
+
+    const clearImage = useCallback(() => {
+        setImage(null);
+    }, []);
+
+    useEffect(() => {
+        if (image) return;
+
+        if (imageRef.current) {
+            imageRef.current.value = "";
+        }
+    }, [image]);
 
     // 학원에 등록된 과목 목록=
     const [academySubjectList, setAcademySubjectList] = useState([]);
@@ -103,6 +139,9 @@ export default function TutorManage() {
                         careerList: data.careerList ?? [],
                         subjectList: subjectList
                     });
+
+                    // 기존 등록된 이미지
+                    setBeforeImage(data.image ?? null);
                 }
 
                 // 등록 화면(주소에 강사번호가 없으면 등록)
@@ -255,14 +294,26 @@ export default function TutorManage() {
                 return;
             }
 
-            // 1. 강사 기본정보 등록
-            const response = await apiClient.post("/tutor/",
-                {
-                    employeeNo: tutor.tutor.employeeNo,
-                    tutorTagline: tutor.tutor.tutorTagline,
-                    tutorIntro: tutor.tutor.tutorIntro
-                }
+            // 1. 강사 기본정보 + 이미지 등록 (multipart)
+            const form = new FormData();
+
+            form.append(
+                "tutor",
+                new Blob(
+                    [JSON.stringify({
+                        employeeNo: tutor.tutor.employeeNo,
+                        tutorTagline: tutor.tutor.tutorTagline,
+                        tutorIntro: tutor.tutor.tutorIntro
+                    })],
+                    { type: "application/json" }
+                )
             );
+
+            if (image) {
+                form.append("image", image);
+            }
+
+            const response = await apiClient.post("/tutor/", form);
 
             // 백엔드에서 방금 생성한 tutorNo 반환(위쪽 진행됨 그럼 no 생성완료)
             const newTutorNo = response.data.tutorNo;
@@ -292,6 +343,8 @@ export default function TutorManage() {
 
             toast.success("강사 정보가 등록되었습니다.");
 
+            clearImage();
+
             // 등록 완료 후 같은 TutorManage를 수정모드로 진입
             navigate(`/employee/tutor/${newTutorNo}`);
         }
@@ -299,21 +352,32 @@ export default function TutorManage() {
             console.error(err);
             toast.error("강사 정보 등록에 실패했습니다.");
         }
-    }, [tutor, navigate]);
+    }, [tutor, image, navigate, clearImage]);
 
     // 강사 수정
     const updateTutor = useCallback(async () => {
 
         try {
-            // 1. 강사 기본정보 수정
-            await apiClient.put(
-                `/tutor/${tutorNo}`,
-                {
-                    employeeNo: tutor.tutor.employeeNo,
-                    tutorTagline: tutor.tutor.tutorTagline,
-                    tutorIntro: tutor.tutor.tutorIntro
-                }
+            // 1. 강사 기본정보 + 이미지 수정 (multipart)
+            const form = new FormData();
+
+            form.append(
+                "tutor",
+                new Blob(
+                    [JSON.stringify({
+                        employeeNo: tutor.tutor.employeeNo,
+                        tutorTagline: tutor.tutor.tutorTagline,
+                        tutorIntro: tutor.tutor.tutorIntro
+                    })],
+                    { type: "application/json" }
+                )
             );
+
+            if (image) {
+                form.append("image", image);
+            }
+
+            await apiClient.put(`/tutor/${tutorNo}`, form);
 
             // 2. 경력/학력
             for (const career of tutor.careerList) {
@@ -399,13 +463,17 @@ export default function TutorManage() {
                 subjectList: subjectList
             });
 
+            // 새로 업로드한 이미지 반영 + 입력창 초기화
+            setBeforeImage(data.image ?? null);
+            clearImage();
+
         }
         catch (err) {
             console.error(err);
             toast.error("강사 정보 수정에 실패했습니다.");
         }
 
-    }, [tutor, tutorNo, academySubjectList]);
+    }, [tutor, tutorNo, academySubjectList, image, clearImage]);
 
     // 경력/학력 삭제
     const deleteCareer = useCallback(async (career, index) => {
@@ -458,6 +526,21 @@ export default function TutorManage() {
             toast.error("담당과목 삭제에 실패했습니다.");
         }
     }, []);
+
+    // 기존 강사 이미지 삭제
+    const deleteBeforeImage = useCallback(async () => {
+        try {
+            await apiClient.delete(`/tutor/${tutorNo}/image`);
+
+            setBeforeImage(null);
+
+            toast.success("이미지가 삭제되었습니다.");
+        }
+        catch (err) {
+            console.error(err);
+            toast.error("이미지 삭제에 실패했습니다.");
+        }
+    }, [tutorNo]);
 
     // 화면
     return (
@@ -554,6 +637,61 @@ export default function TutorManage() {
                             )
                         )}
                     </div>
+                </Col>
+            </Row>
+
+            {/* 강사 이미지 */}
+            <Row className="mt-4">
+                <Form.Label column sm={3}>강사 이미지</Form.Label>
+                <Col sm={9}>
+                    <div className="d-flex">
+                        <Form.Control type="file" accept="image/*"
+                            ref={imageRef}
+                            onInput={changeImage} />
+                        {image && (
+                            <Button variant="danger" onClick={clearImage} className="ms-2">
+                                <FaXmark />
+                            </Button>
+                        )}
+                    </div>
+
+                    {/* 새로 선택한 이미지 미리보기 */}
+                    {previewImage && (
+                        <div className="mt-3">
+                            <img
+                                src={previewImage}
+                                alt="강사 이미지 미리보기"
+                                width={120}
+                                height={120}
+                                style={{
+                                    objectFit: "cover",
+                                    borderRadius: "8px"
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {/* 기존에 등록된 이미지 */}
+                    {!previewImage && beforeImage && (
+                        <div className="mt-3 d-flex align-items-center gap-2">
+                            <img
+                                src={`${import.meta.env.VITE_SERVER_URL}/api/attach/${beforeImage.attachNo}`}
+                                alt={beforeImage.attachName}
+                                width={120}
+                                height={120}
+                                style={{
+                                    objectFit: "cover",
+                                    borderRadius: "8px"
+                                }}
+                            />
+                            <FaXmark
+                                className="text-danger"
+                                size={20}
+                                style={{ cursor: "pointer" }}
+                                onClick={deleteBeforeImage}
+                            />
+                        </div>
+                    )}
                 </Col>
             </Row>
 
