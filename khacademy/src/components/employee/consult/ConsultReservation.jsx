@@ -21,7 +21,7 @@ export default function ConsultReservation() {
     const [reservationList, setReservationList] = useState([]);
 
     const loadList = useCallback(async ()=>{
-        const { data } = await apiClient.post("/employee/consult/reservationList", search);
+        const { data } = await apiClient.post("/employee/consult/reservation", search);
         setReservationList(data.items);
     }, [search]);
     useEffect(()=>{
@@ -190,13 +190,13 @@ export default function ConsultReservation() {
             <Table bordered hover responsive>
                 <thead>
                 <tr>
-                    <th className="py-3">No.</th>
-                    <th className="py-3">신청자명</th>
-                    <th className="py-3">연락처</th>
-                    <th className="py-3">상담 방식</th>
-                    <th className="py-3">희망 상담 일시</th>
-                    <th className="py-3">진행 상태</th>
-                    <th className="py-3">관리</th>
+                    <th className="py-3" style={{ minWidth: '50px', width: '10%' }}>No.</th>
+                    <th className="py-3" style={{ minWidth: '80px', width: '10%' }}>신청자명</th>
+                    <th className="py-3" style={{ minWidth: '100px', width: '15%' }}>연락처</th>
+                    <th className="py-3" style={{ minWidth: '80px', width: '10%' }}>상담 방식</th>
+                    <th className="py-3" style={{ minWidth: '120px', width: '15%' }}>희망 상담 일시</th>
+                    <th className="py-3" style={{ minWidth: '80px', width: '10%' }}>진행 상태</th>
+                    <th className="py-3" style={{ minWidth: '240px', width: '30%' }}>관리</th>
                 </tr>
                 </thead>
                 <tbody>
