@@ -57,6 +57,10 @@ export default function Menu() {
                             <NavDropdown.Item as={Link} to="/consult/reservation">상담 예약 목록</NavDropdown.Item>
                             <NavDropdown.Item as={Link} to="/consult/"></NavDropdown.Item>
                         </NavDropdown>
+                        <NavDropdown title="수납관리" id="basic-nav-dropdown">
+                            <NavDropdown.Item as={Link} to="/payment/list">수납 목록</NavDropdown.Item>
+                            <NavDropdown.Item as={Link} to="/payment/discount">할인 관리</NavDropdown.Item>
+                        </NavDropdown>
                         <Nav.Link as={Link} to="/student/list">학생목록</Nav.Link>
                     </Nav>
                     <Nav className="me-auto">

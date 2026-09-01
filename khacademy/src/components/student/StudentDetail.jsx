@@ -1,67 +1,113 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Badge, Button, Card, Col, Form, InputGroup, Row, Modal, Table, Spinner } from "react-bootstrap";
-import { FaSave, FaComments, FaCog, FaCheckCircle, FaTimesCircle, FaPlus } from "react-icons/fa";
-import { authClient } from "@utils/reaxios"; // 통신 모듈 가져오기
+import { Badge, Button, Card, Col, Form, Row, Spinner, Table } from "react-bootstrap";
+// 🌟 1. 누락되었던 FaPlus, FaTrash 아이콘 추가 완료!
+import { FaSave, FaComments, FaTrash, FaPlus } from "react-icons/fa"; 
 import { useParams, useNavigate } from "react-router-dom";
+import { authClient } from "@utils/reaxios"; 
 
 export default function StudentDetail() {
-    // 2. 🌟 주소창(URL)에서 studentNo 뽑아내기! (아까 임시로 적었던 const studentNo = 6; 은 삭제)
     const { studentNo } = useParams(); 
-    const navigate = useNavigate(); // 뒤로 가기용
-
+    const navigate = useNavigate(); 
     const [student, setStudent] = useState(null);
+    
+    // 결제 데이터 State 
+    const [payments, setPayments] = useState([]);
+    const [totalUnpaid, setTotalUnpaid] = useState(0);
 
-    // 3. fetchStudentDetail 함수는 그대로 둡니다. 
-    // 이제 위에서 뽑은 진짜 studentNo가 백엔드로 날아갑니다!
+    // 할인 혜택 관련 State
+    const [allDiscounts, setAllDiscounts] = useState([]); 
+    const [studentDiscounts, setStudentDiscounts] = useState([]); 
+    const [selectedDiscountNo, setSelectedDiscountNo] = useState(""); 
+
+    // 학생 기본 정보 불러오기
     const fetchStudentDetail = useCallback(async () => {
         try {
-            const response = await authClient.get(`http://localhost:8080/api/student/${studentNo}`);
+            const response = await authClient.get(`http://localhost:8080/api/student/detail/${studentNo}`);
             setStudent(response.data);
         } catch (error) {
-            console.error("학생 상세 정보 로딩 실패:", error);
+            console.error("학생 정보 로딩 실패:", error);
         }
     }, [studentNo]);
 
-    // 🌟 2. 진짜 백엔드 데이터를 담을 state (데이터가 오기 전까지는 null 상태)
-    const [activeModal, setActiveModal] = useState(null);
+    // 학생 결제 내역 불러오기
+    const fetchStudentPayments = useCallback(async () => {
+        try {
+            const response = await authClient.get(`http://localhost:8080/api/payment/student/${studentNo}`);
+            const paymentData = response.data;
+            setPayments(paymentData);
 
-    const closeModal = () => setActiveModal(null);
+            const unpaidSum = paymentData.reduce((sum, p) => sum + (p.remainingAmount || 0), 0);
+            setTotalUnpaid(unpaidSum);
+        } catch (error) {
+            console.error("결제 내역 로딩 실패:", error);
+        }
+    }, [studentNo]);
 
+    // 할인 정보 불러오기
+    const fetchDiscounts = useCallback(async () => {
+        try {
+            const allRes = await authClient.get("http://localhost:8080/api/payment/discount/list");
+            setAllDiscounts(allRes.data.filter(d => d.discountStatus === 'Y'));
+            
+            const studentRes = await authClient.get(`http://localhost:8080/api/student/${studentNo}/discount`);
+            setStudentDiscounts(studentRes.data);
+        } catch (error) {
+            console.error("할인 정보 로딩 실패:", error);
+        }
+    }, [studentNo]);
 
-    // 🌟 4. 컴포넌트가 켜질 때 한 번 데이터 불러오기
+    // 학생에게 할인 혜택 추가하기
+    const handleAddDiscount = async () => {
+        if (!selectedDiscountNo) {
+            alert("적용할 할인을 선택해 주세요.");
+            return;
+        }
+        try {
+            await authClient.post(`http://localhost:8080/api/student/${studentNo}/discount/${selectedDiscountNo}`);
+            setSelectedDiscountNo(""); 
+            fetchDiscounts(); 
+        } catch (error) {
+            console.error("할인 적용 실패:", error);
+            alert("할인 적용에 실패했습니다.");
+        }
+    };
+
+    // 학생의 할인 혜택 해제하기
+    const handleRemoveDiscount = async (studentDiscountNo) => {
+        if (!window.confirm("이 할인 혜택을 해제하시겠습니까?")) return;
+        try {
+            await authClient.delete(`http://localhost:8080/api/student/discount/${studentDiscountNo}`);
+            fetchDiscounts(); 
+        } catch (error) {
+            console.error("할인 해제 실패:", error);
+            alert("할인 해제에 실패했습니다.");
+        }
+    };
+
+    // 화면 켜질 때 동시 호출
     useEffect(() => {
         fetchStudentDetail();
-    }, [fetchStudentDetail]);
+        fetchStudentPayments();
+        fetchDiscounts(); 
+    }, [fetchStudentDetail, fetchStudentPayments, fetchDiscounts]);
 
-    // 입력값 변경 핸들러 (수정 기능을 위해 남겨둡니다)
     const handleChange = (e) => {
         const { name, value } = e.target;
         setStudent(prev => ({ ...prev, [name]: value }));
     };
 
     const handleUpdate = async () => {
-        // 실수로 누를 수도 있으니 확인 창 띄우기
         if (!window.confirm("학생 정보를 이대로 수정하시겠습니까?")) return;
-
         try {
-            // 현재 Form에 입력된 상태(student)를 그대로 통째로 백엔드에 쏴줍니다.
-            // (화면의 tuition 같은 쓸데없는 데이터가 섞여 있어도, 백엔드 VO가 알아서 필요한 것만 걸러 받습니다!)
             const response = await authClient.put("http://localhost:8080/api/student/edit", student);
-            
-            // 백엔드 컨트롤러가 보낸 성공 메시지 띄우기 ("학생 정보가 성공적으로 수정되었습니다.")
             alert(response.data); 
-            
-            // 수정 완료 후 목록으로 돌려보내거나, 다시 최신 데이터를 불러옵니다.
-            // 여기서는 최신 데이터로 다시 덮어씌워 봅니다.
             fetchStudentDetail(); 
-            
         } catch (error) {
             console.error("수정 실패:", error);
-            alert("정보 수정에 실패했습니다. 관리자에게 문의하세요.");
+            alert("정보 수정에 실패했습니다.");
         }
     };
 
-    // 🌟 5. 데이터가 아직 안 왔으면 로딩 스피너 보여주기 (에러 방지)
     if (!student) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: "50vh" }}>
@@ -77,7 +123,6 @@ export default function StudentDetail() {
                 <Card.Header className="bg-white border-bottom-0 pt-4 pb-0 px-4">
                     <div className="d-flex justify-content-between align-items-center">
                         <div className="d-flex align-items-center gap-3">
-                            {/* 🌟 4. 목록으로 돌아가기 버튼 추가 */}
                             <Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>
                                 ← 뒤로
                             </Button>
@@ -88,9 +133,124 @@ export default function StudentDetail() {
                 </Card.Header>
 
                 <Card.Body className="p-4">
+                    {/* 1. 종합 개요 대시보드 */}
+                    <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">종합 개요</h6>
+                    <Row className="g-3 mb-4 text-center">
+                        <Col md={4}>
+                            <Card className="border-0 shadow-sm h-100 p-3">
+                                <div className="text-muted small fw-bold mb-2">출석률 (4주)</div>
+                                <h4 className="fw-bold mb-0">100%</h4>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card className="border-0 shadow-sm h-100 p-3 bg-light">
+                                <div className="text-muted small fw-bold mb-2">총 미납액</div>
+                                <h4 className={`fw-bold mb-0 ${totalUnpaid > 0 ? 'text-danger' : 'text-success'}`}>
+                                    {totalUnpaid > 0 ? `₩${totalUnpaid.toLocaleString()}` : "없음"}
+                                </h4>
+                            </Card>
+                        </Col>
+                        <Col md={4}>
+                            <Card className="border-0 shadow-sm h-100 p-3">
+                                <div className="text-muted small fw-bold mb-2">과제 제출</div>
+                                <h4 className="fw-bold mb-0">- / -</h4>
+                            </Card>
+                        </Col>
+                    </Row>
+
+                    {/* 2. 최근 수납 내역 테이블 */}
+                    <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2 mt-4">최근 수납 내역</h6>
+                    <Card className="border-0 shadow-sm mb-5">
+                        <Card.Body className="p-0">
+                            {payments.length === 0 ? (
+                                <div className="p-4 text-center text-muted small">수납 내역이 없습니다.</div>
+                            ) : (
+                                <Table hover responsive className="align-middle text-center mb-0">
+                                    <thead className="bg-light">
+                                        <tr>
+                                            <th>청구 월</th>
+                                            <th>청구 금액</th>
+                                            <th>납부 상태</th>
+                                            <th>미납액</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {payments.slice(0, 3).map(p => (
+                                            <tr key={p.paymentNo}>
+                                                <td className="fw-bold">{p.paymentMonth}</td>
+                                                <td>₩{p.totalAmount?.toLocaleString()}</td>
+                                                <td>
+                                                    <Badge bg={p.paymentStatus === '완납' ? 'success' : p.paymentStatus === '미납' ? 'danger' : 'warning'}>
+                                                        {p.paymentStatus}
+                                                    </Badge>
+                                                </td>
+                                                <td className={p.remainingAmount > 0 ? "text-danger fw-bold" : "text-muted"}>
+                                                    {p.remainingAmount > 0 ? `₩${p.remainingAmount.toLocaleString()}` : "-"}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            )}
+                        </Card.Body>
+                    </Card>
+
+                    {/* 🌟 3. 할인 혜택 관리 영역 (위치 교정됨: 폼 바깥으로 분리) */}
+                    <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2 mt-5">적용 중인 할인 혜택 관리</h6>
+                    <Row className="mb-4 align-items-center">
+                        <Col md={3} className="text-muted fw-semibold small">새로운 할인 추가</Col>
+                        <Col md={6}>
+                            <div className="d-flex gap-2">
+                                <Form.Select 
+                                    size="sm" 
+                                    value={selectedDiscountNo} 
+                                    onChange={(e) => setSelectedDiscountNo(e.target.value)}
+                                >
+                                    <option value="">적용할 할인을 선택하세요</option>
+                                    {allDiscounts.map(d => (
+                                        <option key={d.discountNo} value={d.discountNo}>
+                                            {d.discountName} ({d.discountType === '비율' ? `${d.discountValue}%` : `₩${d.discountValue.toLocaleString()}`})
+                                        </option>
+                                    ))}
+                                </Form.Select>
+                                <Button variant="primary" size="sm" className="d-flex align-items-center flex-shrink-0" onClick={handleAddDiscount}>
+                                    <FaPlus className="me-1" /> 추가
+                                </Button>
+                            </div>
+                        </Col>
+                    </Row>
+
+                    <div className="border rounded bg-light p-3 mb-5">
+                        {studentDiscounts.length === 0 ? (
+                            <div className="text-center text-muted small py-2">현재 적용 중인 할인 혜택이 없습니다.</div>
+                        ) : (
+                            <div className="d-flex flex-wrap gap-2">
+                                {studentDiscounts.map(sd => (
+                                    <Badge 
+                                        key={sd.studentDiscountNo} 
+                                        bg="white" 
+                                        text="dark" 
+                                        className="border d-flex align-items-center p-2 shadow-sm"
+                                    >
+                                        <span className="me-2 fw-bold text-primary">{sd.discountName}</span>
+                                        <span className="me-3 text-muted">
+                                            ({sd.discountType === '비율' ? `${sd.discountValue}%` : `₩${sd.discountValue.toLocaleString()}`})
+                                        </span>
+                                        <FaTrash 
+                                            className="text-danger" 
+                                            style={{ cursor: "pointer" }} 
+                                            onClick={() => handleRemoveDiscount(sd.studentDiscountNo)}
+                                            title="할인 해제"
+                                        />
+                                    </Badge>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* 4. 정보 수정 Form 영역 */}
                     <Form>
-                        {/* 1. 기본 인적 사항 */}
-                        <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">기본 정보</h6>
+                        <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">기본 인적 사항</h6>
                         <Row className="mb-3 g-3">
                             <Form.Group as={Col} md={4}>
                                 <Form.Label className="small text-muted mb-1">이름</Form.Label>
@@ -106,7 +266,6 @@ export default function StudentDetail() {
                             </Form.Group>
                         </Row>
 
-                        {/* 2. 보호자 정보 */}
                         <Row className="mb-3 g-3">
                             <Form.Group as={Col} md={4}>
                                 <Form.Label className="small text-muted mb-1">보호자 이름</Form.Label>
@@ -122,13 +281,13 @@ export default function StudentDetail() {
                             </Form.Group>
                         </Row>
 
-                        {/* 3. 주소 및 학교 정보 */}
                         <Row className="mb-3 g-3">
                             <Form.Group as={Col} md={12}>
                                 <Form.Label className="small text-muted mb-1">주소</Form.Label>
                                 <Form.Control size="sm" type="text" name="address" value={student.address || ""} onChange={handleChange} />
                             </Form.Group>
                         </Row>
+                        
                         <Row className="mb-4 g-3">
                             <Form.Group as={Col} md={4}>
                                 <Form.Label className="small text-muted mb-1">학교</Form.Label>
@@ -151,36 +310,17 @@ export default function StudentDetail() {
                             </Form.Group>
                         </Row>
 
-                        {/* 4. 특이사항 */}
                         <Form.Group className="mb-4">
                             <Form.Label className="small text-muted mb-1">특이사항 (정보)</Form.Label>
                             <Form.Control as="textarea" rows={3} name="studentEtc" value={student.studentEtc || ""} onChange={handleChange} />
                         </Form.Group>
 
-                        {/* 5. 하단 학사 관리 및 버튼 영역 */}
-                        <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2 mt-4">학사 및 수납 관리</h6>
-                        <Row className="mb-4 align-items-center">
-                            <Col md={2} className="text-muted fw-semibold small">이번 달 수강료</Col>
-                            <Col md={6}>
-                                <InputGroup size="sm">
-                                    <Form.Control type="text" value={student.tuition ? student.tuition.toLocaleString() : "0"} readOnly className="text-end bg-white" />
-                                    <InputGroup.Text>원</InputGroup.Text>
-                                    <InputGroup.Text className={student.isPaid ? "bg-success text-white fw-bold" : "bg-danger text-white fw-bold"}>
-                                        {student.isPaid ? "완납" : "미납"}
-                                    </InputGroup.Text>
-                                </InputGroup>
-                            </Col>
-                        </Row>
-
+                        {/* 버튼 영역 위치 고정 */}
                         <div className="d-flex justify-content-end gap-2 mt-5 border-top pt-3">
                             <Button variant="info" className="text-white d-flex align-items-center">
                                 <FaComments className="me-2" /> 피드백 보기/등록
                             </Button>
-                            <Button 
-                                variant="primary" 
-                                className="d-flex align-items-center"
-                                onClick={handleUpdate} 
-                            >
+                            <Button variant="primary" className="d-flex align-items-center" onClick={handleUpdate}>
                                 <FaSave className="me-2" /> 정보 수정 (저장)
                             </Button>
                         </div>

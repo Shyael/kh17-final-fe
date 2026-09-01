@@ -18,6 +18,8 @@ import NotFound from "@error/NotFound";
 import Employee from "@guard/Employee";
 import StudentList from "@components/student/StudentList";
 import StudentDetail from "@components/student/StudentDetail";
+import PaymentList from "@components/payment/PaymentList";
+import DiscountList from "../components/payment/DIscountList";
 
 export default function Body() {
 
@@ -44,6 +46,11 @@ export default function Body() {
             {/* 학생 */}
             <Route path="/student/list" element={<Employee><StudentList/></Employee>} />
             <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail/></Employee>} />
+
+            {/* 수납 */}
+            <Route path="/payment/list" element={<Employee><PaymentList/></Employee>} />
+            <Route path="/payment/discount" element={<Employee><DiscountList/></Employee>} />
+
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>
