@@ -1,325 +1,197 @@
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-
-import {
-    Badge,
-    Button,
-    Card,
-    Col,
-    Container,
-    Modal,
-    Row
-} from "react-bootstrap";
-import { toast } from "react-toastify";
-
-import apiClient from "@utils/reaxios";
 import Jumbotron from "@templates/Jumbotron";
+import { useCallback, useEffect, useState } from "react";
+import { Badge, Button, Col, Row } from "react-bootstrap";
+import { FaLock, FaSquarePen, FaXmark } from "react-icons/fa6";
+import { useNavigate, useParams } from "react-router-dom";
+import { apiClient } from "@utils/reaxios";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
-const ContractDetail = () => {
+import ContractDocument from "./ContractDocument.jsx";
 
+export default function ContractDetail() {
+    //parameter
     const { contractNo } = useParams();
+
+    //navigate
     const navigate = useNavigate();
 
+    //state
     const [contract, setContract] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    const [exitModal, setExitModal] = useState(false);
-
-
-    const loadContract = async () => {
-
+    //계약 조회
+    const loadData = useCallback(async ()=>{
         try {
-            const response = await apiClient.get(
+            setLoading(true);
+
+            const { data } = await apiClient.get(
                 `/contract/detail/${contractNo}`
             );
 
-            setContract(response.data);
+            setContract(data);
         }
-        catch (e) {
+        catch(e) {
             console.error(e);
-            toast.error("계약 정보를 불러오지 못했습니다.");
+            toast.error(
+                e?.response?.data?.message
+                ?? "근로계약 정보를 불러오지 못했습니다"
+            );
         }
-    };
-
-
-    useEffect(() => {
-        loadContract();
+        finally {
+            setLoading(false);
+        }
     }, [contractNo]);
 
+    useEffect(()=>{
+        loadData();
+    }, [loadData]);
 
-    const exitContract = async () => {
+    //상태 한글 표시
+    const statusText = useCallback(status=>{
+        if(status === "pending") return "서명 대기";
+        if(status === "scheduled") return "시작 예정";
+        if(status === "active") return "진행 중";
+        if(status === "ended") return "종료";
+        return status;
+    }, []);
+
+    //상태 색상
+    const statusColor = useCallback(status=>{
+        if(status === "pending") return "warning";
+        if(status === "scheduled") return "info";
+        if(status === "active") return "success";
+        if(status === "ended") return "secondary";
+        return "dark";
+    }, []);
+
+    //계약 종료
+    const exitContract = useCallback(async ()=>{
+        const result = await Swal.fire({
+            title:"근로계약을 종료하시겠습니까?",
+            text:"중도 종료 후에는 되돌릴 수 없습니다",
+            icon:"warning",
+            showCancelButton:true,
+            confirmButtonText:"계약 종료",
+            cancelButtonText:"취소",
+            confirmButtonColor:"#d63031"
+        });
+        if(result.isConfirmed === false) return;
 
         try {
-            await apiClient.patch(
-                `/contract/${contractNo}/exit`
-            );
+            await apiClient.patch(`/contract/${contractNo}/exit`);
 
-            toast.success("근로계약이 종료되었습니다.");
-
-            setExitModal(false);
-
-            await loadContract();
+            toast.success("근로계약이 종료되었습니다");
+            loadData();
         }
-        catch (e) {
+        catch(e) {
             console.error(e);
-            toast.error("계약 종료에 실패했습니다.");
+            toast.error(
+                e?.response?.data?.message
+                ?? "근로계약 종료에 실패했습니다"
+            );
         }
-    };
+    }, [contractNo, loadData]);
 
-
-    if(contract === null) {
-        return null;
+    if(loading === true && contract === null) {
+        return <h1>로딩중...</h1>
     }
 
+    if(contract === null) {
+        return (<>
+            <Jumbotron title="근로계약 상세"/>
+            <Row className="mt-5">
+                <Col>근로계약 정보를 확인할 수 없습니다.</Col>
+            </Row>
+        </>)
+    }
 
-    return (
-        <>
-            <Jumbotron
-                title="근로계약 상세"
-                content="근로계약 내용을 확인할 수 있습니다."
-            />
+    return (<>
+        <Jumbotron title="근로계약 상세" content="근로계약 내용과 현재 상태를 확인합니다"/>
 
-            <Container className="py-4">
+        <Row className="mt-5">
+            <Col sm={3} className="fw-bold text-info">계약번호</Col>
+            <Col sm={9} className="text-secondary">{contract.contractNo}</Col>
+        </Row>
 
-                <Card className="mb-4">
+        <Row className="mt-4">
+            <Col sm={3} className="fw-bold text-info">직원번호</Col>
+            <Col sm={9} className="text-secondary">{contract.employeeNo}</Col>
+        </Row>
 
-                    <Card.Body className="d-flex justify-content-between align-items-center">
+        <Row className="mt-4">
+            <Col sm={3} className="fw-bold text-info">계약상태</Col>
+            <Col sm={9}>
+                <Badge bg={statusColor(contract.contractStatus)}>
+                    {statusText(contract.contractStatus)}
+                </Badge>
+            </Col>
+        </Row>
 
-                        <div>
-                            <h4>
-                                근로계약 #{contract.contractNo}
-                            </h4>
+        <Row className="mt-4">
+            <Col sm={3} className="fw-bold text-info">체결일시</Col>
+            <Col sm={9} className="text-secondary">
+                {contract.signedTime ?? "양측 서명 전"}
+            </Col>
+        </Row>
 
-                            <div className="text-muted">
-                                직원번호 #{contract.employeeNo}
-                            </div>
-                        </div>
+        {/* 저장된 데이터로 완성된 근로계약서 출력 */}
+        <ContractDocument contract={contract}/>
 
-                        <Badge bg="secondary">
-                            {contract.contractStatus}
-                        </Badge>
+        {/* 계약 관련 기능 */}
+        <Row className="mt-5 mb-5">
+            <Col className="text-end">
+                <Button variant="secondary"
+                        onClick={()=>navigate(`/contract/history/${contract.employeeNo}`)}>
+                    계약 이력
+                </Button>
 
-                    </Card.Body>
-
-                </Card>
-
-
-                <Card className="mb-4">
-
-                    <Card.Header>
-                        계약 조건
-                    </Card.Header>
-
-                    <Card.Body>
-
-                        <Row className="mb-3">
-
-                            <Col md={6}>
-                                <strong>임금 형태</strong>
-                                <div>{contract.wageType}</div>
-                            </Col>
-
-                            <Col md={6}>
-                                <strong>기본 임금</strong>
-                                <div>
-                                    {contract.baseWage?.toLocaleString()}원
-                                </div>
-                            </Col>
-
-                        </Row>
-
-
-                        <Row className="mb-3">
-
-                            <Col md={6}>
-                                <strong>1일 근로시간</strong>
-                                <div>
-                                    {contract.dailyWorkHours}시간
-                                </div>
-                            </Col>
-
-                            <Col md={6}>
-                                <strong>주 근로시간</strong>
-                                <div>
-                                    {contract.weeklyWorkHours}시간
-                                </div>
-                            </Col>
-
-                        </Row>
-
-
-                        <Row className="mb-3">
-
-                            <Col md={6}>
-                                <strong>계약 시작일</strong>
-                                <div>{contract.contractStart}</div>
-                            </Col>
-
-                            <Col md={6}>
-                                <strong>계약 종료일</strong>
-                                <div>
-                                    {contract.contractEnd ?? "기간의 정함 없음"}
-                                </div>
-                            </Col>
-
-                        </Row>
-
-
-                        <Row>
-
-                            <Col md={6}>
-                                <strong>급여 지급일</strong>
-                                <div>
-                                    매월 {contract.payday}일
-                                </div>
-                            </Col>
-
-                            <Col md={6}>
-                                <strong>서명 완료일시</strong>
-                                <div>
-                                    {contract.signedTime ?? "서명 미완료"}
-                                </div>
-                            </Col>
-
-                        </Row>
-
-                    </Card.Body>
-
-                </Card>
-
-
-                <Card className="mb-4">
-
-                    <Card.Header>
-                        근로계약 내용
-                    </Card.Header>
-
-                    <Card.Body>
-
-                        <div
-                            style={{
-                                whiteSpace: "pre-wrap",
-                                minHeight: "250px"
-                            }}
-                        >
-                            {contract.contractContent}
-                        </div>
-
-                    </Card.Body>
-
-                </Card>
-
-
-                <div className="d-flex flex-wrap gap-2 justify-content-end">
-
-                    {contract.contractStatus === "pending" && (
-                        <>
-                            <Button
-                                variant="outline-primary"
-                                onClick={() =>
-                                    navigate(
-                                        `/contract/edit/${contractNo}`
-                                    )
-                                }
-                            >
-                                서명 전 수정
-                            </Button>
-
-                            <Button
-                                onClick={() =>
-                                    navigate(
-                                        `/contract/sign/${contractNo}`
-                                    )
-                                }
-                            >
-                                서명
-                            </Button>
-                        </>
-                    )}
-
-
-                    {contract.contractStatus !== "ended" &&
-                        contract.contractEnd != null && (
-                            <Button
-                                variant="outline-dark"
-                                onClick={() =>
-                                    navigate(
-                                        `/contract/extend/${contractNo}`
-                                    )
-                                }
-                            >
-                                기간 연장
-                            </Button>
-                    )}
-
-
-                    {contract.contractStatus === "active" && (
-                        <>
-                            <Button
-                                variant="outline-primary"
-                                onClick={() =>
-                                    navigate(
-                                        `/contract/change-condition/${contractNo}`
-                                    )
-                                }
-                            >
-                                근로조건 변경
-                            </Button>
-
-                            <Button
-                                variant="outline-danger"
-                                onClick={() =>
-                                    setExitModal(true)
-                                }
-                            >
-                                중도 종료
-                            </Button>
-                        </>
-                    )}
-
-                </div>
-
-            </Container>
-
-
-            <Modal
-                show={exitModal}
-                onHide={() => setExitModal(false)}
-                centered
-            >
-
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        근로계약 종료
-                    </Modal.Title>
-                </Modal.Header>
-
-                <Modal.Body>
-                    해당 근로계약을 중도 종료하시겠습니까?
-                </Modal.Body>
-
-                <Modal.Footer>
-
-                    <Button
-                        variant="secondary"
-                        onClick={() =>
-                            setExitModal(false)
-                        }
-                    >
-                        취소
+                {contract.contractStatus === "pending" && (
+                <>
+                    <Button variant="warning" className="ms-2"
+                            onClick={()=>navigate(`/contract/edit/${contractNo}`)}>
+                        <FaSquarePen/>
+                        <span className="ms-2">서명 전 수정</span>
                     </Button>
 
-                    <Button
-                        variant="danger"
-                        onClick={exitContract}
-                    >
-                        계약 종료
+                    <Button variant="success" className="ms-2"
+                            onClick={()=>navigate(`/contract/sign/${contractNo}`)}>
+                        <FaLock/>
+                        <span className="ms-2">계약 서명</span>
+                    </Button>
+                </>
+                )}
+
+                {contract.signedTime !== null && contract.signedTime !== undefined && (
+                <Button variant="outline-dark" className="ms-2"
+                        onClick={()=>navigate(`/contract/sign/${contractNo}`)}>
+                    서명 보기
+                </Button>
+                )}
+
+                {contract.contractStatus === "active" && contract.contractEnd !== null && (
+                <Button variant="info" className="ms-2"
+                        onClick={()=>navigate(`/contract/extend/${contractNo}`)}>
+                    기간 연장
+                </Button>
+                )}
+
+                {contract.contractStatus === "active" && (
+                <>
+                    <Button variant="warning" className="ms-2"
+                            onClick={()=>navigate(`/contract/change-condition/${contractNo}`)}>
+                        <FaSquarePen/>
+                        <span className="ms-2">근로조건 변경</span>
                     </Button>
 
-                </Modal.Footer>
-
-            </Modal>
-        </>
-    );
-};
-
-export default ContractDetail;
+                    <Button variant="danger" className="ms-2"
+                            onClick={exitContract}>
+                        <FaXmark/>
+                        <span className="ms-2">중도 종료</span>
+                    </Button>
+                </>
+                )}
+            </Col>
+        </Row>
+    </>)
+}

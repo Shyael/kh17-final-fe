@@ -1,824 +1,356 @@
-import {
-    useCallback,
-    useEffect,
-    useMemo,
-    useState
-} from "react";
-
-import {
-    useNavigate,
-    useParams
-} from "react-router-dom";
-
-import {
-    Button,
-    Col,
-    Container,
-    Form,
-    Row,
-    Spinner
-} from "react-bootstrap";
-
-import {
-    FaFilePen
-} from "react-icons/fa6";
-
-import { toast } from "react-toastify";
-
 import Jumbotron from "@templates/Jumbotron";
+import { useCallback, useEffect, useState } from "react";
+import { Alert, Button, Col, Form, Row } from "react-bootstrap";
+import { FaCheck, FaXmark } from "react-icons/fa6";
+import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
+import { toast } from "react-toastify";
+import Swal from "sweetalert2";
 
+import ContractDocument from "./ContractDocument.jsx";
 
 export default function ContractEditBeforeSigned() {
-
-    // Router
+    //parameter
     const { contractNo } = useParams();
+
+    //navigate
     const navigate = useNavigate();
 
+    //state
+    const [loading, setLoading] = useState(true);
+    const [sending, setSending] = useState(false);
 
-    // state
     const [contract, setContract] = useState({
-        contractNo: contractNo,
-        wageType: "",
-        baseWage: "",
-        dailyWorkHours: "",
-        weeklyWorkHours: "",
-        contractStart: "",
-        contractEnd: "",
-        payday: "",
-        contractContent: ""
+        contractNo : contractNo ?? "",
+        employeeNo : "",
+        wageType : "",
+        baseWage : "",
+        dailyWorkHours : "",
+        weeklyWorkHours : "",
+        writtenBreakTimes : "",
+        contractStart : "",
+        contractEnd : "",
+        payday : "",
+        contractContent : "",
+        contractStatus : ""
     });
 
-
-    const [result, setResult] = useState({
-        contractStart: "",
-        contractEnd: "",
-        dailyWorkHours: "",
-        weeklyWorkHours: ""
-    });
-
-
-    const [loading, setLoading] =
-        useState(false);
-
-    const [submitting, setSubmitting] =
-        useState(false);
-
-
-    // 날짜 변환
-    // 서버 Timestamp → input type="date"
-    const toDateInput = useCallback(value => {
-
-        if (value == null)
-            return "";
-
+    //날짜 input 형식으로 변경
+    const toDateInput = useCallback(value=>{
+        if(value === null || value === undefined) return "";
         return value.substring(0, 10);
-
     }, []);
 
-
-    // 기존 계약 조회
-    const loadData = useCallback(async () => {
-
+    //계약 조회
+    const loadData = useCallback(async ()=>{
         try {
-
             setLoading(true);
 
             const { data } = await apiClient.get(
                 `/contract/detail/${contractNo}`
             );
 
-
             setContract({
-                contractNo:
-                    data.contractNo,
-
-                wageType:
-                    data.wageType ?? "",
-
-                baseWage:
-                    data.baseWage ?? "",
-
-                dailyWorkHours:
-                    data.dailyWorkHours ?? "",
-
-                weeklyWorkHours:
-                    data.weeklyWorkHours ?? "",
-
-                contractStart:
-                    toDateInput(
-                        data.contractStart
-                    ),
-
-                contractEnd:
-                    toDateInput(
-                        data.contractEnd
-                    ),
-
-                payday:
-                    data.payday ?? "",
-
-                contractContent:
-                    data.contractContent ?? ""
+                contractNo : data.contractNo,
+                employeeNo : data.employeeNo,
+                wageType : data.wageType ?? "",
+                baseWage : data.baseWage ?? "",
+                dailyWorkHours : data.dailyWorkHours ?? "",
+                weeklyWorkHours : data.weeklyWorkHours ?? "",
+                writtenBreakTimes : data.writtenBreakTimes ?? "",
+                contractStart : toDateInput(data.contractStart),
+                contractEnd : toDateInput(data.contractEnd),
+                payday : data.payday ?? "",
+                contractContent : data.contractContent ?? "",
+                contractStatus : data.contractStatus ?? ""
             });
-
         }
-        catch (error) {
-
+        catch(e) {
+            console.error(e);
             toast.error(
-                 "근로계약 조회 중 오류가 발생했습니다"
+                e?.response?.data?.message
+                ?? "근로계약 정보를 불러오지 못했습니다"
             );
-
-            
-
+            navigate(-1);
         }
         finally {
-
             setLoading(false);
-
         }
+    }, [contractNo, navigate, toDateInput]);
 
-    }, [
-        contractNo,
-       
-        toDateInput
-    ]);
-
-
-    useEffect(() => {
+    useEffect(()=>{
         loadData();
     }, [loadData]);
 
-
-    // 일반 입력
-    const changeStringValue = useCallback(e => {
-
+    //입력
+    const changeStringValue = useCallback(e=>{
         const { name, value } = e.target;
-
-        setContract(prev => ({
+        setContract(prev=>({
             ...prev,
-            [name]: value
+            [name] : value
         }));
-
     }, []);
 
-
-    // 숫자 입력
-    const changeNumericValue = useCallback(e => {
-
-        const { name, value } = e.target;
-
-        const onlyNumber =
-            value.replace(/[^0-9.]+/g, "");
-
-        setContract(prev => ({
-            ...prev,
-            [name]: onlyNumber
-        }));
-
-    }, []);
-
-
-    // 계약기간 검사
-    useEffect(() => {
-
-        // 시작일 또는 종료일이 없으면 비교 안 함
-        // 종료일 null 허용
-        if (
-            contract.contractStart === ""
-            || contract.contractEnd === ""
-        ) {
-
-            setResult(prev => ({
-                ...prev,
-                contractStart: "",
-                contractEnd: ""
-            }));
-
-            return;
+    //입력값 검사
+    const checkContract = useCallback(()=>{
+        if(contract.contractStatus !== "pending") {
+            toast.warning("서명 대기 상태의 계약만 수정할 수 있습니다");
+            return false;
         }
 
-
-        if (
-            contract.contractStart
-            > contract.contractEnd
-        ) {
-
-            setResult(prev => ({
-                ...prev,
-                contractStart:
-                    "is-invalid",
-
-                contractEnd:
-                    "is-invalid"
-            }));
-
-        }
-        else {
-
-            setResult(prev => ({
-                ...prev,
-                contractStart:
-                    "is-valid",
-
-                contractEnd:
-                    "is-valid"
-            }));
-
+        if(contract.wageType === "" || contract.baseWage === "") {
+            toast.warning("임금 정보를 입력해주세요");
+            return false;
         }
 
-    }, [
-        contract.contractStart,
-        contract.contractEnd
-    ]);
+        const dailyWorkHours = parseFloat(contract.dailyWorkHours);
+        const weeklyWorkHours = parseFloat(contract.weeklyWorkHours);
 
+        if(contract.dailyWorkHours === "" || contract.weeklyWorkHours === ""
+            || dailyWorkHours <= 0 || weeklyWorkHours <= 0
+            || dailyWorkHours > weeklyWorkHours) {
+            toast.warning("소정근로시간을 확인해주세요");
+            return false;
+        }
 
-    // 근로시간 검사
-    const validateWorkHours =
-        useCallback(() => {
+        const writtenBreakTimes = parseInt(contract.writtenBreakTimes, 10);
 
-            const daily =
-                
-                    contract.dailyWorkHours
-                ;
+        if(contract.writtenBreakTimes === "" || writtenBreakTimes < 0) {
+            toast.warning("휴게시간을 확인해주세요");
+            return false;
+        }
 
-            const weekly =
-                
-                    contract.weeklyWorkHours
-                ;
+        if(dailyWorkHours >= 8 && writtenBreakTimes < 60) {
+            toast.warning("1일 8시간 이상 근무 시 휴게시간은 60분 이상이어야 합니다");
+            return false;
+        }
 
+        if(dailyWorkHours >= 4 && dailyWorkHours < 8 && writtenBreakTimes < 30) {
+            toast.warning("1일 4시간 이상 근무 시 휴게시간은 30분 이상이어야 합니다");
+            return false;
+        }
 
-            if (
-                contract.dailyWorkHours === ""
-                || contract.weeklyWorkHours === ""
-            ) {
+        if(contract.contractStart === "") {
+            toast.warning("계약 시작일을 입력해주세요");
+            return false;
+        }
 
-                setResult(prev => ({
-                    ...prev,
-                    dailyWorkHours: "",
-                    weeklyWorkHours: ""
-                }));
+        if(contract.contractEnd !== "" && contract.contractStart > contract.contractEnd) {
+            toast.warning("계약 종료일은 시작일보다 빠를 수 없습니다");
+            return false;
+        }
 
-                return false;
-            }
+        const payday = parseInt(contract.payday, 10);
 
+        if(contract.payday === "" || payday < 1 || payday > 31) {
+            toast.warning("급여 지급일은 1일부터 31일 사이로 입력해주세요");
+            return false;
+        }
 
-            if (
-                daily <= 0
-                || weekly <= 0
-                || daily > weekly
-            ) {
+        if(contract.contractContent.trim() === "") {
+            toast.warning("근로계약 내용을 입력해주세요");
+            return false;
+        }
 
-                setResult(prev => ({
-                    ...prev,
-                    dailyWorkHours:
-                        "is-invalid",
-
-                    weeklyWorkHours:
-                        "is-invalid"
-                }));
-
-                return false;
-            }
-
-
-            setResult(prev => ({
-                ...prev,
-                dailyWorkHours:
-                    "is-valid",
-
-                weeklyWorkHours:
-                    "is-valid"
-            }));
-
-
-            return true;
-
-        }, [
-            contract.dailyWorkHours,
-            contract.weeklyWorkHours
-        ]);
-
-
-    // 전체 유효성 검사
-    const allValid = useMemo(() => {
-
-        const daily =
-            
-                contract.dailyWorkHours
-            ;
-
-        const weekly =
-            
-                contract.weeklyWorkHours
-        ;
-
-
-        const validDate =
-            contract.contractEnd === ""
-            || contract.contractStart
-            <= contract.contractEnd;
-
-
-        return contract.wageType !== ""
-            && contract.baseWage !== ""
-            && contract.dailyWorkHours !== ""
-            && contract.weeklyWorkHours !== ""
-            && contract.contractStart !== ""
-            && contract.payday !== ""
-            && contract.contractContent !== ""
-            && daily > 0
-            && weekly > 0
-            && daily <= weekly
-            && validDate;
-
+        return true;
     }, [contract]);
 
+    //서명 전 수정
+    const sendData = useCallback(async ()=>{
+        if(checkContract() === false) return;
+        if(sending === true) return;
 
-    // 수정 요청
-    const sendData =
-        useCallback(async e => {
+        const result = await Swal.fire({
+            title:"근로계약을 수정하시겠습니까?",
+            text:"수정된 내용을 확인한 뒤 다시 서명을 진행해주세요",
+            icon:"question",
+            showCancelButton:true,
+            confirmButtonText:"수정",
+            cancelButtonText:"취소"
+        });
+        if(result.isConfirmed === false) return;
 
-            e.preventDefault();
+        const request = {
+            contractNo : contract.contractNo,
+            wageType : contract.wageType,
+            baseWage : contract.baseWage,
+            dailyWorkHours : contract.dailyWorkHours,
+            weeklyWorkHours : contract.weeklyWorkHours,
+            writtenBreakTimes : contract.writtenBreakTimes,
+            contractStart : contract.contractStart,
+            contractEnd : contract.contractEnd === "" ? null : contract.contractEnd,
+            payday : contract.payday,
+            contractContent : contract.contractContent
+        };
 
+        try {
+            setSending(true);
 
-            if (
-                submitting
-                || !allValid
-            )
-                return;
+            await apiClient.patch(
+                `/contract/editBefore/${contractNo}`,
+                request
+            );
 
+            toast.success("근로계약이 수정되었습니다");
+            navigate(`/contract/detail/${contractNo}`);
+        }
+        catch(e) {
+            console.error(e);
+            toast.error(
+                e?.response?.data?.message
+                ?? "근로계약 수정에 실패했습니다"
+            );
+        }
+        finally {
+            setSending(false);
+        }
+    }, [contract, contractNo, sending, checkContract, navigate]);
 
-            try {
-
-                setSubmitting(true);
-
-
-                const request = {
-
-                    // RequestVO에 번호 유지
-                    contractNo:
-                        contractNo,
-
-                    wageType:
-                        contract.wageType,
-
-                    baseWage:
-                        
-                            contract.baseWage
-                        ,
-
-                    dailyWorkHours:
-                        
-                            contract.dailyWorkHours
-                        ,
-
-                    weeklyWorkHours:
-                        
-                            contract.weeklyWorkHours
-                        ,
-
-                    contractStart:
-                        contract.contractStart,
-
-                    contractEnd:
-                        contract.contractEnd === ""
-                            ? null
-                            : contract.contractEnd,
-
-                    payday:
-                        
-                            contract.payday
-                        ,
-
-                    contractContent:
-                        contract.contractContent
-                };
-
-
-                await apiClient.patch(
-                    `/contract/before/${contractNo}`,
-                    request
-                );
-
-                toast.success(
-                    "근로계약이 수정되었습니다"
-                );
-
-
-                navigate(
-                    `/contract/detail/${data.contractNo}`
-                );
-
-            }
-            catch (error) {
-
-                toast.error(
-                    error?.response?.data?.message
-                    ?? "근로계약 수정 중 오류가 발생했습니다"
-                );
-
-            }
-            finally {
-
-                setSubmitting(false);
-
-            }
-
-        }, [
-            contractNo,
-            contract,
-            allValid,
-            submitting,
-            navigate
-        ]);
-
-
-    if (loading) {
-
-        return (
-            <div className="text-center mt-5">
-                <Spinner animation="border" />
-            </div>
-        );
-
+    if(loading === true) {
+        return <h1>로딩중...</h1>
     }
 
-
-    return (
-        <>
-            <Jumbotron
-                title="근로계약 수정"
-                content="서명 전 근로계약 내용을 수정합니다"
-            />
-
-
-            <Container className="my-5">
-
-                <Form onSubmit={sendData}>
-
-
-                    {/* 제목 */}
-                    <div className="text-center my-5">
-
-                        <h2 className="fw-bold">
-                            근 로 계 약 서
-                        </h2>
-
-                        <div className="text-muted mt-2">
-                            계약번호 {contract.contractNo}
-                        </div>
-
-                    </div>
-
-
-                    {/* 1. 근로계약기간 */}
-                    <section className="mb-5">
-
-                        <h5 className="fw-bold mb-4">
-                            1. 근로계약기간
-                        </h5>
-
-
-                        <Row className="align-items-center">
-
-                            <Col md={5}>
-
-                                <Form.Control
-                                    type="date"
-                                    name="contractStart"
-                                    value={
-                                        contract.contractStart
-                                    }
-                                    onChange={
-                                        changeStringValue
-                                    }
-                                    className={
-                                        result.contractStart
-                                    }
-                                />
-
-                                <div className="invalid-feedback">
-                                    계약 시작일은 종료일보다 늦을 수 없습니다
-                                </div>
-
-                            </Col>
-
-
-                            <Col
-                                md={2}
-                                className="text-center"
-                            >
-                                부터
-                            </Col>
-
-
-                            <Col md={5}>
-
-                                <Form.Control
-                                    type="date"
-                                    name="contractEnd"
-                                    value={
-                                        contract.contractEnd
-                                    }
-                                    onChange={
-                                        changeStringValue
-                                    }
-                                    className={
-                                        result.contractEnd
-                                    }
-                                />
-
-                                <div className="invalid-feedback">
-                                    계약 종료일은 시작일보다 빠를 수 없습니다
-                                </div>
-
-                                <Form.Text>
-                                    기간의 정함이 없는 경우 비워두세요
-                                </Form.Text>
-
-                            </Col>
-
-                        </Row>
-
-                    </section>
-
-
-                    {/* 2. 임금 */}
-                    <section className="mb-5">
-
-                        <h5 className="fw-bold mb-4">
-                            2. 임금
-                        </h5>
-
-
-                        <Row className="align-items-center mb-3">
-
-                            <Col md={2}>
-                                임금형태
-                            </Col>
-
-
-                            <Col md={4}>
-
-                                <Form.Select
-                                    name="wageType"
-                                    value={
-                                        contract.wageType
-                                    }
-                                    onChange={
-                                        changeStringValue
-                                    }
-                                >
-
-                                    <option value="monthly">
-                                        월급
-                                    </option>
-
-                                    <option value="daily">
-                                        일급
-                                    </option>
-
-                                    <option value="hourly">
-                                        시급
-                                    </option>
-
-                                </Form.Select>
-
-                            </Col>
-
-                        </Row>
-
-
-                        <Row className="align-items-center mb-3">
-
-                            <Col md={2}>
-                                기본임금
-                            </Col>
-
-
-                            <Col md={4}>
-
-                                <Form.Control
-                                    type="text"
-                                    inputMode="numeric"
-                                    name="baseWage"
-                                    value={
-                                        contract.baseWage
-                                    }
-                                    onChange={
-                                        changeNumericValue
-                                    }
-                                />
-
-                            </Col>
-
-
-                            <Col md="auto">
-                                원
-                            </Col>
-
-                        </Row>
-
-
-                        <Row className="align-items-center">
-
-                            <Col md={2}>
-                                지급일
-                            </Col>
-
-
-                            <Col md="auto">
-                                매월
-                            </Col>
-
-
-                            <Col md={2}>
-
-                                <Form.Control
-                                    type="number"
-                                    min={1}
-                                    max={31}
-                                    name="payday"
-                                    value={
-                                        contract.payday
-                                    }
-                                    onChange={
-                                        changeNumericValue
-                                    }
-                                />
-
-                            </Col>
-
-
-                            <Col md="auto">
-                                일
-                            </Col>
-
-                        </Row>
-
-                    </section>
-
-
-                    {/* 3. 소정근로시간 */}
-                    <section className="mb-5">
-
-                        <h5 className="fw-bold mb-4">
-                            3. 소정근로시간
-                        </h5>
-
-
-                        <Row className="align-items-center mb-3">
-
-                            <Col md={3}>
-                                1일 소정근로시간
-                            </Col>
-
-
-                            <Col md={3}>
-
-                                <Form.Control
-                                    type="number"
-                                    step="0.5"
-                                    name="dailyWorkHours"
-                                    value={
-                                        contract.dailyWorkHours
-                                    }
-                                    onChange={
-                                        changeNumericValue
-                                    }
-                                    onBlur={
-                                        validateWorkHours
-                                    }
-                                    className={
-                                        result.dailyWorkHours
-                                    }
-                                />
-
-                                <div className="invalid-feedback">
-                                    1일 소정근로시간은 1주 소정근로시간보다 클 수 없습니다
-                                </div>
-
-                            </Col>
-
-
-                            <Col md="auto">
-                                시간
-                            </Col>
-
-                        </Row>
-
-
-                        <Row className="align-items-center">
-
-                            <Col md={3}>
-                                1주 소정근로시간
-                            </Col>
-
-
-                            <Col md={3}>
-
-                                <Form.Control
-                                    type="number"
-                                    step="0.5"
-                                    name="weeklyWorkHours"
-                                    value={
-                                        contract.weeklyWorkHours
-                                    }
-                                    onChange={
-                                        changeNumericValue
-                                    }
-                                    onBlur={
-                                        validateWorkHours
-                                    }
-                                    className={
-                                        result.weeklyWorkHours
-                                    }
-                                />
-
-                                <div className="invalid-feedback">
-                                    1주 소정근로시간을 확인하세요
-                                </div>
-
-                            </Col>
-
-
-                            <Col md="auto">
-                                시간
-                            </Col>
-
-                        </Row>
-
-                    </section>
-
-
-                    {/* 4. 계약 내용 */}
-                    <section className="mb-5">
-
-                        <h5 className="fw-bold mb-4">
-                            4. 계약 내용
-                        </h5>
-
-
-                        <Form.Control
-                            as="textarea"
-                            rows={10}
-                            name="contractContent"
-                            value={
-                                contract.contractContent
-                            }
-                            onChange={
-                                changeStringValue
-                            }
-                        />
-
-                    </section>
-
-
-                    {/* 버튼 */}
-                    <div className="d-flex justify-content-end gap-2 mb-5">
-
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            onClick={() => navigate(-1)}
-                        >
-                            취소
-                        </Button>
-
-
-                        <Button
-                            type="submit"
-                            disabled={
-                                !allValid
-                                || submitting
-                            }
-                        >
-
-                            {submitting ? (
-                                <>
-                                    <Spinner
-                                        animation="border"
-                                        size="sm"
-                                        className="me-2"
-                                    />
-
-                                    데이터 전송 중...
-                                </>
-                            ) : (
-                                <>
-                                    <FaFilePen className="me-2" />
-                                    수정하기
-                                </>
-                            )}
-
-                        </Button>
-
-                    </div>
-
-                </Form>
-
-            </Container>
-        </>
-    );
+    return (<>
+        <Jumbotron title="서명 전 근로계약 수정"
+                content="양측 서명이 완료되기 전의 계약내용을 수정합니다"/>
+
+        <Row className="mt-5">
+            <Col sm={3} className="fw-bold text-info">계약번호</Col>
+            <Col sm={9} className="text-secondary">{contract.contractNo}</Col>
+        </Row>
+
+        <Row className="mt-4">
+            <Col sm={3} className="fw-bold text-info">직원번호</Col>
+            <Col sm={9} className="text-secondary">{contract.employeeNo}</Col>
+        </Row>
+
+        <Row className="mt-4">
+            <Col sm={3} className="fw-bold text-info">계약상태</Col>
+            <Col sm={9} className="text-secondary">{contract.contractStatus}</Col>
+        </Row>
+
+        {contract.contractStatus !== "pending" && (
+        <Row className="mt-4">
+            <Col>
+                <Alert variant="warning">
+                    서명 대기 상태의 계약만 수정할 수 있습니다.
+                </Alert>
+            </Col>
+        </Row>
+        )}
+
+        <Form>
+            <Row className="mt-5">
+                <Form.Label column sm={3}>임금형태</Form.Label>
+                <Col sm={9}>
+                    <Form.Select name="wageType" value={contract.wageType}
+                            onChange={changeStringValue}>
+                        <option value="monthly">월급</option>
+                        <option value="hourly">시급</option>
+                        <option value="daily">일급</option>
+                    </Form.Select>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>기본임금</Form.Label>
+                <Col sm={9}>
+                    <Form.Control type="number" min="1" name="baseWage"
+                            value={contract.baseWage}
+                            onChange={changeStringValue}/>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>1일 소정근로시간</Form.Label>
+                <Col sm={9}>
+                    <Form.Control type="number" min="0.5" step="0.5"
+                            name="dailyWorkHours"
+                            value={contract.dailyWorkHours}
+                            onChange={changeStringValue}/>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>1주 소정근로시간</Form.Label>
+                <Col sm={9}>
+                    <Form.Control type="number" min="0.5" step="0.5"
+                            name="weeklyWorkHours"
+                            value={contract.weeklyWorkHours}
+                            onChange={changeStringValue}/>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>휴게시간</Form.Label>
+                <Col sm={9}>
+                    <Form.Control type="number" min="0" name="writtenBreakTimes"
+                            value={contract.writtenBreakTimes}
+                            onChange={changeStringValue}/>
+                    <Form.Text className="text-muted">
+                        4시간 이상 근무 시 30분 이상, 8시간 이상 근무 시 60분 이상
+                    </Form.Text>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>계약 시작일</Form.Label>
+                <Col sm={9}>
+                    <Form.Control type="date" name="contractStart"
+                            value={contract.contractStart}
+                            onChange={changeStringValue}/>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>계약 종료일</Form.Label>
+                <Col sm={9}>
+                    <Form.Control type="date" name="contractEnd"
+                            value={contract.contractEnd}
+                            onChange={changeStringValue}/>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>급여 지급일</Form.Label>
+                <Col sm={9}>
+                    <Form.Control type="number" min="1" max="31" name="payday"
+                            value={contract.payday}
+                            onChange={changeStringValue}/>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>기타 근로조건</Form.Label>
+                <Col sm={9}>
+                    <Form.Control as="textarea" rows={6} name="contractContent"
+                            value={contract.contractContent}
+                            onChange={changeStringValue}/>
+                </Col>
+            </Row>
+        </Form>
+
+        {/* 수정내용 미리보기 */}
+        <ContractDocument contract={contract}/>
+
+        <Row className="mt-5 mb-5">
+            <Col className="text-end">
+                <Button variant="secondary" size="lg"
+                        onClick={()=>navigate(`/contract/detail/${contractNo}`)}
+                        disabled={sending === true}>
+                    <FaXmark/>
+                    <span className="ms-2">취소</span>
+                </Button>
+
+                <Button variant="warning" size="lg" className="ms-2"
+                        onClick={sendData}
+                        disabled={sending === true || contract.contractStatus !== "pending"}>
+                    <FaCheck/>
+                    <span className="ms-2">
+                        {sending === true ? "수정중..." : "수정 완료"}
+                    </span>
+                </Button>
+            </Col>
+        </Row>
+    </>)
 }

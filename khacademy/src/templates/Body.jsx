@@ -29,11 +29,16 @@ import StudentAssignmentDetail from "@components/student/assignment/StudentAssig
 import StudentAssignmentManage from "@components/student/assignment/StudentAssignmentManage";
 
 
+
+import EmployeeAttendance from "@components/employeeAttendance/EmployeeAttendance";
+
 import ContractAdd from "@components/contract/ContractAdd";
 import ContractEditBeforeSigned from "@components/contract/ContractEditBeforeSigned";
 import ContractSign from "@components/contract/ContractSign";
 import ContractDetail from "@components/contract/ContractDetail";
 import ContractHistory from "@components/contract/ContractHistory";
+import ContractExtend from "@components/contract/ContractExtend";
+import ContractChangeCondition from "@components/contract/ContractChangeCondition";
 
 export default function Body() {
 
@@ -79,11 +84,14 @@ export default function Body() {
             {/* 계약관련 */}
             <Route path="/contract/add/:employeeNo" element={<ContractAdd/>}/>
             <Route path="/contract/before/:contractNo" element={<ContractEditBeforeSigned/>}/>
-            <Route path="/contract/sign:contractNo" element={<ContractSign/>}/>
-            <Route path="/contract/detail:contractNo" element={<ContractDetail/>}/>
+            <Route path="/contract/sign/:contractNo" element={<ContractSign/>}/>
+            <Route path="/contract/detail/:contractNo" element={<ContractDetail/>}/>
             <Route path="/contract/history/:employeeNo" element={<ContractHistory/>}/>
             <Route path="/contract/extend/:contractNo" element={<ContractExtend/>}/>
             <Route path="/contract/changeCondition/:contractNo" element={<ContractChangeCondition/>}/>
+
+            {/* 근태관련 */}
+            <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
         </Routes>   
     )
 }
