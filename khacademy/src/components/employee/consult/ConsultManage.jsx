@@ -89,10 +89,10 @@ export default function ConsultManage() {
 
     // 고객 검색 버튼 클릭 이벤트
     const searchCustomer = useCallback(async ()=>{
-        if(search.trim().length == 0) {
-            Swal.fire("이름이나 연락처를 입력하세요");
-            return false;
-        }
+        // if(search.trim().length == 0) {
+        //     Swal.fire("이름이나 연락처를 입력하세요");
+        //     return false;
+        // }
 
         const { data } = await apiClient.post("/employee/consult/customer", {
             search: search
@@ -435,7 +435,7 @@ export default function ConsultManage() {
         {/* ================= 검색 목록 모달 팝업 ================= */}
         <Modal show={showModal} onHide={() => setShowModal(false)} centered size="lg">
             <Modal.Header closeButton>
-                <Modal.Title className="fs-5 fw-bold">[{search}] 검색 결과 목록({searchResults.length}건)</Modal.Title>
+                <Modal.Title className="fs-5 fw-bold">[{search === "" ? "전체" : search}] 검색 결과 목록({searchResults.length}건)</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <div className="overflow-auto" style={{maxHeight:'600px'}}>

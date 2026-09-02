@@ -13,6 +13,7 @@ import MemberJoinFail from "@components/member/MemberJoinFail";
 
 import ConsultReservation from "@components/employee/consult/ConsultReservation";
 import ConsultManage from "@components/employee/consult/ConsultManage";
+import ConsultChat from "@components/employee/consult/ConsultChat";
 
 import NotFound from "@error/NotFound";
 
@@ -40,7 +41,7 @@ export default function Body() {
             {/* 상담 */}
             <Route path="/employee/consult/reservation" element={<Employee><ConsultReservation/></Employee>} />
             <Route path="/employee/consult/manage" element={<Employee><ConsultManage /></Employee>} />
-
+            <Route path="/employee/consult/chat" element={<Employee><ConsultChat/></Employee>} />
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>
