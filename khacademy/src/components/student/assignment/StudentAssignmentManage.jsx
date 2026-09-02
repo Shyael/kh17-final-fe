@@ -1,10 +1,10 @@
 import Jumbotron from "@templates/Jumbotron";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
-import { Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
-import { FaCheck, FaListUl } from "react-icons/fa6";
+import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstrap";
+import { FaCheck, FaDownload, FaListUl, FaPaperclip, FaXmark } from "react-icons/fa6";
 
 // 제출 내용 최대 글자 수
 const MAX_CONTENT_LENGTH = 1000;
@@ -24,7 +24,8 @@ export default function StudentAssignmentManage() {
         assignmentTitle: "",
         assignmentContent: "",
         assignmentStatus: "",
-        assignmentDueDate: null
+        assignmentDueDate: null,
+        fileList: []
     });
 
     // 내 제출 정보
@@ -36,6 +37,82 @@ export default function StudentAssignmentManage() {
 
     //submitNo가 있으면 수정모드
     const isEdit = submit.submitNo != null;
+
+    //첨부파일 (신규 업로드, 여러 개)
+    const [files, setFiles] = useState([]);
+    const filesRef = useRef();
+
+    //기존에 등록되어 있는 첨부파일
+    const [beforeFiles, setBeforeFiles] = useState([]);
+
+    const changeFiles = useCallback((e) => {
+        setFiles(Array.from(e.target.files));
+    }, []);
+
+    const clearFiles = useCallback(()=>{
+        setFiles([]);
+    }, []);
+
+    useEffect(() => {
+        if (files.length > 0) return;
+
+        if (filesRef.current) {
+            filesRef.current.value = "";
+        }
+    }, [files]);
+
+    //기존 첨부파일 체크박스 선택
+    const choiceFile = useCallback((target, e) => {
+        setBeforeFiles(prev => prev.map(
+            attach => {
+                if (attach.attachNo === target.attachNo) {
+                    return {
+                        ...attach,
+                        choice: e.target.checked
+                    };
+                }
+                return { ...attach };
+            }
+        ))
+    }, [])
+
+    //전체선택
+    const checkAllFiles = useCallback((e) => {
+        setBeforeFiles(prev => prev.map(
+            attach => ({
+                ...attach,
+                choice: e.target.checked
+            })
+        ));
+    }, []);
+
+    const isAllFilesChecked = useMemo(() => {
+        return beforeFiles.length > 0 && beforeFiles.every(attach => attach.choice === true);
+    }, [beforeFiles]);
+
+    //체크된 기존 첨부파일 삭제
+    const deleteCheckedFiles = useCallback(async () => {
+        const attachNumbers = beforeFiles.filter(
+            attach => attach.choice === true
+        ).map(
+            attach => attach.attachNo
+        );
+
+        if (attachNumbers.length === 0) {
+            return;
+        }
+
+        for (const attachNo of attachNumbers) {
+            await apiClient.delete(
+                `/assignment-submit/${submit.submitNo}/file/${attachNo}`
+            );
+        }
+
+        toast.success("첨부파일이 삭제되었습니다.");
+        setBeforeFiles(prev => prev.filter(
+            attach => !attachNumbers.includes(attach.attachNo)
+        ));
+    }, [beforeFiles,submit.submitNo]);
 
     //과제 상세 조회
     const loadAssignment = useCallback(async () => {
@@ -65,6 +142,13 @@ export default function StudentAssignmentManage() {
                     assignmentNo: Number(assignmentNo),
                     submitContent: response.data.submitContent ?? ""
                 });
+
+            setBeforeFiles(
+                (response.data.fileList ?? []).map(file => ({
+                    ...file,
+                    choice: false
+                }))
+            )
             }
         }
         catch (err) {
@@ -105,12 +189,32 @@ export default function StudentAssignmentManage() {
         }
 
         try {
+            const form = new FormData();
+
+            //제출내용
+            form.append(
+                "submit",
+                new Blob(
+                    [
+                        JSON.stringify({
+                            assignmentNo: Number(assignmentNo),
+                            submitContent: submit.submitContent
+                        })
+                    ],
+                    {
+                        type: "application/json"
+                    }
+                )
+            );
+
+            //첨부파일
+            files.forEach((file) => {
+                form.append("files", file);
+            });
+
             const response = await apiClient.post(
                 "/assignment-submit/",
-                {
-                    assignmentNo: Number(assignmentNo),
-                    submitContent: submit.submitContent
-                }
+                form
             );
 
             toast.success("과제를 제출했습니다.");
@@ -138,11 +242,31 @@ export default function StudentAssignmentManage() {
             return;
         }
         try {
+            const form = new FormData();
+
+            // 제출 내용
+            form.append(
+                "submit",
+                new Blob(
+                    [
+                        JSON.stringify({
+                            submitContent: submit.submitContent
+                        })
+                    ],
+                    {
+                        type: "application/json"
+                    }
+                )
+            );
+
+            // 새로 추가한 첨부파일
+            files.forEach((file) => {
+                form.append("files", file);
+            });
+
             await apiClient.put(
                 `/assignment-submit/${submit.submitNo}`,
-                {
-                    submitContent: submit.submitContent
-                }
+                form
             );
 
             toast.success("제출 내용을 수정했습니다.");
@@ -252,6 +376,34 @@ export default function StudentAssignmentManage() {
                             style={{ whiteSpace: "pre-line" }}>
                             {assignment.assignmentContent}
                         </p>
+
+                        <div className="fw-bold mb-2 mt-2">
+                            <FaPaperclip className="me-1" />
+                            <span>첨부파일</span>
+                        </div>
+                        <ListGroup>
+                            {assignment.fileList.map(file => (
+                                <ListGroupItem
+                                    key={file.attachNo}
+                                    className="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {file.attachName}
+                                        <span className="ms-2 text-info">
+                                            ({(file.attachSize / 1024 / 1024).toFixed(2)} MB)
+                                        </span>
+                                    </div>
+
+                                    <a
+                                        href={`${import.meta.env.VITE_SERVER_URL}/api/attach/${file.attachNo}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-decoration-none">
+                                        <FaDownload className="me-1" />
+                                        <span>다운로드</span>
+                                    </a>
+                                </ListGroupItem>
+                            ))}
+                        </ListGroup>
                     </Card.Body>
                 </Card>
             </Col>
@@ -288,6 +440,67 @@ export default function StudentAssignmentManage() {
                         )}
 
                         {/* TODO: 파일 첨부 영역 (추후 추가) */}
+                        <Row className="mt-4">
+                            <Form.Label column sm={3}>제출첨부파일</Form.Label>
+                            <Col sm={9}>
+                                <div className="d-flex">
+                                    <Form.Control type="file" multiple
+                                        ref={filesRef}
+                                        onInput={changeFiles}/>
+                                    {files.length > 0 && (
+                                        <Button variant="danger" onClick={clearFiles} className="ms-2">
+                                            <FaXmark/>
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {files.length > 0 && (
+                                    <ListGroup className="mt-3">
+                                        {Array.from(files).map((file, index) => (
+                                            <ListGroupItem key={index}>
+                                                {file.name}
+                                                <span className="ms-2 text-info">
+                                                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                                                </span>
+                                            </ListGroupItem>    
+                                        ))}
+                                    </ListGroup>
+                                )}
+                            </Col>
+                        </Row>
+
+                        {isEdit && beforeFiles.length > 0 && (
+                            <Row className="mt-4">
+                                <Form.Label column sm={3}>등록된 첨부파일</Form.Label>
+                                <Col sm={9}>
+                                    <Form.Check type="checkbox" label= "전체 선택"
+                                        checked={isAllFilesChecked}
+                                        onChange={checkAllFiles}/>
+
+                                    <Button variant="danger" onClick={deleteCheckedFiles}>
+                                        체크된 항목 삭제   
+                                    </Button>
+
+                                    <ListGroup>
+                                        {beforeFiles.map(attach =>(
+                                            <ListGroupItem key={attach.attachNo}>
+                                                <div className="d-flex justify-content-between">
+                                                    <div>
+                                                        {attach.attachName}
+                                                        <span className="ms-2 text-info">
+                                                            ({(attach.attachSize / 1024 / 1024).toFixed(2)} MB)
+                                                        </span>
+                                                    </div>
+                                                    <Form.Check type="checkbox"
+                                                        checked={attach.choice === true}
+                                                        onChange={e => choiceFile(attach, e)}/>
+                                                </div>
+                                            </ListGroupItem>
+                                        ))}
+                                    </ListGroup>
+                                </Col>
+                            </Row>
+                        )}
                     </Card.Body>
                 </Card>
             </Col>

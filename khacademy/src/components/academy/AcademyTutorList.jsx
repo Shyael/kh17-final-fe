@@ -4,6 +4,8 @@ import { Button, Card, Col, Form, Row, Table } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import { Link } from "react-router-dom";
 import { FaChevronRight } from "react-icons/fa6";
+import NoImage from "@assets/no-image.png";
+
 export default function AcademyTutorList() {
     //state
     const [tutorList, setTutorList] = useState([]);
@@ -31,7 +33,11 @@ export default function AcademyTutorList() {
                         className="text-decoration-none text-reset">
                         <Card.Body className="d-flex align-items-center">
                             <img
-                                src={`https://picsum.photos/seed/tutor-${tutor.tutorNo}/160/160`}
+                                src={
+                                    tutor.image
+                                            ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
+                                            : NoImage
+                                }
                                 alt={`${tutor.accountName} 강사`}
                                 className="rounded-circle me-4"
                                 width={100}

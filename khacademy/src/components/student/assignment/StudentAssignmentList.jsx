@@ -1,7 +1,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiClient } from "@utils/reaxios";
-import { Badge, Button, ButtonGroup, Card, Col, Row } from "react-bootstrap";
+import { Badge, Button, ButtonGroup, Card, Col, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
 // 한 번에 보여줄 과제 수
@@ -24,6 +24,9 @@ export default function StudentAssignmentList() {
 
     // 선택된 상태 필터
     const [filter, setFilter] = useState("전체");
+
+    // 선택된 강의 필터 (courseNo, "전체"면 전체)
+    const [courseFilter, setCourseFilter] = useState("전체");
 
     // 더보기로 노출된 개수
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
@@ -115,15 +118,40 @@ export default function StudentAssignmentList() {
         return `${date.getMonth() + 1}/${date.getDate()} 까지`;
     };
 
-    // 필터 적용된 목록
-    const filteredList = useMemo(() => {
-        if (filter === "전체") {
-            return assignmentList;
-        }
-        return assignmentList.filter(
-            (assignment) => getSubmitStatus(assignment) === filter
+    // 최근 생성순 정렬 (새로 만든 과제가 위로)
+    const sortedList = useMemo(() => {
+        return [...assignmentList].sort(
+            (a, b) => b.assignmentNo - a.assignmentNo
         );
-    }, [assignmentList, filter]);
+    }, [assignmentList]);
+
+    // 강의 목록 (중복 제거)
+    const courseOptions = useMemo(() => {
+        const map = new Map();
+        assignmentList.forEach((assignment) => {
+            const key = assignment.courseNo ?? assignment.courseTitle;
+            if (key != null && !map.has(key)) {
+                map.set(key, assignment.courseTitle);
+            }
+        });
+        return Array.from(map, ([value, label]) => ({ value, label }));
+    }, [assignmentList]);
+
+    // 필터 적용된 목록 (강의 + 상태)
+    const filteredList = useMemo(() => {
+        return sortedList.filter((assignment) => {
+            if (courseFilter !== "전체") {
+                const key = assignment.courseNo ?? assignment.courseTitle;
+                if (String(key) !== String(courseFilter)) {
+                    return false;
+                }
+            }
+            if (filter !== "전체" && getSubmitStatus(assignment) !== filter) {
+                return false;
+            }
+            return true;
+        });
+    }, [sortedList, filter, courseFilter]);
 
     // 실제 화면에 노출되는 목록
     const visibleList = filteredList.slice(0, visibleCount);
@@ -134,11 +162,30 @@ export default function StudentAssignmentList() {
         setVisibleCount(PAGE_SIZE);
     };
 
+    // 강의 필터 변경 시 더보기 초기화
+    const changeCourse = (e) => {
+        setCourseFilter(e.target.value);
+        setVisibleCount(PAGE_SIZE);
+    };
+
     return (<>
         <Jumbotron title="내 과제" />
 
-        {/* 1. 과제 상태 버튼 */}
-        <div className="d-flex justify-content-end mb-3">
+        {/* 1. 강의 선택 + 과제 상태 버튼 */}
+        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+            <Form.Select
+                size="sm"
+                style={{ width: "auto" }}
+                value={courseFilter}
+                onChange={changeCourse}>
+                <option value="전체">전체 강의</option>
+                {courseOptions.map((course) => (
+                    <option key={course.value} value={course.value}>
+                        {course.label}
+                    </option>
+                ))}
+            </Form.Select>
+
             <ButtonGroup>
                 {FILTERS.map((item) => (
                     <Button

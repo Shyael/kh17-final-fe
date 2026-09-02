@@ -656,8 +656,8 @@ export default function TutorManage() {
                     </div>
 
                     {/* 새로 선택한 이미지 미리보기 */}
-                    {previewImage && (
-                        <div className="mt-3">
+                    {previewImage && image && (
+                        <div className="mt-3 d-flex align-items-center gap-2">
                             <img
                                 src={previewImage}
                                 alt="강사 이미지 미리보기"
@@ -668,6 +668,12 @@ export default function TutorManage() {
                                     borderRadius: "8px"
                                 }}
                             />
+                            <span>
+                                {image.name}
+                                <span className="ms-2 text-info">
+                                    ({(image.size / 1024 / 1024).toFixed(2)} MB)
+                                </span>
+                            </span>
                         </div>
                     )}
 
@@ -684,6 +690,12 @@ export default function TutorManage() {
                                     borderRadius: "8px"
                                 }}
                             />
+                            <span>
+                                {beforeImage.attachName}
+                                <span className="ms-2 text-info">
+                                    ({(beforeImage.attachSize / 1024 / 1024).toFixed(2)} MB)
+                                </span>
+                            </span>
                             <FaXmark
                                 className="text-danger"
                                 size={20}

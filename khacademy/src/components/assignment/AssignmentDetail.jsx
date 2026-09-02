@@ -1,7 +1,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Badge, Button, Card, Col, Form, Row, Table } from "react-bootstrap";
-import { FaCheck, FaPen, FaTrash, FaLock } from "react-icons/fa6";
+import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row, Table } from "react-bootstrap";
+import { FaCheck, FaPen, FaTrash, FaLock, FaPaperclip, FaDownload } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
@@ -23,7 +23,8 @@ export default function AssignmentDetail() {
         assignmentContent: "",
         assignmentStatus: "",
         assignmentDueDate: null,
-        assignmentWtime: null
+        assignmentWtime: null,
+        fileList: []
     });
 
     // 해당 과제 수강생 전체 + 제출정보
@@ -376,10 +377,44 @@ export default function AssignmentDetail() {
                             <hr />
 
                             <p
-                                className="mb-0"
+                                className={assignment.fileList?.length > 0 ? "" : "mb-0"}
                                 style={{ whiteSpace: "pre-line" }}>
                                 {assignment.assignmentContent}
                             </p>
+
+                            {/* 첨부파일 */}
+                            {assignment.fileList?.length > 0 && (
+                                <>
+                                    <hr />
+                                    <div className="fw-bold mb-2">
+                                        <FaPaperclip className="me-1" />
+                                        <span>첨부파일</span>
+                                    </div>
+                                    <ListGroup>
+                                        {assignment.fileList.map(file => (
+                                            <ListGroupItem
+                                                key={file.attachNo}
+                                                className="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    {file.attachName}
+                                                    <span className="ms-2 text-info">
+                                                        ({(file.attachSize / 1024 / 1024).toFixed(2)} MB)
+                                                    </span>
+                                                </div>
+
+                                                <a
+                                                    href={`${import.meta.env.VITE_SERVER_URL}/api/attach/${file.attachNo}`}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-decoration-none">
+                                                    <FaDownload className="me-1" />
+                                                    <span>다운로드</span>
+                                                </a>
+                                            </ListGroupItem>
+                                        ))}
+                                    </ListGroup>
+                                </>
+                            )}
                         </Card.Body>
                     </Card>
                 </Col>

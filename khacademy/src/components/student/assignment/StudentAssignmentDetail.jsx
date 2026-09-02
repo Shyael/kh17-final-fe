@@ -2,8 +2,8 @@ import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
-import { Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
-import { FaCheck, FaPen } from "react-icons/fa6";
+import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstrap";
+import { FaCheck, FaPen, FaPaperclip, FaDownload } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { isEmployeeState } from "@utils/storage";
 import { toast } from "react-toastify";
@@ -27,7 +27,8 @@ export default function StudentAssignmentDetail() {
         assignmentContent: "",
         assignmentStatus: "",
         assignmentDueDate: null,
-        assignmentWtime: null
+        assignmentWtime: null,
+        fileList: []
     });
 
     //제출 정보
@@ -41,6 +42,7 @@ export default function StudentAssignmentDetail() {
         submitComment: "",
         submitWtime: null,
         submitEtime: null,
+        fileList: []
     });
 
     //과제 상세 조회
@@ -123,6 +125,33 @@ export default function StudentAssignmentDetail() {
         return new Date(value).toLocaleString();
     };
 
+    // 첨부파일 목록 렌더링
+    const renderFileList = (fileList) => (
+        <ListGroup>
+            {fileList.map(file => (
+                <ListGroupItem
+                    key={file.attachNo}
+                    className="d-flex justify-content-between align-items-center">
+                    <div>
+                        {file.attachName}
+                        <span className="ms-2 text-info">
+                            ({(file.attachSize / 1024 / 1024).toFixed(2)} MB)
+                        </span>
+                    </div>
+
+                    <a
+                        href={`${import.meta.env.VITE_SERVER_URL}/api/attach/${file.attachNo}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-decoration-none">
+                        <FaDownload className="me-1" />
+                        <span>다운로드</span>
+                    </a>
+                </ListGroupItem>
+            ))}
+        </ListGroup>
+    );
+
     // 피드백 존재 여부
     const hasComment = Boolean(submit.submitComment && submit.submitComment.trim());
 
@@ -142,19 +171,44 @@ export default function StudentAssignmentDetail() {
 
         {/* 1. 과제 정보 */}
         <Card className="mt-4">
-            <Card.Body className="d-flex justify-content-between align-items-start">
-                <div>
-                    <h4 className="fw-bold mb-1">
-                        {assignment.assignmentTitle}
-                    </h4>
-                    <div className="text-muted">
-                        {formatDueDate(assignment.assignmentDueDate)}
+            <Card.Body>
+                <div className="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h4 className="fw-bold mb-1">
+                            {assignment.assignmentTitle}
+                        </h4>
+                        <div className="text-muted">
+                            {formatDueDate(assignment.assignmentDueDate)}
+                        </div>
                     </div>
+
+                    <Badge bg={submitStatus === "채점완료" ? "success" : "secondary"}>
+                        {submitStatus}
+                    </Badge>
                 </div>
 
-                <Badge bg={submitStatus === "채점완료" ? "success" : "secondary"}>
-                    {submitStatus}
-                </Badge>
+                {assignment.assignmentContent && (
+                    <>
+                        <hr />
+                        <p
+                            className={assignment.fileList?.length > 0 ? "" : "mb-0"}
+                            style={{ whiteSpace: "pre-line" }}>
+                            {assignment.assignmentContent}
+                        </p>
+                    </>
+                )}
+
+                {/* 과제 첨부파일 */}
+                {assignment.fileList?.length > 0 && (
+                    <>
+                        <hr />
+                        <div className="fw-bold mb-2">
+                            <FaPaperclip className="me-1" />
+                            <span>과제 첨부파일</span>
+                        </div>
+                        {renderFileList(assignment.fileList)}
+                    </>
+                )}
             </Card.Body>
         </Card>
 
@@ -179,6 +233,18 @@ export default function StudentAssignmentDetail() {
                         </>
                     )}
                 </div>
+
+                {/* 제출 첨부파일 */}
+                {submit.fileList?.length > 0 && (
+                    <>
+                        <hr />
+                        <div className="fw-bold mb-2">
+                            <FaPaperclip className="me-1" />
+                            <span>제출 첨부파일</span>
+                        </div>
+                        {renderFileList(submit.fileList)}
+                    </>
+                )}
             </Card.Body>
         </Card>
 
@@ -206,8 +272,7 @@ export default function StudentAssignmentDetail() {
                         rows={5}
                         value={submit.submitComment}
                         onChange={changeComment}
-                        placeholder="학생에게 전달할 피드백을 입력하세요."
-                    />
+                        placeholder="학생에게 전달할 피드백을 입력하세요."/>
                 )}
             </Card.Body>
         </Card>

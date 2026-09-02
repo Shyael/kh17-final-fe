@@ -5,6 +5,7 @@ import { FaArrowRight, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Carousel } from "react-bootstrap";
+import NoImage from "@assets/no-image.png";
 
 import {
     Map,
@@ -335,7 +336,11 @@ export default function AcademyInfo() {
                             className="h-100 text-center text-decoration-none text-reset">
                             <Card.Body>
                                 <img
-                                    src={`https://picsum.photos/seed/tutor-${tutor.tutorNo}/160/160`}
+                                    src={
+                                        tutor.image
+                                            ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
+                                            : NoImage
+                                    }
                                     alt={`${tutor.accountName} 강사`}
                                     className="rounded-circle mb-3"
                                     width={120}
