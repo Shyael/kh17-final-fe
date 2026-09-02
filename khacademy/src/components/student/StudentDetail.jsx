@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Badge, Button, Card, Col, Form, Row, Spinner, Table } from "react-bootstrap";
-// 🌟 1. 누락되었던 FaPlus, FaTrash 아이콘 추가 완료!
-import { FaSave, FaComments, FaTrash, FaPlus } from "react-icons/fa"; 
+// 🌟 InputGroup 임포트 추가
+import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup } from "react-bootstrap";
+// 🌟 FaUserTie 아이콘 임포트 추가
+import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie } from "react-icons/fa"; 
 import { useParams, useNavigate } from "react-router-dom";
 import { authClient } from "@utils/reaxios"; 
 
@@ -18,6 +19,9 @@ export default function StudentDetail() {
     const [allDiscounts, setAllDiscounts] = useState([]); 
     const [studentDiscounts, setStudentDiscounts] = useState([]); 
     const [selectedDiscountNo, setSelectedDiscountNo] = useState(""); 
+
+    // 학부모 정보 State
+    const [parentInfo, setParentInfo] = useState(null);
 
     // 학생 기본 정보 불러오기
     const fetchStudentDetail = useCallback(async () => {
@@ -56,10 +60,35 @@ export default function StudentDetail() {
         }
     }, [studentNo]);
 
+    // ==========================================
+    // 🌟 학부모 정보 불러오기 (useEffect 밖으로 빼냈습니다!)
+    // ==========================================
+    const fetchParentInfo = useCallback(async () => {
+        try {
+            const response = await authClient.get(`http://localhost:8080/api/parent/student/${studentNo}`);
+            if (response.data) {
+                setParentInfo(response.data);
+            } else {
+                setParentInfo(null);
+            }
+        } catch (error) {
+            console.error("학부모 정보 로딩 실패:", error);
+        }
+    }, [studentNo]);
+
+
     // 학생에게 할인 혜택 추가하기
     const handleAddDiscount = async () => {
         if (!selectedDiscountNo) {
             alert("적용할 할인을 선택해 주세요.");
+            return;
+        }
+        
+        const isDuplicate = studentDiscounts.some(
+            (sd) => sd.discountNo.toString() === selectedDiscountNo.toString()
+        );
+        if (isDuplicate) {
+            alert("이미 적용되어 있는 할인 혜택입니다.");
             return;
         }
         try {
@@ -84,12 +113,17 @@ export default function StudentDetail() {
         }
     };
 
-    // 화면 켜질 때 동시 호출
+
+    // ==========================================
+    // 🌟 화면 켜질 때 동시 호출 (여기서는 깔끔하게 실행만 합니다!)
+    // ==========================================
     useEffect(() => {
         fetchStudentDetail();
         fetchStudentPayments();
-        fetchDiscounts(); 
-    }, [fetchStudentDetail, fetchStudentPayments, fetchDiscounts]);
+        fetchDiscounts();
+        fetchParentInfo(); // 학부모 정보 호출 추가!
+    }, [fetchStudentDetail, fetchStudentPayments, fetchDiscounts, fetchParentInfo]);
+
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -195,7 +229,7 @@ export default function StudentDetail() {
                         </Card.Body>
                     </Card>
 
-                    {/* 🌟 3. 할인 혜택 관리 영역 (위치 교정됨: 폼 바깥으로 분리) */}
+                    {/* 3. 할인 혜택 관리 영역 */}
                     <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2 mt-5">적용 중인 할인 혜택 관리</h6>
                     <Row className="mb-4 align-items-center">
                         <Col md={3} className="text-muted fw-semibold small">새로운 할인 추가</Col>
@@ -207,11 +241,20 @@ export default function StudentDetail() {
                                     onChange={(e) => setSelectedDiscountNo(e.target.value)}
                                 >
                                     <option value="">적용할 할인을 선택하세요</option>
-                                    {allDiscounts.map(d => (
-                                        <option key={d.discountNo} value={d.discountNo}>
-                                            {d.discountName} ({d.discountType === '비율' ? `${d.discountValue}%` : `₩${d.discountValue.toLocaleString()}`})
-                                        </option>
-                                    ))}
+                                    {allDiscounts.map(d => {
+                                        const isApplied = studentDiscounts.some(sd => sd.discountNo === d.discountNo);
+                                        
+                                        return (
+                                            <option 
+                                                key={d.discountNo} 
+                                                value={d.discountNo}
+                                                disabled={isApplied} 
+                                            >
+                                                {d.discountName} ({d.discountType === '비율' ? `${d.discountValue}%` : `₩${d.discountValue.toLocaleString()}`}) 
+                                                {isApplied ? " - 적용완료" : ""}
+                                            </option>
+                                        )
+                                    })}
                                 </Form.Select>
                                 <Button variant="primary" size="sm" className="d-flex align-items-center flex-shrink-0" onClick={handleAddDiscount}>
                                     <FaPlus className="me-1" /> 추가
@@ -266,20 +309,41 @@ export default function StudentDetail() {
                             </Form.Group>
                         </Row>
 
-                        <Row className="mb-3 g-3">
-                            <Form.Group as={Col} md={4}>
-                                <Form.Label className="small text-muted mb-1">보호자 이름</Form.Label>
-                                <Form.Control size="sm" type="text" name="guardianName" value={student.guardianName || ""} onChange={handleChange} />
-                            </Form.Group>
-                            <Form.Group as={Col} md={4}>
-                                <Form.Label className="small text-primary fw-bold mb-1">보호자 연락처</Form.Label>
-                                <Form.Control size="sm" type="text" name="guardianPhone" value={student.guardianPhone || ""} onChange={handleChange} />
-                            </Form.Group>
-                            <Form.Group as={Col} md={4}>
-                                <Form.Label className="small text-muted mb-1">보호자 이메일</Form.Label>
-                                <Form.Control size="sm" type="email" name="guardianEmail" value={student.guardianEmail || ""} onChange={handleChange} />
-                            </Form.Group>
-                        </Row>
+                        {/* 🌟 5. 보호자 정보 출력 영역 */}
+                        <div className="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2">
+                            <h6 className="fw-bold text-secondary mb-0">연결된 보호자 정보</h6>
+                            <Button variant="outline-primary" size="sm" style={{ padding: "0.2rem 0.5rem", fontSize: "0.8rem" }}>
+                                보호자 연결/변경
+                            </Button>
+                        </div>
+                        
+                        {parentInfo ? (
+                            <Row className="mb-4 g-3 bg-light p-3 rounded mx-0">
+                                <Form.Group as={Col} md={3}>
+                                    <Form.Label className="small text-muted mb-1">관계</Form.Label>
+                                    <InputGroup size="sm">
+                                        <InputGroup.Text className="bg-white"><FaUserTie className="text-secondary" /></InputGroup.Text>
+                                        <Form.Control type="text" value={parentInfo.relationship || ""} readOnly className="bg-white fw-bold" />
+                                    </InputGroup>
+                                </Form.Group>
+                                <Form.Group as={Col} md={3}>
+                                    <Form.Label className="small text-muted mb-1">보호자 이름</Form.Label>
+                                    <Form.Control size="sm" type="text" value={parentInfo.accountName || ""} readOnly className="bg-white" />
+                                </Form.Group>
+                                <Form.Group as={Col} md={3}>
+                                    <Form.Label className="small text-primary fw-bold mb-1">보호자 연락처</Form.Label>
+                                    <Form.Control size="sm" type="text" value={parentInfo.accountPhone || ""} readOnly className="bg-white" />
+                                </Form.Group>
+                                <Form.Group as={Col} md={3}>
+                                    <Form.Label className="small text-muted mb-1">보호자 계정(ID)</Form.Label>
+                                    <Form.Control size="sm" type="text" value={parentInfo.accountId || ""} readOnly className="bg-white" />
+                                </Form.Group>
+                            </Row>
+                        ) : (
+                            <div className="text-center text-muted small py-4 bg-light rounded mb-4">
+                                현재 연결된 보호자 계정이 없습니다. 우측 상단의 버튼을 통해 매핑해주세요.
+                            </div>
+                        )}
 
                         <Row className="mb-3 g-3">
                             <Form.Group as={Col} md={12}>
