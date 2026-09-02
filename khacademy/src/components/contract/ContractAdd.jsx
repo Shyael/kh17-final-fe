@@ -28,7 +28,7 @@ export default function ContractAdd() {
         baseWage : "",
         dailyWorkHours : "",
         weeklyWorkHours : "",
-        writtenBreakTimes : "",
+        writtenBreakMinutes : "",
         contractStart : "",
         contractEnd : "",
         payday : "",
@@ -88,8 +88,8 @@ export default function ContractAdd() {
             return false;
         }
 
-        if(employee.employeeStatus !== "미배정") {
-            toast.warning("미배정 상태의 직원만 신규 근로계약을 작성할 수 있습니다");
+        if(employee.employeeStatus !== "대기") {
+            toast.warning("대기 상태의 직원만 신규 근로계약을 작성할 수 있습니다");
             return false;
         }
 
@@ -116,24 +116,24 @@ export default function ContractAdd() {
             return false;
         }
 
-        if(contract.writtenBreakTimes === "") {
+        if(contract.writtenBreakMinutes === "") {
             toast.warning("휴게시간을 입력해주세요");
             return false;
         }
 
-        const writtenBreakTimes = parseInt(contract.writtenBreakTimes, 10);
+        const writtenBreakMinutes = parseInt(contract.writtenBreakMinutes, 10);
 
-        if(writtenBreakTimes < 0) {
+        if(writtenBreakMinutes < 0) {
             toast.warning("휴게시간은 0분 이상이어야 합니다");
             return false;
         }
 
-        if(dailyWorkHours >= 8 && writtenBreakTimes < 60) {
+        if(dailyWorkHours >= 8 && writtenBreakMinutes < 60) {
             toast.warning("1일 8시간 이상 근무 시 휴게시간은 60분 이상이어야 합니다");
             return false;
         }
 
-        if(dailyWorkHours >= 4 && dailyWorkHours < 8 && writtenBreakTimes < 30) {
+        if(dailyWorkHours >= 4 && dailyWorkHours < 8 && writtenBreakMinutes < 30) {
             toast.warning("1일 4시간 이상 근무 시 휴게시간은 30분 이상이어야 합니다");
             return false;
         }
@@ -255,11 +255,11 @@ export default function ContractAdd() {
                 <Col sm={9} className="text-secondary">{employee.employeeStatus}</Col>
             </Row>
 
-            {employee.employeeStatus !== "미배정" && (
+            {employee.employeeStatus !== "대기" && (
             <Row className="mt-4">
                 <Col>
                     <Alert variant="warning">
-                        미배정 상태의 직원만 신규 근로계약을 작성할 수 있습니다.
+                        대기 상태의 직원만 신규 근로계약을 작성할 수 있습니다.
                         재직 중인 직원은 근로조건 변경 기능을 이용해주세요.
                     </Alert>
                 </Col>
@@ -268,8 +268,8 @@ export default function ContractAdd() {
         </>
         )}
 
-        {/* 미배정 직원일 때만 계약 입력 */}
-        {employee?.employeeStatus === "미배정" && (
+        {/* 대기 직원일 때만 계약 입력 */}
+        {employee?.employeeStatus === "대기" && (
         <>
             <Row className="mt-5">
                 <Col>
@@ -322,8 +322,8 @@ export default function ContractAdd() {
             <Row className="mt-4">
                 <Form.Label column sm={3}>휴게시간</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="number" min="0" name="writtenBreakTimes"
-                            value={contract.writtenBreakTimes}
+                    <Form.Control type="number" min="0" name="writtenBreakMinutes"
+                            value={contract.writtenBreakMinutes}
                             onChange={changeStringValue}/>
                     <Form.Text className="text-muted">
                         4시간 이상 근무 시 30분 이상, 8시간 이상 근무 시 60분 이상

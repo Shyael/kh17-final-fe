@@ -34,6 +34,8 @@ export default function ContractSign() {
                 `/contract/recallBefore/${contractNo}`
             );
 
+            console.log(data);
+
             setContract(data);
         }
         catch(e) {
@@ -44,6 +46,7 @@ export default function ContractSign() {
             );
         }
         finally {
+            
             setLoading(false);
         }
     }, [contractNo]);
@@ -95,6 +98,7 @@ export default function ContractSign() {
             setEmployeeSignature("");
             setSignatureInfo(null);
             await loadData();
+            navigate(`/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);
@@ -141,6 +145,7 @@ export default function ContractSign() {
             setEmployerSignature("");
             setSignatureInfo(null);
             await loadData();
+            navigate(`/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);

@@ -116,7 +116,7 @@ export default function ContractDocument({ contract }) {
 
         <Row className="mt-3">
             <Col>
-                근로시간 중 휴게시간은 <b>{contract.writtenBreakTimes || "________"}분</b>으로 한다.
+                근로시간 중 휴게시간은 <b>{contract.writtenBreakMinutes || "________"}분</b>으로 한다.
             </Col>
         </Row>
 

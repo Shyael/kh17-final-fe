@@ -27,7 +27,7 @@ export default function ContractEditBeforeSigned() {
         baseWage : "",
         dailyWorkHours : "",
         weeklyWorkHours : "",
-        writtenBreakTimes : "",
+        writtenBreakMinutes : "",
         contractStart : "",
         contractEnd : "",
         payday : "",
@@ -57,7 +57,7 @@ export default function ContractEditBeforeSigned() {
                 baseWage : data.baseWage ?? "",
                 dailyWorkHours : data.dailyWorkHours ?? "",
                 weeklyWorkHours : data.weeklyWorkHours ?? "",
-                writtenBreakTimes : data.writtenBreakTimes ?? "",
+                writtenBreakMinutes : data.writtenBreakMinutes ?? "",
                 contractStart : toDateInput(data.contractStart),
                 contractEnd : toDateInput(data.contractEnd),
                 payday : data.payday ?? "",
@@ -113,19 +113,19 @@ export default function ContractEditBeforeSigned() {
             return false;
         }
 
-        const writtenBreakTimes = parseInt(contract.writtenBreakTimes, 10);
+        const writtenBreakMinutes = parseInt(contract.writtenBreakMinutes, 10);
 
-        if(contract.writtenBreakTimes === "" || writtenBreakTimes < 0) {
+        if(contract.writtenBreakMinutes === "" || writtenBreakMinutes < 0) {
             toast.warning("휴게시간을 확인해주세요");
             return false;
         }
 
-        if(dailyWorkHours >= 8 && writtenBreakTimes < 60) {
+        if(dailyWorkHours >= 8 && writtenBreakMinutes < 60) {
             toast.warning("1일 8시간 이상 근무 시 휴게시간은 60분 이상이어야 합니다");
             return false;
         }
 
-        if(dailyWorkHours >= 4 && dailyWorkHours < 8 && writtenBreakTimes < 30) {
+        if(dailyWorkHours >= 4 && dailyWorkHours < 8 && writtenBreakMinutes < 30) {
             toast.warning("1일 4시간 이상 근무 시 휴게시간은 30분 이상이어야 합니다");
             return false;
         }
@@ -176,7 +176,7 @@ export default function ContractEditBeforeSigned() {
             baseWage : contract.baseWage,
             dailyWorkHours : contract.dailyWorkHours,
             weeklyWorkHours : contract.weeklyWorkHours,
-            writtenBreakTimes : contract.writtenBreakTimes,
+            writtenBreakMinutes : contract.writtenBreakMinutes,
             contractStart : contract.contractStart,
             contractEnd : contract.contractEnd === "" ? null : contract.contractEnd,
             payday : contract.payday,
@@ -284,8 +284,8 @@ export default function ContractEditBeforeSigned() {
             <Row className="mt-4">
                 <Form.Label column sm={3}>휴게시간</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="number" min="0" name="writtenBreakTimes"
-                            value={contract.writtenBreakTimes}
+                    <Form.Control type="number" min="0" name="writtenBreakMinutes"
+                            value={contract.writtenBreakMinutes}
                             onChange={changeStringValue}/>
                     <Form.Text className="text-muted">
                         4시간 이상 근무 시 30분 이상, 8시간 이상 근무 시 60분 이상
