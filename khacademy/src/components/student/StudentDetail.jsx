@@ -303,15 +303,15 @@ export default function StudentDetail() {
                         <Row className="mb-3 g-3">
                             <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이름</Form.Label><Form.Control size="sm" type="text" name="studentName" value={student.studentName || ""} onChange={handleChange} /></Form.Group>
                             <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">연락처</Form.Label><Form.Control size="sm" type="text" name="studentPhone" value={student.studentPhone || ""} onChange={handleChange} /></Form.Group>
-                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이메일</Form.Label><Form.Control size="sm" type="email" name="studentEmail" value={student.studentEmail || ""} onChange={handleChange} /></Form.Group>
+                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이메일</Form.Label><Form.Control size="sm" type="email" name="studentEmail" value={student.studentEmail || ""} readOnly className="bg-white" /></Form.Group>
                         </Row>
 
                         {/* [UI: 다중 학부모 리스트 출력] */}
                         <div className="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2 mt-5">
                             <h6 className="fw-bold text-secondary mb-0">연결된 보호자 정보</h6>
-                            <Button variant="outline-primary" size="sm" onClick={() => { setShowLinkModal(true); setSearchResults([]); setSearchKeyword(""); }}>
+                            {/* <Button variant="outline-primary" size="sm" onClick={() => { setShowLinkModal(true); setSearchResults([]); setSearchKeyword(""); }}>
                                 새 보호자 연결/변경
-                            </Button>
+                            </Button> */}
                         </div>
                         {parentList && parentList.length > 0 ? (
                             parentList.map((parent, index) => (
@@ -328,14 +328,14 @@ export default function StudentDetail() {
                                     <Form.Group as={Col} md={2}><Form.Label className="small text-muted mb-1">보호자 계정(ID)</Form.Label><Form.Control size="sm" type="text" value={parent.parentId || ""} readOnly className="bg-white" /></Form.Group>
                                     <Col md={1} className="text-end">
                                         {/* 🌟 기존 껍데기 버튼을 실제 동작하는 버튼으로 변경! */}
-                                        <Button 
+                                        {/* <Button 
                                             variant="outline-danger" 
                                             size="sm" 
                                             title="연동 해제" 
                                             onClick={() => handleRemoveParentLink(parent.parentNo)}
                                         >
                                             <FaTrash />
-                                        </Button>
+                                        </Button> */}
                                     </Col>
                                 </Row>
                             ))
