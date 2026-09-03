@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, ButtonGroup, Card, Col, Form, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { useAtomValue } from "jotai";
+import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
 
 // 한 번에 보여줄 과제 수
 const PAGE_SIZE = 3;
@@ -19,6 +21,11 @@ export default function StudentAssignmentList() {
 
     const navigate = useNavigate();
 
+    // 학부모 여부 / 선택된 자녀
+    const isParent = useAtomValue(isParentState);
+    const selectedChild = useAtomValue(selectedChildState);
+    const selectedChildNo = useAtomValue(selectedChildNoState);
+
     // 내 과제 목록
     const [assignmentList, setAssignmentList] = useState([]);
 
@@ -31,21 +38,38 @@ export default function StudentAssignmentList() {
     // 더보기로 노출된 개수
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
-    //내 과제 목록 조회
+    //내 과제 목록 조회 (학생 본인 / 학부모는 선택한 자녀 기준)
     const loadAssignmentList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/assignment/student");
+            let response;
+
+            if (isParent) {
+                // 자녀 선택 전이면 목록 비우고 대기
+                if (selectedChildNo == null) {
+                    setAssignmentList([]);
+                    return;
+                }
+
+                response = await apiClient.get(
+                    `/assignment/parent/student/${selectedChildNo}`
+                );
+            }
+            else {
+                response = await apiClient.get("/assignment/student");
+            }
 
             setAssignmentList(response.data);
         }
         catch (err) {
-            console.error("학생 과제 목록 조회 실패", err);
+            console.error("과제 목록 조회 실패", err);
+            setAssignmentList([]);
         }
-    }, []);
+    }, [isParent, selectedChildNo]);
 
-    // 화면 진입 시 조회
+    // 화면 진입 시 / 자녀 변경 시 조회
     useEffect(() => {
         loadAssignmentList();
+        setVisibleCount(PAGE_SIZE);
     }, [loadAssignmentList]);
 
     // 제출 상태 확인
@@ -75,6 +99,23 @@ export default function StudentAssignmentList() {
     const actionButton = (assignment, status) => {
         const to = `/student/assignment/${assignment.assignmentNo}/submit`;
         const detail = `/student/assignment/${assignment.assignmentNo}/submit/${assignment.submitNo}`;
+
+        // 학부모는 제출/수정 불가 → 자녀 과제 상세만 조회
+        if (isParent) {
+            return (
+                <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() =>
+                        navigate(
+                            `/parent/assignment/${assignment.assignmentNo}`
+                        )
+                    }>
+                    과제 상세
+                </Button>
+            );
+        }
+
         switch (status) {
             case "채점완료":
                 return (
@@ -169,7 +210,23 @@ export default function StudentAssignmentList() {
     };
 
     return (<>
-        <Jumbotron title="내 과제" />
+        <Jumbotron title={isParent ? "자녀 과제" : "내 과제"} />
+
+        {/* 학부모: 현재 조회중인 자녀 표시 */}
+        {isParent && (
+            <div className="mb-3">
+                {selectedChild ? (
+                    <span className="text-muted">
+                        <strong>{selectedChild.studentName}</strong> 학생의 과제를 보고 있습니다.
+                        <span className="ms-1">(메뉴에서 자녀 변경)</span>
+                    </span>
+                ) : (
+                    <span className="text-danger">
+                        조회할 자녀가 없습니다.
+                    </span>
+                )}
+            </div>
+        )}
 
         {/* 1. 강의 선택 + 과제 상태 버튼 */}
         <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">

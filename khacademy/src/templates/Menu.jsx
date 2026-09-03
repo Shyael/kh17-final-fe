@@ -5,9 +5,10 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Link } from "react-router-dom";
 import { loginUserState } from "@utils/storage";
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { RESET } from "jotai/utils";
 import { isLoginState, isEmployeeState } from "@utils/storage";
+import { childrenState, selectedChildNoState, selectedChildState } from "@utils/storage";
 import { logoutActionState } from "@utils/storage";
 import axios from "axios";
 import { loginActionState } from "@utils/storage";
@@ -18,6 +19,7 @@ export default function Menu() {
     //메뉴에서는 로그인 상태 데이터가 필요하다
     const [loginUser, setLoginUser] = useAtom(loginUserState);
 
+    console.log(loginUserState);
     //읽기전용 atom을 불러오는법
     //const [isLogin] = useAtom(isLoginState);
     const isLogin = useAtomValue(isLoginState);
@@ -25,6 +27,26 @@ export default function Menu() {
 
     const loginAction = useSetAtom(loginActionState);
     const logoutAction = useSetAtom(logoutActionState);
+
+    //자녀 목록 및 선택된 자녀
+    const children = useAtomValue(childrenState);
+    const selectedChild = useAtomValue(selectedChildState);
+    const [selectedChildNo, setSelectedChildNo] = useAtom(selectedChildNoState);
+
+    //자녀가 있는데 선택된 자녀가 없거나 목록에 없는 번호면 첫번째 자녀로 자동 선택
+    useEffect(() => {
+        if (children.length === 0) {
+            return;
+        }
+
+        const exists = children.some(
+            child => child.studentNo === selectedChildNo
+        );
+
+        if (!exists) {
+            setSelectedChildNo(children[0].studentNo);
+        }
+    }, [children, selectedChildNo, setSelectedChildNo]);
 
     //서버에 로그아웃 요청 및 Jotai 저장소 초기화 요청을 수행하는 함수
     const logout = useCallback(async () => {
@@ -179,6 +201,29 @@ export default function Menu() {
                                     내 과제
                                 </NavDropdown.Item>
                             </NavDropdown>
+
+                            {/* 학부모: 자녀가 여러명이면 자녀 선택 드롭다운 */}
+                            {children.length > 1 && (
+                                <NavDropdown
+                                    title={`자녀: ${selectedChild?.studentName ?? "선택"}`}
+                                    id="child-nav-dropdown"
+                                >
+                                    {children.map(child => (
+                                        <NavDropdown.Item
+                                            key={child.studentNo}
+                                            active={child.studentNo === selectedChildNo}
+                                            onClick={() =>
+                                                setSelectedChildNo(child.studentNo)
+                                            }
+                                        >
+                                            {child.studentName}
+                                            <span className="text-muted ms-2">
+                                                ({child.relationship})
+                                            </span>
+                                        </NavDropdown.Item>
+                                    ))}
+                                </NavDropdown>
+                            )}
                         </Nav>
 
                         <Nav>

@@ -27,6 +27,7 @@ import AssignmentDetail from "@components/assignment/AssignmentDetail";
 import StudentAssignmentList from "@components/student/assignment/StudentAssignmentList";
 import StudentAssignmentDetail from "@components/student/assignment/StudentAssignmentDetail";
 import StudentAssignmentManage from "@components/student/assignment/StudentAssignmentManage";
+import ParentAssignmentDetail from "@components/student/assignment/ParentAssignmentDetail";
 
 
 export default function Body() {
@@ -67,6 +68,9 @@ export default function Body() {
             <Route path="/student/assignment" element={<StudentAssignmentList />}/>
             <Route path="/student/assignment/:assignmentNo/submit" element={<StudentAssignmentManage />}/>
             <Route path="/student/assignment/:assignmentNo/submit/:submitNo" element={<StudentAssignmentDetail />}/>
+
+            {/* 학부모 : 자녀 과제 상세 */}
+            <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />}/>
 
             {/* fallback route */}
             <Route path="*" element={<NotFound/>}/>
