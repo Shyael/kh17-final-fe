@@ -28,6 +28,32 @@ const sessionStorageWrapper = createJSONStorage(()=>window.sessionStorage);
 export const loginUserState = atomWithStorage("loginUserState", null, localStorageWrapper);
 // export const loginUserState = atomWithStorage("loginUserState", null, sessionStorageWrapper);
 
+// 학부모가 선택한 자녀(학생)의 번호를 저장하는 통합상태
+// - 학부모 계정에서 여러 자녀 중 현재 보고있는 자녀를 구분하기 위함
+// - 새로고침 시에도 유지되도록 localStorage에 저장
+export const selectedChildNoState = atomWithStorage("selectedChildNoState", null, localStorageWrapper);
+
+// 로그인 유저의 자녀 목록을 반환하는 파생 atom
+export const childrenState = atom(get => {
+    const loginUser = get(loginUserState);
+    return loginUser?.children ?? [];
+});
+
+// 현재 선택된 자녀 객체를 반환하는 파생 atom
+export const selectedChildState = atom(get => {
+    const children = get(childrenState);
+    const selectedNo = get(selectedChildNoState);
+
+    if (children.length === 0) {
+        return null;
+    }
+
+    return (
+        children.find(child => child.studentNo === selectedNo) ??
+        children[0]
+    );
+});
+
 // 파생 atom - 다른 atom을 이용해서 계산을 처리한 결과를 만들어내는 atom (=useMemo 훅)
 // 생성방법 - atom(초기값) 이 아니라 atom(GETTER, SETTER) 중 필요한걸 넣어서 처리하도록 구현
 // [1] 로그인 상태를 판정하는 파생 atom (loginUserState를 가져다가 계산해야함) - GETTER만 필요
@@ -45,6 +71,12 @@ export const isEmployeeState = atom(get=>{
     return loginUser?.accountType === "직원";
 });
 
+// [3] 학부모인지 판정하여 반환하는 파생 atom
+export const isParentState = atom(get=>{
+    const loginUser = get(loginUserState);
+    return loginUser?.accountType === "학부모";
+});
+
 //atom을 변경하기 위한 파생 atom - atom(null, (get,set,파라미터...)=>{});
 // [1] 로그인 처리를 수행하는 atom
 export const loginActionState = atom(null, (get,set,data)=>{
@@ -55,6 +87,7 @@ export const loginActionState = atom(null, (get,set,data)=>{
 export const logoutActionState = atom(null, (get,set)=>{
     //set(변수명, 값);
     set(loginUserState, RESET);
+    set(selectedChildNoState, RESET);
 });
 
 
@@ -63,3 +96,7 @@ countState.debugLabel = "연습용 카운트";
 loginUserState.debugLabel = "로그인 유저의 정보";
 isLoginState.debugLabel = "로그인 상태";
 isEmployeeState.debugLabel = "직원 여부";
+isParentState.debugLabel = "학부모 여부";
+selectedChildNoState.debugLabel = "선택된 자녀 번호";
+childrenState.debugLabel = "자녀 목록";
+selectedChildState.debugLabel = "선택된 자녀 정보";
