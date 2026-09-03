@@ -46,6 +46,7 @@ import ParentMyInfo from "@components/parent/ParentMyInfo";
 
 
 import EmployeeAttendance from "@components/employeeAttendance/EmployeeAttendance";
+import AdminAttendance from "@components/attendance/admin/AdminAttendance";
 
 import ContractAdd from "@components/contract/ContractAdd";
 import ContractEditBeforeSigned from "@components/contract/ContractEditBeforeSigned";
@@ -54,6 +55,7 @@ import ContractDetail from "@components/contract/ContractDetail";
 import ContractHistory from "@components/contract/ContractHistory";
 import ContractExtend from "@components/contract/ContractExtend";
 import ContractChangeCondition from "@components/contract/ContractChangeCondition";
+
 
 export default function Body() {
 
@@ -150,6 +152,8 @@ export default function Body() {
 
             {/* 근태관련 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
+            {/* 관리자 전용 근태 */}
+            <Route path="/admin/attendance/" element={<AdminAttendance/>}/>
         </Routes>   
 
             

@@ -76,39 +76,39 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
 
 
     // 월 근무일정 조회
-   const loadSchedule = async () => {
-    try {
-        setLoading(true);
+    const loadSchedule = async () => {
+        try {
+            setLoading(true);
 
-        const response = await apiClient.get(
-            "/workSchedule/mySearch",
-            {
-                params: {
-                    startDate,
-                    endDate
+            const response = await apiClient.get(
+                "/workSchedule/mySearch",
+                {
+                    params: {
+                        startDate,
+                        endDate
+                    }
                 }
-            }
-        );
+            );
 
-        setScheduleList(
-            response.data.scheduleList ?? []
-        );
+            setScheduleList(
+                response.data.scheduleList ?? []
+            );
 
-        setSummary(
-            response.data.summary ?? null
-        );
-    }
-    catch (err) {
-        console.error(err);
+            setSummary(
+                response.data.summary ?? null
+            );
+        }
+        catch (err) {
+            console.error(err);
 
-        toast.error(
-            "근무일정을 불러오지 못했습니다."
-        );
-    }
-    finally {
-        setLoading(false);
-    }
-};
+            toast.error(
+                "근무일정을 불러오지 못했습니다."
+            );
+        }
+        finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
         loadSchedule();
@@ -458,103 +458,117 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
 
                                             {schedule && (
                                                 <>
-                                                    <Badge
-                                                        bg="secondary"
-                                                        className="me-1"
-                                                    >
-                                                        {
-                                                            dayTypeLabel(
-                                                                schedule
-                                                                    .scheduledDayType
-                                                            )
-                                                        }
-                                                    </Badge>
 
-
-                                                    {attendance && (
-                                                        <Badge
-                                                            bg="danger"
-                                                        >
-                                                            {
-                                                                attendance
-                                                            }
-                                                        </Badge>
-                                                    )}
-
-
-                                                    {schedule
-                                                        .scheduledClockIn
+                                                    {/* 근무일 유형
+            휴가인 경우에는 표시하지 않음 */}
+                                                    {
+                                                        schedule.attendanceType !== "paid_leave"
+                                                        &&
+                                                        schedule.attendanceType !== "unpaid_leave"
                                                         && (
-                                                        <div
-                                                            className="
-                                                                small
-                                                                mt-2
-                                                            "
-                                                        >
-                                                            예정{" "}
-                                                            {
-                                                                timeText(
-                                                                    schedule
-                                                                        .scheduledClockIn
-                                                                )
-                                                            }
-                                                            {" ~ "}
-                                                            {
-                                                                timeText(
-                                                                    schedule
-                                                                        .scheduledClockOut
-                                                                )
-                                                            }
-                                                        </div>
-                                                    )}
+                                                            <Badge
+                                                                bg="secondary"
+                                                                className="me-1"
+                                                            >
+                                                                {
+                                                                    dayTypeLabel(
+                                                                        schedule.scheduledDayType
+                                                                    )
+                                                                }
+                                                            </Badge>
+                                                        )
+                                                    }
 
 
-                                                    {schedule
-                                                        .clockIn
+                                                    {/* 근태 상태 */}
+                                                    {
+                                                        schedule.attendanceType
                                                         && (
-                                                        <div
-                                                            className="
-                                                                small
-                                                                mt-1
-                                                            "
-                                                        >
-                                                            실제{" "}
-                                                            {
-                                                                timeText(
-                                                                    schedule
-                                                                        .clockIn
-                                                                )
-                                                            }
-                                                            {" ~ "}
-                                                            {
-                                                                timeText(
-                                                                    schedule
-                                                                        .clockOut
-                                                                )
-                                                                ?? "미퇴근"
-                                                            }
-                                                        </div>
-                                                    )}
+                                                            <Badge
+                                                                bg={
+                                                                    schedule.attendanceType === "absent"
+                                                                        ? "danger"
+                                                                        : schedule.attendanceType === "paid_leave"
+                                                                            ? "primary"
+                                                                            : schedule.attendanceType === "unpaid_leave"
+                                                                                ? "secondary"
+                                                                                : "success"
+                                                                }
+                                                            >
+                                                                {
+                                                                    attendanceLabel(
+                                                                        schedule.attendanceType
+                                                                    )
+                                                                }
+                                                            </Badge>
+                                                        )
+                                                    }
 
 
-                                                    {schedule
-                                                        .actualWorkHours
-                                                        > 0
+                                                    {/* 예정 시간
+            휴가일 경우 숨기고 싶으면 아래 조건 유지 */}
+                                                    {
+                                                        schedule.attendanceType !== "paid_leave"
+                                                        &&
+                                                        schedule.attendanceType !== "unpaid_leave"
+                                                        &&
+                                                        schedule.scheduledClockIn
                                                         && (
-                                                        <div
-                                                            className="
-                                                                small
-                                                                mt-1
-                                                            "
-                                                        >
-                                                            근무{" "}
-                                                            {
-                                                                schedule
-                                                                    .actualWorkHours
-                                                            }
-                                                            시간
-                                                        </div>
-                                                    )}
+                                                            <div className="small mt-2">
+                                                                예정{" "}
+                                                                {
+                                                                    timeText(
+                                                                        schedule.scheduledClockIn
+                                                                    )
+                                                                }
+                                                                {" ~ "}
+                                                                {
+                                                                    timeText(
+                                                                        schedule.scheduledClockOut
+                                                                    )
+                                                                }
+                                                            </div>
+                                                        )
+                                                    }
+
+
+                                                    {/* 실제 근태 */}
+                                                    {
+                                                        schedule.clockIn
+                                                        && (
+                                                            <div className="small mt-1">
+                                                                실제{" "}
+                                                                {
+                                                                    timeText(
+                                                                        schedule.clockIn
+                                                                    )
+                                                                }
+                                                                {" ~ "}
+                                                                {
+                                                                    timeText(
+                                                                        schedule.clockOut
+                                                                    )
+                                                                    ?? "미퇴근"
+                                                                }
+                                                            </div>
+                                                        )
+                                                    }
+
+
+                                                    {/* 실제 근무시간 */}
+                                                    {
+                                                        schedule.actualWorkHours > 0
+                                                        && (
+                                                            <div className="small mt-1">
+                                                                근무{" "}
+                                                                {
+                                                                    schedule.actualWorkHours
+                                                                }
+                                                                시간
+                                                            </div>
+                                                        )
+                                                    }
+
                                                 </>
                                             )}
 
