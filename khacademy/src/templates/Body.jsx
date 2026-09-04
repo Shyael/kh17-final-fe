@@ -19,7 +19,8 @@ import Employee from "@guard/Employee";
 import StudentList from "@components/student/StudentList";
 import StudentDetail from "@components/student/StudentDetail";
 import PaymentList from "@components/payment/PaymentList";
-import DiscountList from "../components/payment/DIscountList";
+import DiscountList from "@components/payment/DiscountList";
+import PaymentDetail from '@components/payment/PaymentDetail';
 
 export default function Body() {
 
@@ -50,6 +51,7 @@ export default function Body() {
             {/* 수납 */}
             <Route path="/payment/list" element={<Employee><PaymentList/></Employee>} />
             <Route path="/payment/discount" element={<Employee><DiscountList/></Employee>} />
+            <Route path="/payment/detail/:paymentNo" element={<Employee><PaymentDetail /></Employee>} />
 
 
             {/* fallback route */}

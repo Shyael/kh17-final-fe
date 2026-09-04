@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup, Modal } from "react-bootstrap";
-import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie, FaSearch } from "react-icons/fa"; 
+import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup } from "react-bootstrap";
+import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie, FaChevronLeft } from "react-icons/fa"; 
 import { useParams, useNavigate } from "react-router-dom";
 import { authClient } from "@utils/reaxios"; 
 
@@ -11,29 +11,18 @@ export default function StudentDetail() {
     // ==========================================
     // 1. 상태 관리 (State) 구역
     // ==========================================
-    // [학생 및 수납]
     const [student, setStudent] = useState(null);
     const [payments, setPayments] = useState([]);
     const [totalUnpaid, setTotalUnpaid] = useState(0);
 
-    // [할인 혜택]
     const [allDiscounts, setAllDiscounts] = useState([]); 
     const [studentDiscounts, setStudentDiscounts] = useState([]); 
     const [selectedDiscountNo, setSelectedDiscountNo] = useState(""); 
 
-    // [다중 학부모 정보]
     const [parentList, setParentList] = useState([]); 
 
-    // [학부모 검색 및 연동 모달]
-    const [showLinkModal, setShowLinkModal] = useState(false);
-    const [searchKeyword, setSearchKeyword] = useState("");
-    const [searchResults, setSearchResults] = useState([]);
-    const [selectedParentNo, setSelectedParentNo] = useState(null);
-    const [relationshipInput, setRelationshipInput] = useState("모");
-
-
     // ==========================================
-    // 2. 데이터 불러오기 (Fetch API) 구역
+    // 2. 데이터 불러오기 (Fetch API) 구역 (수정 없음)
     // ==========================================
     const fetchStudentDetail = useCallback(async () => {
         try {
@@ -68,14 +57,13 @@ export default function StudentDetail() {
 
     const fetchParentInfo = useCallback(async () => {
         try {
-            const response = await authClient.get(`http://localhost:8080/api/parent-student/list/${studentNo}`);
+            const response = await authClient.get(`http://localhost:8080/api/parent/student/${studentNo}`);
             setParentList(response.data || []);
         } catch (error) {
             console.error("학부모 정보 로딩 실패:", error);
         }
     }, [studentNo]);
 
-    // 화면 첫 렌더링 시 4가지 데이터 동시 호출
     useEffect(() => {
         fetchStudentDetail();
         fetchStudentPayments();
@@ -83,11 +71,9 @@ export default function StudentDetail() {
         fetchParentInfo();
     }, [fetchStudentDetail, fetchStudentPayments, fetchDiscounts, fetchParentInfo]);
 
-
     // ==========================================
-    // 3. 이벤트 핸들러 (Action) 구역
+    // 3. 이벤트 핸들러 (Action) 구역 (수정 없음)
     // ==========================================
-    // [할인 추가/해제]
     const handleAddDiscount = async () => {
         if (!selectedDiscountNo) return alert("적용할 할인을 선택해 주세요.");
         const isDuplicate = studentDiscounts.some(sd => sd.discountNo.toString() === selectedDiscountNo.toString());
@@ -112,7 +98,6 @@ export default function StudentDetail() {
         }
     };
 
-    // [학생 기본정보 수정]
     const handleChange = (e) => {
         const { name, value } = e.target;
         setStudent(prev => ({ ...prev, [name]: value }));
@@ -129,304 +114,278 @@ export default function StudentDetail() {
         }
     };
 
-    // [학부모 검색 및 다이렉트 연동]
-    const handleSearchParent = async () => {
-        if (!searchKeyword.trim()) return alert("검색할 이름이나 전화번호를 입력하세요.");
-        try {
-            const response = await authClient.get(`http://localhost:8080/api/parent-student/search?keyword=${searchKeyword}`);
-            setSearchResults(response.data);
-            setSelectedParentNo(null); 
-        } catch (error) {
-            alert("검색에 실패했습니다.");
+    // 🌟 랠리즈 스타일: 상태별 파스텔 톤 배지 색상 함수 (수납 내역용)
+    const getPaymentStatusStyle = (status) => {
+        switch(status) {
+            case '완납': return { bg: "#E6F4EA", color: "#1E8E3E" };
+            case '미납': return { bg: "#FCE8E6", color: "#D93025" };
+            case '부분납': return { bg: "#FEF7E0", color: "#E37400" };
+            default: return { bg: "#F1F3F4", color: "#5F6368" };
         }
     };
-
-    const handleDirectLink = async () => {
-        if (!selectedParentNo) return alert("연동할 학부모를 선택해 주세요.");
-        try {
-            await authClient.post("http://localhost:8080/api/parent-student/direct-link", {
-                parentNo: selectedParentNo,
-                studentNo: studentNo,
-                relationship: relationshipInput
-            });
-            alert("학부모 연동이 완료되었습니다!");
-            setShowLinkModal(false); 
-            fetchParentInfo(); 
-        } catch (error) {
-            alert(error.response?.data || "연동에 실패했습니다.");
-        }
-    };
-
-    // [보호자 연동 해제 (Delete)]
-    const handleRemoveParentLink = async (targetParentNo) => {
-        if (!window.confirm("정말 이 보호자와의 연동을 해제하시겠습니까?")) return;
-        
-        try {
-            // 백엔드 컨트롤러에 맞게 파라미터 전송
-            await authClient.delete(`http://localhost:8080/api/parent-student/remove-link?parentNo=${targetParentNo}&studentNo=${studentNo}`);
-            
-            alert("보호자 연동이 해제되었습니다.");
-            fetchParentInfo(); // 🌟 삭제 성공 후 리스트 즉시 새로고침
-        } catch (error) {
-            alert(error.response?.data || "연동 해제에 실패했습니다.");
-        }
-    };
-
 
     // ==========================================
     // 4. 화면 렌더링 (UI) 구역
     // ==========================================
     if (!student) {
         return (
-            <div className="d-flex justify-content-center align-items-center" style={{ height: "50vh" }}>
-                <Spinner animation="border" variant="primary" />
-                <span className="ms-3 text-primary fw-bold">데이터를 불러오는 중입니다...</span>
+            <div className="d-flex flex-column justify-content-center align-items-center" style={{ height: "100vh", backgroundColor: "#F8F9FA" }}>
+                <Spinner animation="border" style={{ color: "#FF6B00" }} />
+                <span className="mt-3 fw-bold" style={{ color: "#202124" }}>학생 정보를 불러오는 중입니다...</span>
             </div>
         );
     }
 
     return (
-        <div className="container-fluid py-4">
-            <Card className="shadow-sm border-0">
-                <Card.Header className="bg-white border-bottom-0 pt-4 pb-0 px-4">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center gap-3">
-                            <Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>← 뒤로</Button>
-                            <h4 className="fw-bold mb-0 text-primary">학생 상세 정보</h4>
-                        </div>
-                        <span className="text-muted fw-semibold">SID : {student.studentNo}</span>
+        <div className="container-fluid py-5" style={{ backgroundColor: "#F8F9FA", minHeight: "100vh", fontFamily: "'Pretendard', sans-serif" }}>
+            
+            {/* 상단 타이틀 & 뒤로가기 */}
+            <div className="d-flex align-items-center justify-content-between mb-4 pb-2">
+                <div className="d-flex align-items-center gap-3">
+                    <Button 
+                        onClick={() => navigate(-1)} 
+                        className="rounded-circle d-flex justify-content-center align-items-center border-0 shadow-sm"
+                        style={{ width: "40px", height: "40px", backgroundColor: "#fff", color: "#202124" }}
+                    >
+                        <FaChevronLeft />
+                    </Button>
+                    <div>
+                        <h2 className="fw-bolder mb-1" style={{ color: "#202124", letterSpacing: "-0.5px" }}>학생 상세 프로필</h2>
+                        <div className="text-muted small fw-semibold">SID : {student.studentNo}</div>
                     </div>
-                </Card.Header>
+                </div>
+                <Button 
+                    className="rounded-pill px-4 py-2 fw-bold border-0 shadow-sm d-flex align-items-center gap-2"
+                    style={{ backgroundColor: "#FF6B00", color: "#fff" }}
+                    onClick={handleUpdate}
+                >
+                    <FaSave /> 변경사항 저장
+                </Button>
+            </div>
 
-                <Card.Body className="p-4">
-                    {/* [UI: 종합 개요] */}
-                    <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">종합 개요</h6>
-                    <Row className="g-3 mb-4 text-center">
-                        <Col md={4}>
-                            <Card className="border-0 shadow-sm h-100 p-3">
-                                <div className="text-muted small fw-bold mb-2">출석률 (4주)</div>
-                                <h4 className="fw-bold mb-0">100%</h4>
-                            </Card>
-                        </Col>
-                        <Col md={4}>
-                            <Card className="border-0 shadow-sm h-100 p-3 bg-light">
-                                <div className="text-muted small fw-bold mb-2">총 미납액</div>
-                                <h4 className={`fw-bold mb-0 ${totalUnpaid > 0 ? 'text-danger' : 'text-success'}`}>
-                                    {totalUnpaid > 0 ? `₩${totalUnpaid.toLocaleString()}` : "없음"}
-                                </h4>
-                            </Card>
-                        </Col>
-                        <Col md={4}>
-                            <Card className="border-0 shadow-sm h-100 p-3">
-                                <div className="text-muted small fw-bold mb-2">과제 제출</div>
-                                <h4 className="fw-bold mb-0">- / -</h4>
-                            </Card>
-                        </Col>
-                    </Row>
-
-                    {/* [UI: 최근 수납 내역] */}
-                    <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2 mt-4">최근 수납 내역</h6>
-                    <Card className="border-0 shadow-sm mb-5">
-                        <Card.Body className="p-0">
-                            {payments.length === 0 ? (
-                                <div className="p-4 text-center text-muted small">수납 내역이 없습니다.</div>
-                            ) : (
-                                <Table hover responsive className="align-middle text-center mb-0">
-                                    <thead className="bg-light">
-                                        <tr>
-                                            <th>청구 월</th><th>청구 금액</th><th>납부 상태</th><th>미납액</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {payments.slice(0, 3).map(p => (
-                                            <tr key={p.paymentNo}>
-                                                <td className="fw-bold">{p.paymentMonth}</td>
-                                                <td>₩{p.totalAmount?.toLocaleString()}</td>
-                                                <td>
-                                                    <Badge bg={p.paymentStatus === '완납' ? 'success' : p.paymentStatus === '미납' ? 'danger' : 'warning'}>
-                                                        {p.paymentStatus}
-                                                    </Badge>
-                                                </td>
-                                                <td className={p.remainingAmount > 0 ? "text-danger fw-bold" : "text-muted"}>
-                                                    {p.remainingAmount > 0 ? `₩${p.remainingAmount.toLocaleString()}` : "-"}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            )}
+            <Row className="g-4">
+                {/* 왼쪽 열: 요약, 수납 내역, 할인 관리 */}
+                <Col lg={4}>
+                    {/* 1. 종합 개요 카드 */}
+                    <Card className="border-0 shadow-sm mb-4" style={{ borderRadius: "20px" }}>
+                        <Card.Body className="p-4">
+                            <h5 className="fw-bolder mb-4" style={{ color: "#202124" }}>학습 및 수납 현황</h5>
+                            <Row className="g-3 text-center">
+                                <Col xs={6}>
+                                    <div className="p-3 rounded" style={{ backgroundColor: "#F8F9FA" }}>
+                                        <div className="text-muted small fw-semibold mb-1">출석률(4주)</div>
+                                        <h4 className="fw-bolder mb-0 text-success">100%</h4>
+                                    </div>
+                                </Col>
+                                <Col xs={6}>
+                                    <div className="p-3 rounded" style={{ backgroundColor: "#F8F9FA" }}>
+                                        <div className="text-muted small fw-semibold mb-1">과제 제출</div>
+                                        <h4 className="fw-bolder mb-0 text-dark">- / -</h4>
+                                    </div>
+                                </Col>
+                                <Col xs={12}>
+                                    <div className="p-3 rounded mt-2" style={{ backgroundColor: totalUnpaid > 0 ? "#FFF8F7" : "#E6F4EA" }}>
+                                        <div className="text-muted small fw-semibold mb-1">총 미납액</div>
+                                        <h3 className={`fw-bolder mb-0 ${totalUnpaid > 0 ? 'text-danger' : 'text-success'}`}>
+                                            {totalUnpaid > 0 ? `${totalUnpaid.toLocaleString()}원` : "없음"}
+                                        </h3>
+                                    </div>
+                                </Col>
+                            </Row>
                         </Card.Body>
                     </Card>
 
-                    {/* [UI: 할인 혜택 관리] */}
-                    <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2 mt-5">적용 중인 할인 혜택 관리</h6>
-                    <Row className="mb-4 align-items-center">
-                        <Col md={3} className="text-muted fw-semibold small">새로운 할인 추가</Col>
-                        <Col md={6}>
-                            <div className="d-flex gap-2">
-                                <Form.Select size="sm" value={selectedDiscountNo} onChange={(e) => setSelectedDiscountNo(e.target.value)}>
-                                    <option value="">적용할 할인을 선택하세요</option>
-                                    {allDiscounts.map(d => {
-                                        const isApplied = studentDiscounts.some(sd => sd.discountNo === d.discountNo);
-                                        return (
-                                            <option key={d.discountNo} value={d.discountNo} disabled={isApplied}>
-                                                {d.discountName} ({d.discountType === '비율' ? `${d.discountValue}%` : `₩${d.discountValue.toLocaleString()}`}) {isApplied ? " - 적용완료" : ""}
-                                            </option>
-                                        )
-                                    })}
-                                </Form.Select>
-                                <Button variant="primary" size="sm" className="d-flex align-items-center flex-shrink-0" onClick={handleAddDiscount}>
-                                    <FaPlus className="me-1" /> 추가
-                                </Button>
+                    {/* 2. 적용 중인 할인 혜택 */}
+                    <Card className="border-0 shadow-sm mb-4" style={{ borderRadius: "20px" }}>
+                        <Card.Body className="p-4">
+                            <h5 className="fw-bolder mb-3" style={{ color: "#202124" }}>할인 혜택</h5>
+                            
+                            <div className="mb-4">
+                                <InputGroup>
+                                    <Form.Select 
+                                        value={selectedDiscountNo} 
+                                        onChange={(e) => setSelectedDiscountNo(e.target.value)}
+                                        className="border-0 bg-light"
+                                        style={{ borderRadius: "10px 0 0 10px" }}
+                                    >
+                                        <option value="">적용할 할인을 선택하세요</option>
+                                        {allDiscounts.map(d => {
+                                            const isApplied = studentDiscounts.some(sd => sd.discountNo === d.discountNo);
+                                            return (
+                                                <option key={d.discountNo} value={d.discountNo} disabled={isApplied}>
+                                                    {d.discountName} ({d.discountType === '비율' ? `${d.discountValue}%` : `${d.discountValue.toLocaleString()}원`}) {isApplied ? " - 적용됨" : ""}
+                                                </option>
+                                            )
+                                        })}
+                                    </Form.Select>
+                                    <Button 
+                                        className="border-0 fw-bold px-3 d-flex align-items-center"
+                                        style={{ backgroundColor: "#202124", color: "#fff", borderRadius: "0 10px 10px 0" }}
+                                        onClick={handleAddDiscount}
+                                    >
+                                        <FaPlus />
+                                    </Button>
+                                </InputGroup>
                             </div>
-                        </Col>
-                    </Row>
-                    <div className="border rounded bg-light p-3 mb-5">
-                        {studentDiscounts.length === 0 ? (
-                            <div className="text-center text-muted small py-2">현재 적용 중인 할인 혜택이 없습니다.</div>
-                        ) : (
-                            <div className="d-flex flex-wrap gap-2">
-                                {studentDiscounts.map(sd => (
-                                    <Badge key={sd.studentDiscountNo} bg="white" text="dark" className="border d-flex align-items-center p-2 shadow-sm">
-                                        <span className="me-2 fw-bold text-primary">{sd.discountName}</span>
-                                        <span className="me-3 text-muted">({sd.discountType === '비율' ? `${sd.discountValue}%` : `₩${sd.discountValue.toLocaleString()}`})</span>
-                                        <FaTrash className="text-danger" style={{ cursor: "pointer" }} onClick={() => handleRemoveDiscount(sd.studentDiscountNo)} title="할인 해제" />
-                                    </Badge>
-                                ))}
-                            </div>
-                        )}
-                    </div>
 
-                    {/* [UI: 학생 정보 폼 및 학부모 정보] */}
-                    <Form>
-                        <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">기본 인적 사항</h6>
-                        <Row className="mb-3 g-3">
-                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이름</Form.Label><Form.Control size="sm" type="text" name="studentName" value={student.studentName || ""} onChange={handleChange} /></Form.Group>
-                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">연락처</Form.Label><Form.Control size="sm" type="text" name="studentPhone" value={student.studentPhone || ""} onChange={handleChange} /></Form.Group>
-                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이메일</Form.Label><Form.Control size="sm" type="email" name="studentEmail" value={student.studentEmail || ""} readOnly className="bg-white" /></Form.Group>
-                        </Row>
-
-                        {/* [UI: 다중 학부모 리스트 출력] */}
-                        <div className="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2 mt-5">
-                            <h6 className="fw-bold text-secondary mb-0">연결된 보호자 정보</h6>
-                            {/* <Button variant="outline-primary" size="sm" onClick={() => { setShowLinkModal(true); setSearchResults([]); setSearchKeyword(""); }}>
-                                새 보호자 연결/변경
-                            </Button> */}
-                        </div>
-                        {parentList && parentList.length > 0 ? (
-                            parentList.map((parent, index) => (
-                                <Row key={parent.parentNo || index} className="mb-3 g-3 bg-light p-3 rounded mx-0 align-items-end shadow-sm">
-                                    <Form.Group as={Col} md={3}>
-                                        <Form.Label className="small text-muted mb-1">관계</Form.Label>
-                                        <InputGroup size="sm">
-                                            <InputGroup.Text className="bg-white"><FaUserTie className="text-secondary" /></InputGroup.Text>
-                                            <Form.Control type="text" value={parent.relationship || ""} readOnly className="bg-white fw-bold" />
-                                        </InputGroup>
-                                    </Form.Group>
-                                    <Form.Group as={Col} md={3}><Form.Label className="small text-muted mb-1">보호자 이름</Form.Label><Form.Control size="sm" type="text" value={parent.parentName || ""} readOnly className="bg-white" /></Form.Group>
-                                    <Form.Group as={Col} md={3}><Form.Label className="small text-primary fw-bold mb-1">보호자 연락처</Form.Label><Form.Control size="sm" type="text" value={parent.parentPhone || ""} readOnly className="bg-white" /></Form.Group>
-                                    <Form.Group as={Col} md={2}><Form.Label className="small text-muted mb-1">보호자 계정(ID)</Form.Label><Form.Control size="sm" type="text" value={parent.parentId || ""} readOnly className="bg-white" /></Form.Group>
-                                    <Col md={1} className="text-end">
-                                        {/* 🌟 기존 껍데기 버튼을 실제 동작하는 버튼으로 변경! */}
-                                        {/* <Button 
-                                            variant="outline-danger" 
-                                            size="sm" 
-                                            title="연동 해제" 
-                                            onClick={() => handleRemoveParentLink(parent.parentNo)}
-                                        >
-                                            <FaTrash />
-                                        </Button> */}
-                                    </Col>
-                                </Row>
-                            ))
-                        ) : (
-                            <div className="text-center text-muted small py-4 bg-light rounded mb-4">현재 연결된 보호자 계정이 없습니다.</div>
-                        )}
-
-                        <Row className="mb-3 g-3 mt-4">
-                            <Form.Group as={Col} md={12}><Form.Label className="small text-muted mb-1">주소</Form.Label><Form.Control size="sm" type="text" name="address" value={student.address || ""} onChange={handleChange} /></Form.Group>
-                        </Row>
-                        <Row className="mb-4 g-3">
-                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">학교</Form.Label><Form.Control size="sm" type="text" name="studentSchool" value={student.studentSchool || ""} onChange={handleChange} /></Form.Group>
-                            <Form.Group as={Col} md={4}>
-                                <Form.Label className="small text-muted mb-1">학년</Form.Label>
-                                <Form.Select size="sm" name="studentGrade" value={student.studentGrade || ""} onChange={handleChange}>
-                                    <option>초등학생</option><option>중학생</option><option>고등학생</option>
-                                </Form.Select>
-                            </Form.Group>
-                            <Form.Group as={Col} md={4}>
-                                <Form.Label className="small text-muted mb-1">성별</Form.Label>
-                                <Form.Select size="sm" name="studentGender" value={student.studentGender || ""} onChange={handleChange}>
-                                    <option>M</option><option>F</option>
-                                </Form.Select>
-                            </Form.Group>
-                        </Row>
-                        <Form.Group className="mb-4">
-                            <Form.Label className="small text-muted mb-1">특이사항 (정보)</Form.Label>
-                            <Form.Control as="textarea" rows={3} name="studentEtc" value={student.studentEtc || ""} onChange={handleChange} />
-                        </Form.Group>
-
-                        <div className="d-flex justify-content-end gap-2 mt-5 border-top pt-3">
-                            <Button variant="info" className="text-white d-flex align-items-center"><FaComments className="me-2" /> 피드백 보기/등록</Button>
-                            <Button variant="primary" className="d-flex align-items-center" onClick={handleUpdate}><FaSave className="me-2" /> 정보 수정 (저장)</Button>
-                        </div>
-                    </Form>
-                </Card.Body>
-            </Card>
-
-            {/* ========================================== */}
-            {/* [UI: 학부모 직접 연동 모달] */}
-            {/* ========================================== */}
-            <Modal show={showLinkModal} onHide={() => setShowLinkModal(false)} size="lg" centered>
-                <Modal.Header closeButton>
-                    <Modal.Title className="fs-5 fw-bold text-primary">학부모 계정 직접 연동</Modal.Title>
-                </Modal.Header>
-                <Modal.Body className="p-4">
-                    <p className="text-muted small mb-4">이미 가입된 학부모 계정을 검색하여 현재 학생과 직접 연결합니다.</p>
-                    <div className="d-flex gap-2 mb-4">
-                        <InputGroup>
-                            <InputGroup.Text className="bg-white"><FaSearch className="text-muted" /></InputGroup.Text>
-                            <Form.Control type="text" placeholder="학부모 이름 또는 전화번호 검색" value={searchKeyword} onChange={(e) => setSearchKeyword(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchParent()} />
-                        </InputGroup>
-                        <Button variant="secondary" onClick={handleSearchParent} style={{ whiteSpace: "nowrap" }}>검색</Button>
-                    </div>
-
-                    <div className="border rounded mb-4" style={{ maxHeight: "250px", overflowY: "auto" }}>
-                        {searchResults.length === 0 ? (
-                            <div className="p-4 text-center text-muted small">검색 결과가 없습니다.</div>
-                        ) : (
-                            <Table hover className="mb-0 align-middle text-center">
-                                <thead className="bg-light sticky-top">
-                                    <tr><th>선택</th><th>이름</th><th>연락처</th><th>계정(ID)</th></tr>
-                                </thead>
-                                <tbody>
-                                    {searchResults.map((p) => (
-                                        <tr key={p.parentNo} onClick={() => setSelectedParentNo(p.parentNo)} style={{ cursor: "pointer" }}>
-                                            <td>
-                                                <Form.Check type="radio" name="parentSelect" checked={selectedParentNo === p.parentNo} onChange={() => setSelectedParentNo(p.parentNo)} />
-                                            </td>
-                                            <td className="fw-bold">{p.accountName}</td>
-                                            <td>{p.accountPhone}</td>
-                                            <td className="text-muted">{p.accountId}</td>
-                                        </tr>
+                            {studentDiscounts.length === 0 ? (
+                                <div className="text-center text-muted small py-3 bg-light rounded" style={{ borderRadius: "10px" }}>
+                                    현재 적용 중인 할인 혜택이 없습니다.
+                                </div>
+                            ) : (
+                                <div className="d-flex flex-column gap-2">
+                                    {studentDiscounts.map(sd => (
+                                        <div key={sd.studentDiscountNo} className="d-flex justify-content-between align-items-center p-3 bg-white shadow-sm" style={{ border: "1px solid #EAEAEA", borderRadius: "12px" }}>
+                                            <div>
+                                                <div className="fw-bolder" style={{ color: "#FF6B00", fontSize: "0.95rem" }}>{sd.discountName}</div>
+                                                <div className="text-muted small">{sd.discountType === '비율' ? `${sd.discountValue}% 할인` : `${sd.discountValue.toLocaleString()}원 할인`}</div>
+                                            </div>
+                                            <Button 
+                                                variant="link" 
+                                                className="p-0 text-danger opacity-75"
+                                                onClick={() => handleRemoveDiscount(sd.studentDiscountNo)}
+                                            >
+                                                <FaTrash />
+                                            </Button>
+                                        </div>
                                     ))}
-                                </tbody>
-                            </Table>
-                        )}
-                    </div>
+                                </div>
+                            )}
+                        </Card.Body>
+                    </Card>
+                </Col>
 
-                    <div className="d-flex justify-content-end align-items-center gap-3 p-3 bg-light rounded border">
-                        <span className="fw-semibold small">학생과의 관계 :</span>
-                        <Form.Select size="sm" style={{ width: "120px" }} value={relationshipInput} onChange={(e) => setRelationshipInput(e.target.value)}>
-                            <option value="모">모 (어머니)</option>
-                            <option value="부">부 (아버지)</option>
-                            <option value="조부모">조부모</option>
-                            <option value="기타">기타 보호자</option>
-                        </Form.Select>
-                        <Button variant="primary" onClick={handleDirectLink}>선택 학부모 연동하기</Button>
-                    </div>
-                </Modal.Body>
-            </Modal>
+                {/* 오른쪽 열: 인적사항, 학부모 정보, 수납 테이블 */}
+                <Col lg={8}>
+                    <Card className="border-0 shadow-sm h-100" style={{ borderRadius: "20px" }}>
+                        <Card.Body className="p-4 p-lg-5">
+                            
+                            <h5 className="fw-bolder mb-4" style={{ color: "#202124" }}>기본 인적 사항</h5>
+                            <Form>
+                                <Row className="mb-4 g-3">
+                                    <Form.Group as={Col} md={4}>
+                                        <Form.Label className="small fw-semibold text-muted mb-1">이름</Form.Label>
+                                        <Form.Control className="border-0 bg-light py-2" style={{ borderRadius: "10px" }} type="text" name="studentName" value={student.studentName || ""} onChange={handleChange} />
+                                    </Form.Group>
+                                    <Form.Group as={Col} md={4}>
+                                        <Form.Label className="small fw-semibold text-muted mb-1">연락처</Form.Label>
+                                        <Form.Control className="border-0 bg-light py-2" style={{ borderRadius: "10px" }} type="text" name="studentPhone" value={student.studentPhone || ""} onChange={handleChange} />
+                                    </Form.Group>
+                                    <Form.Group as={Col} md={4}>
+                                        <Form.Label className="small fw-semibold text-muted mb-1">이메일</Form.Label>
+                                        <Form.Control className="border-0 bg-light py-2" style={{ borderRadius: "10px" }} type="email" name="studentEmail" value={student.studentEmail || ""} onChange={handleChange} />
+                                    </Form.Group>
+                                </Row>
+
+                                <Row className="mb-4 g-3">
+                                    <Form.Group as={Col} md={4}>
+                                        <Form.Label className="small fw-semibold text-muted mb-1">학교</Form.Label>
+                                        <Form.Control className="border-0 bg-light py-2" style={{ borderRadius: "10px" }} type="text" name="studentSchool" value={student.studentSchool || ""} onChange={handleChange} />
+                                    </Form.Group>
+                                    <Form.Group as={Col} md={4}>
+                                        <Form.Label className="small fw-semibold text-muted mb-1">학년</Form.Label>
+                                        <Form.Select className="border-0 bg-light py-2" style={{ borderRadius: "10px" }} name="studentGrade" value={student.studentGrade || ""} onChange={handleChange}>
+                                            <option>초등학생</option><option>중학생</option><option>고등학생</option>
+                                        </Form.Select>
+                                    </Form.Group>
+                                    <Form.Group as={Col} md={4}>
+                                        <Form.Label className="small fw-semibold text-muted mb-1">성별</Form.Label>
+                                        <Form.Select className="border-0 bg-light py-2" style={{ borderRadius: "10px" }} name="studentGender" value={student.studentGender || ""} onChange={handleChange}>
+                                            <option>M</option><option>F</option>
+                                        </Form.Select>
+                                    </Form.Group>
+                                </Row>
+
+                                <Form.Group className="mb-5">
+                                    <Form.Label className="small fw-semibold text-muted mb-1">주소</Form.Label>
+                                    <Form.Control className="border-0 bg-light py-2" style={{ borderRadius: "10px" }} type="text" name="address" value={student.address || ""} onChange={handleChange} />
+                                </Form.Group>
+
+                                {/* 🌟 학부모 정보 (앱 프로필 카드 스타일) */}
+                                <h5 className="fw-bolder mb-3 mt-4" style={{ color: "#202124" }}>연결된 보호자</h5>
+                                <div className="mb-5">
+                                    {parentList && parentList.length > 0 ? (
+                                        <Row className="g-3">
+                                            {parentList.map((parent, index) => (
+                                                <Col md={6} key={parent.parentNo || index}>
+                                                    <div className="p-3 d-flex align-items-center gap-3" style={{ backgroundColor: "#F4F6F8", borderRadius: "16px" }}>
+                                                        <div className="p-2 bg-white rounded-circle shadow-sm text-secondary d-flex justify-content-center align-items-center" style={{ width: "45px", height: "45px" }}>
+                                                            <FaUserTie size={20} />
+                                                        </div>
+                                                        <div className="flex-grow-1">
+                                                            <div className="d-flex justify-content-between align-items-center mb-1">
+                                                                <span className="fw-bolder text-dark" style={{ fontSize: "1.05rem" }}>{parent.accountName}</span>
+                                                                <span className="badge" style={{ backgroundColor: "#EAEAEA", color: "#5F6368" }}>{parent.relationship || "관계 미상"}</span>
+                                                            </div>
+                                                            <div className="text-muted small fw-semibold">{parent.accountPhone}</div>
+                                                            <div className="text-muted small">{parent.accountId}</div>
+                                                        </div>
+                                                    </div>
+                                                </Col>
+                                            ))}
+                                        </Row>
+                                    ) : (
+                                        <div className="text-center text-muted py-4 rounded" style={{ backgroundColor: "#F8F9FA", borderRadius: "12px" }}>
+                                            현재 연결된 보호자 계정이 없습니다.
+                                        </div>
+                                    )}
+                                </div>
+
+                                <Form.Group className="mb-5">
+                                    <Form.Label className="small fw-semibold text-muted mb-1">특이사항 (메모)</Form.Label>
+                                    <Form.Control as="textarea" rows={4} name="studentEtc" value={student.studentEtc || ""} onChange={handleChange} className="border-0 bg-light p-3" style={{ borderRadius: "12px" }} placeholder="학생에 대한 특이사항이나 메모를 입력하세요." />
+                                </Form.Group>
+
+                                {/* 수납 내역 테이블 (선 없이 깔끔하게) */}
+                                <h5 className="fw-bolder mb-3" style={{ color: "#202124" }}>최근 수납 내역 (최대 3건)</h5>
+                                {payments.length === 0 ? (
+                                    <div className="text-center text-muted py-4 bg-light" style={{ borderRadius: "12px" }}>수납 내역이 없습니다.</div>
+                                ) : (
+                                    <Table hover className="align-middle text-center mb-0" style={{ borderCollapse: "separate", borderSpacing: "0 8px" }}>
+                                        <thead>
+                                            <tr>
+                                                <th className="border-0 text-muted fw-semibold py-2">청구 월</th>
+                                                <th className="border-0 text-muted fw-semibold py-2">청구 금액</th>
+                                                <th className="border-0 text-muted fw-semibold py-2">납부 상태</th>
+                                                <th className="border-0 text-muted fw-semibold py-2">미납액</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {payments.slice(0, 3).map(p => {
+                                                const statusStyle = getPaymentStatusStyle(p.paymentStatus);
+                                                return (
+                                                    <tr key={p.paymentNo} className="shadow-sm">
+                                                        <td className="border-0 py-3 fw-bold bg-white" style={{ borderRadius: "12px 0 0 12px" }}>{p.paymentMonth}</td>
+                                                        <td className="border-0 py-3 bg-white">{p.totalAmount?.toLocaleString()}원</td>
+                                                        <td className="border-0 py-3 bg-white">
+                                                            <span className="px-3 py-1 fw-bold rounded-pill" style={{ backgroundColor: statusStyle.bg, color: statusStyle.color, fontSize: "0.85rem" }}>
+                                                                {p.paymentStatus}
+                                                            </span>
+                                                        </td>
+                                                        <td className="border-0 py-3 bg-white fw-bold" style={{ borderRadius: "0 12px 12px 0", color: p.remainingAmount > 0 ? "#D93025" : "#A1A5ab" }}>
+                                                            {p.remainingAmount > 0 ? `${p.remainingAmount.toLocaleString()}원` : "-"}
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            })}
+                                        </tbody>
+                                    </Table>
+                                )}
+                            </Form>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+            
+            {/* 하단 플로팅 액션 버튼 구역 */}
+            <div className="d-flex justify-content-end mt-4">
+                <Button 
+                    className="rounded-pill px-4 py-2 fw-bold border-0 shadow-sm d-flex align-items-center gap-2"
+                    style={{ backgroundColor: "#202124", color: "#fff" }}
+                >
+                    <FaComments /> 피드백 보기/등록
+                </Button>
+            </div>
         </div>
     );
 }

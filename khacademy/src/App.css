@@ -10,4 +10,25 @@
     to {
         transform: rotate(360deg);
     }
+    
+}
+
+:root {
+  /* 배경 & 면 */
+  --color-bg-base: #fcfbf9;
+  --color-surface: #f7f4ef;
+  --color-surface-white: #ffffff;
+
+  /* 텍스트 */
+  --color-text-main: #24201d;
+  --color-text-muted: #827971;
+
+  /* 라인 & 보더 */
+  --color-border: #eae4d9;
+  --color-border-subtle: #f2eee8;
+
+  /* 포인트 컬러 */
+  --color-accent-gold: #b59474;
+  --color-accent-gold-hover: #9c7c5d;
+  --color-point-pink: #e85d75;
 }
