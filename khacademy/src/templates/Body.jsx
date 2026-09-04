@@ -57,6 +57,8 @@ import ContractExtend from "@components/contract/ContractExtend";
 import ContractChangeCondition from "@components/contract/ContractChangeCondition";
 
 
+
+
 export default function Body() {
 
     const isLogin = useAtomValue(isLoginState);
@@ -154,6 +156,7 @@ export default function Body() {
             <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
             {/* 관리자 전용 근태 */}
             <Route path="/admin/attendance/" element={<AdminAttendance/>}/>
+            
         </Routes>   
 
             
