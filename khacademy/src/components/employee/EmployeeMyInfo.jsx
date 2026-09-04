@@ -125,7 +125,7 @@ export default function EmployeeMyInfo() {
             setChangePasswordLoading(true);
 
             //이전 비밀번호와 새로운 비밀번호 백엔드 검사
-            const { data } = await apiClient.pathch("/account/password",
+            const { data } = await apiClient.patch("/account/password",
                 {
                     prevAccountPassword: prevAccountPassword,
                     newAccountPassword: newAccountPassword

@@ -18,6 +18,9 @@ import MemberJoin from "@components/member/MemberJoin";
 import MemberJoinSuccess from "@components/member/MemberJoinSuccess";
 import MemberJoinFail from "@components/member/MemberJoinFail";
 
+import AdminEmployeeList from "@components/admin/employee/AdminEmployeeList";
+import AdminEmployeeDetail from "@components/admin/employee/AdminEmployeeDetail";
+
 import ConsultReservation from "@components/consult/ConsultReservation";
 
 import NotFound from "@error/NotFound";
@@ -62,6 +65,9 @@ export default function Body() {
                         : <EmployeeLogin />
                 }
             />
+            {/* 관리자(원장, 데스크) */}
+            <Route path="/admin/employee/list" element={<AdminEmployeeList />} />
+            <Route path="/admin/employee/detail/:employeeNo" element={<AdminEmployeeDetail />} />
 
             {/* 직원(원장, 데스크) */}
             <Route path="/employee/register" element={<EmployeeRegister />} />
