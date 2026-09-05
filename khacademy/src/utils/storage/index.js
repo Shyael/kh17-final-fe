@@ -8,10 +8,6 @@
 import { atom } from "jotai";
 import { atomWithStorage, createJSONStorage, RESET } from "jotai/utils";
 
-// - TestMain, TestLeft, TestRight에서 공유할 count라는 이름의 통합상태(atom)을 생성
-//const [count, setCount] = useState(0);
-export const countState = atom(0);
-
 //로그인 결과를 저장할 통합상태 생성
 // - 새로고침이 되더라도 데이터가 유지될 필요가 있음
 // - sessionStorage에 저장하면 현재 화면에서만 유효(데이터 유지)
@@ -54,12 +50,11 @@ export const loginActionState = atom(null, (get,set,data)=>{
 // [2] 로그아웃 처리를 수행하는 atom
 export const logoutActionState = atom(null, (get,set)=>{
     //set(변수명, 값);
-    set(loginUserState, RESET);
+    set(loginUserState, RESET); //jotai 상태 초기화 + 저장소 제거
 });
 
 
 //마지막에 개발자 도구에 표시될 라벨을 설정 (위치 무관)
-countState.debugLabel = "연습용 카운트";
 loginUserState.debugLabel = "로그인 유저의 정보";
 isLoginState.debugLabel = "로그인 상태";
 isEmployeeState.debugLabel = "직원 여부";

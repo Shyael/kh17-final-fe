@@ -81,6 +81,12 @@ export default function Menu() {
                             <Nav>
                                 <Nav.Link
                                     as={Link}
+                                    to="/member/join"
+                                >
+                                    회원가입
+                                </Nav.Link>
+                                <Nav.Link
+                                    as={Link}
                                     to="/employee/login"
                                 >
                                     로그인
