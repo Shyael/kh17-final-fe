@@ -148,6 +148,7 @@ export default function AcademyConsultReservation({ show, handleClose }) {
 
                 {/* 신청하기 버튼 */}
                 <Button 
+                    type="button"
                     variant="success"
                     className="w-100 py-2 fw-bold border-0 rounded-2" 
                     onClick={() => saveReservation()}
