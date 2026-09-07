@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
-
+import WorkScheduleCalendar from "@components/attendance/WorkScheduleCalander";
 export default function EmployeeMyInfo() {
 
     const [employee, setEmployee] = useState(null);
@@ -217,6 +217,8 @@ export default function EmployeeMyInfo() {
             );
         }
     }, [employee, loadEmployee]);
+
+    
 
     if (employee === null) {
         return (
@@ -523,7 +525,7 @@ export default function EmployeeMyInfo() {
                 </>
             )}
 
-            {/* 수정창 전환을 위한 비밀번호 확인 모달 */}
+            <WorkScheduleCalendar/>
             <Modal
                 show={passwordModal}
                 onHide={() => setPasswordModal(false)}

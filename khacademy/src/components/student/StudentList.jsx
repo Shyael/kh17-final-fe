@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Badge, Button, Card, Col, Form, InputGroup, ProgressBar, Row, Table } from "react-bootstrap";
 import { FaSearch, FaUserPlus, FaUserShield, FaExclamationTriangle } from "react-icons/fa";
-import { authClient } from "@utils/reaxios";
+import { apiClient } from "@utils/reaxios";
 import { Link } from "react-router-dom";
 
 export default function StudentList() {
@@ -14,7 +14,7 @@ export default function StudentList() {
 
     const fetchStudents = useCallback(async () => {
         try {
-            const response = await authClient.get("http://localhost:8080/api/student/list");
+            const response = await apiClient.get("/employee/student/list");
             const data = response.data;
             setStudents(data); 
 
