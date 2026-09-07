@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup } from "react-bootstrap";
 import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie } from "react-icons/fa"; 
 import { useParams, useNavigate } from "react-router-dom";
-import { authClient } from "@utils/reaxios"; 
+import { apiClient } from "@utils/reaxios"; 
 
 export default function StudentDetail() {
     const { studentNo } = useParams(); 
@@ -26,7 +26,7 @@ export default function StudentDetail() {
     // ==========================================
     const fetchStudentDetail = useCallback(async () => {
         try {
-            const response = await authClient.get(`http://localhost:8080/api/student/detail/${studentNo}`);
+            const response = await apiClient.get(`/employee/student/detail/${studentNo}`);
             setStudent(response.data);
         } catch (error) {
             console.error("학생 정보 로딩 실패:", error);
@@ -35,7 +35,7 @@ export default function StudentDetail() {
 
     const fetchStudentPayments = useCallback(async () => {
         try {
-            const response = await authClient.get(`http://localhost:8080/api/payment/student/${studentNo}`);
+            const response = await apiClient.get(`/payment/student/${studentNo}`);
             setPayments(response.data);
             const unpaidSum = response.data.reduce((sum, p) => sum + (p.remainingAmount || 0), 0);
             setTotalUnpaid(unpaidSum);
@@ -46,9 +46,9 @@ export default function StudentDetail() {
 
     const fetchDiscounts = useCallback(async () => {
         try {
-            const allRes = await authClient.get("http://localhost:8080/api/payment/discount/list");
+            const allRes = await apiClient.get("/payment/discount/list");
             setAllDiscounts(allRes.data.filter(d => d.discountStatus === 'Y'));
-            const studentRes = await authClient.get(`http://localhost:8080/api/student/${studentNo}/discount`);
+            const studentRes = await apiClient.get(`/student/${studentNo}/discount`);
             setStudentDiscounts(studentRes.data);
         } catch (error) {
             console.error("할인 정보 로딩 실패:", error);
@@ -57,7 +57,7 @@ export default function StudentDetail() {
 
     const fetchParentInfo = useCallback(async () => {
         try {
-            const response = await authClient.get(`http://localhost:8080/api/parent/student/${studentNo}`);
+            const response = await apiClient.get(`/employee/parent/student/${studentNo}`);
             setParentList(response.data || []);
         } catch (error) {
             console.error("학부모 정보 로딩 실패:", error);
@@ -80,7 +80,7 @@ export default function StudentDetail() {
         if (isDuplicate) return alert("이미 적용되어 있는 할인 혜택입니다.");
 
         try {
-            await authClient.post(`http://localhost:8080/api/student/${studentNo}/discount/${selectedDiscountNo}`);
+            await apiClient.post(`/employee/student/${studentNo}/discount/${selectedDiscountNo}`);
             setSelectedDiscountNo(""); 
             fetchDiscounts(); 
         } catch (error) {
@@ -91,7 +91,7 @@ export default function StudentDetail() {
     const handleRemoveDiscount = async (studentDiscountNo) => {
         if (!window.confirm("이 할인 혜택을 해제하시겠습니까?")) return;
         try {
-            await authClient.delete(`http://localhost:8080/api/student/discount/${studentDiscountNo}`);
+            await apiClient.delete(`/employee/student/discount/${studentDiscountNo}`);
             fetchDiscounts(); 
         } catch (error) {
             alert("할인 해제에 실패했습니다.");
@@ -106,7 +106,7 @@ export default function StudentDetail() {
     const handleUpdate = async () => {
         if (!window.confirm("학생 정보를 이대로 수정하시겠습니까?")) return;
         try {
-            const response = await authClient.put("http://localhost:8080/api/student/edit", student);
+            const response = await apiClient.put("/employee/student/edit", student);
             alert(response.data); 
             fetchStudentDetail(); 
         } catch (error) {
@@ -118,7 +118,7 @@ export default function StudentDetail() {
         if (!window.confirm("이 학생을 '재원' 상태로 승인하시겠습니까? (승인 시 청구 대상이 됩니다)")) return;
         
         try {
-            await authClient.patch(`http://localhost:8080/api/student/approve/${studentNo}`);
+            await apiClient.patch(`/employee/student/approve/${studentNo}`);
             alert("재원 처리가 완료되었습니다.");
             fetchStudentDetail(); 
         } catch (error) {
