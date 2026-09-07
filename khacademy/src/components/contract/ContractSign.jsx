@@ -34,6 +34,7 @@ export default function ContractSign() {
                 `/employee/contract/recallBefore/${contractNo}`
             );
 
+            
             console.log(data);
 
             setContract(data);
