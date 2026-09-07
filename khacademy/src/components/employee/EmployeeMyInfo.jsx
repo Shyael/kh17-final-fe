@@ -23,7 +23,7 @@ export default function EmployeeMyInfo() {
     // 직원 정보 조회
     const loadEmployee = useCallback(async () => {
         try {
-            const { data } = await apiClient.get("/employee/me");
+            const { data } = await apiClient.get("/employee/worker/me");
 
             console.log("직원 정보 =", data);
 
@@ -46,7 +46,7 @@ export default function EmployeeMyInfo() {
     const checkPassword = useCallback(async () => {
         try {
             const { data } = await apiClient.post(
-                "/employee/password-check",
+                "/employee/worker/password-check",
                 {
                     accountPassword: password
                 }
