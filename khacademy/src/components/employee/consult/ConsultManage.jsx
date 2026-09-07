@@ -78,6 +78,18 @@ export default function ConsultManage() {
         }));
     }, [customer]);
 
+    const changeNumericValue = useCallback((e)=>{
+        const { name, value } = e.target;
+        const replacement = value.replace(/[^0-9]+/g, "");
+        if (value !== replacement) {
+            e.target.value = replacement; // DOM의 입력창 값을 즉시 강제로 되돌림
+        }
+        setCustomer(prev=>({
+            ...prev,
+            [name] : replacement
+        }));
+    }, []);
+
     const changeConsultValue = useCallback((e)=>{
         const { name, value } = e.target;
         setConsult((prev) => ({
@@ -225,6 +237,7 @@ export default function ConsultManage() {
                         <Form.Control 
                             type="text" 
                             placeholder="이름, 연락처" 
+                            maxLength={11}
                             value={search}
                             onChange={changeStringValue}
                         />
@@ -261,18 +274,21 @@ export default function ConsultManage() {
                         <Form.Label column xs={1} className="text-center text-nowrap">이름</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="text" name="studentName"
+                                maxLength={10}
                                 value={customer.studentName || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
                         <Form.Label column xs={1} className="text-center text-nowrap">연락처</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="text" name="studentPhone"
+                                maxLength={11}
                                 value={customer.studentPhone || ""}
-                                onChange={changeCustomerValue} />
+                                onChange={changeNumericValue} />
                         </Col>
                         <Form.Label column xs={1} className="text-center text-nowrap">이메일</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="email" name="studentEmail"
+                                maxLength={50}
                                 value={customer.studentEmail || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
@@ -282,18 +298,21 @@ export default function ConsultManage() {
                         <Form.Label column xs={1} className="text-center text-nowrap">이름2</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="text" name="parentName"
+                                maxLength={10}
                                 value={customer.parentName || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
                         <Form.Label column xs={1} className="text-center text-nowrap">연락처2</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="text" name="parentPhone"
+                                maxLength={11}
                                 value={customer.parentPhone || ""}
-                                onChange={changeCustomerValue} />
+                                onChange={changeNumericValue} />
                         </Col>
                         <Form.Label column xs={1} className="text-center text-nowrap">이메일2</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="email" name="parentEmail"
+                                maxLength={50}
                                 value={customer.parentEmail || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
@@ -303,6 +322,7 @@ export default function ConsultManage() {
                         <Form.Label column xs={1} className="text-center text-nowrap">주소</Form.Label>
                         <Col xs={11}>
                             <Form.Control type="text" name="studentAddress"
+                                maxLength={100}
                                 value={customer.studentAddress || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
@@ -312,18 +332,21 @@ export default function ConsultManage() {
                         <Form.Label column xs={1} className="text-center text-nowrap">학교</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="text" name="studentSchool"
+                                maxLength={20}
                                 value={customer.studentSchool || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
                         <Form.Label column xs={1} className="text-center text-nowrap">학년</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="text" name="studentGrade"
+                                maxLength={3}
                                 value={customer.studentGrade || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
                         <Form.Label column xs={1} className="text-center text-nowrap">성별</Form.Label>
                         <Col xs={3}>
                             <Form.Control type="text" name="studentGender"
+                                maxLength={2}
                                 value={customer.studentGender || ""}
                                 onChange={changeCustomerValue} />
                         </Col>
@@ -348,10 +371,12 @@ export default function ConsultManage() {
                         onClick={resetConsult}>
                     ❌<span className="d-none d-lg-inline ms-1">리셋</span>
                     </Button>
+                    { consult.consultNo === "" && (<>
                     <Button variant="light" className="border text-nowrap fw-bold"
                         onClick={saveConsult}>
                     ✔️<span className="d-none d-lg-inline ms-1">상담정보저장</span>
                     </Button>
+                    </>)}
                 </div>
 
                 {/* 2. 우측 폼 영역 */}
@@ -368,8 +393,11 @@ export default function ConsultManage() {
                     <Form.Label column xs={3} className="text-center text-nowrap">상담제목</Form.Label>
                     <Col xs={9}>
                         <Form.Control type="text" name="consultTitle"
+                            maxLength={100}
                             value={consult.consultTitle || ""}
-                            onChange={changeConsultValue} />
+                            onChange={changeConsultValue}
+                            readOnly={consult.consultNo !== ""}
+                             />
                     </Col>
                     </Row>
                     
@@ -378,7 +406,9 @@ export default function ConsultManage() {
                     <Col xs={9}>
                         <Form.Control as="textarea" className="h-100" rows={8} name="consultContent"
                             value={consult.consultContent || ""}
-                            onChange={changeConsultValue} />
+                            onChange={changeConsultValue}
+                            readOnly={consult.consultNo !== ""}
+                             />
                     </Col>
                     </Row>
                 </div>
