@@ -56,7 +56,7 @@ export default function ParentMyInfo() {
     // =========================
     const loadParent = useCallback(async () => {
         try {
-            const { data } = await apiClient.get("/parent/me");
+            const { data } = await apiClient.get("/academy/parent/me");
 
             console.log("학부모 정보 =", data);
 
@@ -85,7 +85,7 @@ export default function ParentMyInfo() {
     const checkPassword = useCallback(async () => {
         try {
             const { data } = await apiClient.post(
-                "/parent/password-check",
+                "/academy/parent/password-check",
                 {
                     accountPassword: password
                 }
@@ -237,7 +237,7 @@ export default function ParentMyInfo() {
 
         try {
             const { data } = await apiClient.put(
-                "/parent/",
+                "/academy/parent/",
                 {
                     accountName: parent.accountName,
                     accountPhone: parent.accountPhone,
@@ -287,7 +287,7 @@ export default function ParentMyInfo() {
             setLinkLoading(true);
 
             const { data } = await apiClient.post(
-                "/parent/link-student",
+                "/academy/parent/link-student",
                 {
                     linkCode: linkCode.trim(),
                     relationship: relationship
@@ -344,7 +344,7 @@ export default function ParentMyInfo() {
             setRelationshipLoading(true);
 
             const { data } = await apiClient.put(
-                "/parent/relationship",
+                "/academy/parent/relationship",
                 {
                     studentNo: selectedStudent.studentNo,
                     relationship: editRelationship

@@ -101,6 +101,11 @@ export default function Menu() {
 
                         <Navbar.Collapse id="basic-navbar-nav">
                             <Nav className="me-auto">
+                                <NavDropdown title="수납관리" id="basic-nav-dropdown">
+                                    <NavDropdown.Item as={Link} to="/payment/list">수납 목록</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/payment/discount">할인 관리</NavDropdown.Item>
+                                </NavDropdown>
+                                <Nav.Link as={Link} to="/student/list">학생목록</Nav.Link>
 
                                 <NavDropdown
                                     title="상담관리"
@@ -200,4 +205,5 @@ export default function Menu() {
                 )}
             </Navbar>
         </>)
+
 }

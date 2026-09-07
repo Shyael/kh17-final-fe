@@ -32,7 +32,7 @@ export default function StudentMyInfo() {
     // ========================================
     const loadStudent = useCallback(async () => {
         try {
-            const { data } = await apiClient.get("/student/me");
+            const { data } = await apiClient.get("/academy/student/me");
 
             console.log("학생 정보 =", data);
 
@@ -51,7 +51,7 @@ export default function StudentMyInfo() {
     const createLinkCode = useCallback(async () => {
 
         try {
-            const { data } = await apiClient.post("/student/link");
+            const { data } = await apiClient.post("/academy/student/link");
             setLinkCode(data.linkCode);
             setLinkModal(true);
         }
@@ -83,7 +83,7 @@ export default function StudentMyInfo() {
         try {
 
             const { data } = await apiClient.post(
-                "/student/password-check",
+                "/academy/student/password-check",
                 {
                     accountPassword: password
                 }
@@ -245,7 +245,7 @@ export default function StudentMyInfo() {
         try {
 
             await apiClient.put(
-                "/student/",
+                "/academy/student/",
                 {
                     accountName: student.accountName,
                     accountPhone: student.accountPhone,
