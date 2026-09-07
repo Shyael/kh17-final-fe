@@ -1,20 +1,15 @@
-import React from "react";
+//점보트론
+
 import Col from "react-bootstrap/esm/Col";
 import Row from "react-bootstrap/esm/Row";
 
-export default function Jumbotron({ title = "메뉴 제목", content = "" }) {
+export default function Jumbotron({title="테스트 제목", content=""}) {
     return (
-        <Row className="mb-4">
+        <Row>
             <Col>
-                <div className="pt-4 pb-2 px-2">
-                    <h2 className="fw-bolder mb-2" style={{ color: "#202124", letterSpacing: "-0.5px" }}>
-                        {title}
-                    </h2>
-                    {content && (
-                        <p className="text-muted mb-0" style={{ fontSize: "0.95rem" }}>
-                            {content}
-                        </p>
-                    )}
+                <div className="py-4 text-primary rounded">
+                    <h1>{title}</h1>
+                    <p className="text-muted">{content}</p>
                 </div>
             </Col>
         </Row>

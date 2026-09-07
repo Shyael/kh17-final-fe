@@ -35,7 +35,7 @@ export default function PaymentDetail() {
         );
     }
 
-    const { payment, details, discounts } = paymentData;
+    const { payment, details, discounts, historys } = paymentData;
 
     return (
         <div className="container-fluid py-4">
@@ -141,13 +141,51 @@ export default function PaymentDetail() {
                                                     {discount.discountName || "할인 적용"}
                                                 </td>
                                                 <td className="text-end pe-4 text-danger fw-bold">
-                                                    - ₩{discount.discountAmount?.toLocaleString() || 0}
+                                                    - ₩{discount.discountValue?.toLocaleString() || 0}
                                                 </td>
                                             </tr>
                                         ))
                                     ) : (
                                         <tr>
                                             <td className="text-muted py-3">적용된 할인 혜택이 없습니다.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+                        </Card.Body>
+                    </Card>
+                    <Card className="shadow-sm border-0 mt-4">
+                        <Card.Header className="bg-white pt-4 pb-2 px-4">
+                            <h6 className="fw-bold text-secondary mb-0">납부 이력 (결제 내역)</h6>
+                        </Card.Header>
+                        <Card.Body className="p-0">
+                            <Table responsive className="align-middle text-center mb-0">
+                                <thead className="bg-light">
+                                    <tr>
+                                        <th>납부 번호</th>
+                                        <th>납부 일시</th>
+                                        <th className="text-end pe-4">납부 금액</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {historys && historys.length > 0 ? (
+                                        historys.map((history, idx) => (
+                                            <tr key={idx}>
+                                                <td className="text-muted small">#{history.paymentHistoryNo}</td>
+                                                {/* 날짜 형식 예쁘게 다듬기 (T를 공백으로 바꾸고 초 단위 절삭) */}
+                                                <td>
+                                                    {history.paymentHistoryAt 
+                                                        ? history.paymentHistoryAt.replace("T", " ").substring(0, 16) 
+                                                        : '-'}
+                                                </td>
+                                                <td className="text-end pe-4 text-success fw-bold">
+                                                    + ₩{history.paymentHistoryAmount?.toLocaleString()}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="3" className="text-muted py-4">납부 이력이 없습니다.</td>
                                         </tr>
                                     )}
                                 </tbody>
