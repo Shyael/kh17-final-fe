@@ -1,3 +1,4 @@
+
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
@@ -28,6 +29,7 @@ export default function ContractChangeCondition() {
         baseWage : "",
         dailyWorkHours : "",
         weeklyWorkHours : "",
+        weeklyHolidayDay : "",
         writtenBreakMinutes : "",
         contractStart : "",
         contractEnd : "",
@@ -47,7 +49,7 @@ export default function ContractChangeCondition() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/contract/detail/${contractNo}`
+                `/employee/contract/detail/${contractNo}`
             );
 
             setCurrentContract(data);
@@ -60,6 +62,7 @@ export default function ContractChangeCondition() {
                 baseWage : data.baseWage ?? "",
                 dailyWorkHours : data.dailyWorkHours ?? "",
                 weeklyWorkHours : data.weeklyWorkHours ?? "",
+                weeklyHolidayDay : data.weeklyHolidayDay ?? "",
                 writtenBreakMinutes : data.writtenBreakMinutes ?? "",
                 contractStart : "",
                 contractEnd : toDateInput(data.contractEnd),
@@ -112,6 +115,11 @@ export default function ContractChangeCondition() {
             || dailyWorkHours <= 0 || weeklyWorkHours <= 0
             || dailyWorkHours > weeklyWorkHours) {
             toast.warning("소정근로시간을 확인해주세요");
+            return false;
+        }
+
+        if(contract.weeklyHolidayDay === "") {
+            toast.warning("주휴일을 선택해주세요");
             return false;
         }
 
@@ -178,6 +186,7 @@ export default function ContractChangeCondition() {
             baseWage : contract.baseWage,
             dailyWorkHours : contract.dailyWorkHours,
             weeklyWorkHours : contract.weeklyWorkHours,
+            weeklyHolidayDay : contract.weeklyHolidayDay,
             writtenBreakMinutes : contract.writtenBreakMinutes,
             contractStart : contract.contractStart,
             contractEnd : contract.contractEnd === "" ? null : contract.contractEnd,
@@ -189,7 +198,7 @@ export default function ContractChangeCondition() {
             setSending(true);
 
             const { data } = await apiClient.post(
-                `/contract/${contractNo}/changeWorkCondition`,
+                `/employee/contract/${contractNo}/changeWorkCondition`,
                 request
             );
 
@@ -289,6 +298,25 @@ export default function ContractChangeCondition() {
                             name="weeklyWorkHours"
                             value={contract.weeklyWorkHours}
                             onChange={changeStringValue}/>
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>주휴일</Form.Label>
+                <Col sm={9}>
+                    <Form.Select
+                            name="weeklyHolidayDay"
+                            value={contract.weeklyHolidayDay}
+                            onChange={changeStringValue}>
+                        <option value="">선택</option>
+                        <option value="MONDAY">월요일</option>
+                        <option value="TUESDAY">화요일</option>
+                        <option value="WEDNESDAY">수요일</option>
+                        <option value="THURSDAY">목요일</option>
+                        <option value="FRIDAY">금요일</option>
+                        <option value="SATURDAY">토요일</option>
+                        <option value="SUNDAY">일요일</option>
+                    </Form.Select>
                 </Col>
             </Row>
 

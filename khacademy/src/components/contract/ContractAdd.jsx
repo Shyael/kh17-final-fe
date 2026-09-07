@@ -1,3 +1,4 @@
+
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
@@ -28,6 +29,7 @@ export default function ContractAdd() {
         baseWage : "",
         dailyWorkHours : "",
         weeklyWorkHours : "",
+        weeklyHolidayDay : "",
         writtenBreakMinutes : "",
         contractStart : "",
         contractEnd : "",
@@ -59,7 +61,7 @@ export default function ContractAdd() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/contract/${employeeType}/${employeeNo}`
+                `/employee/contract/${employeeType}/${employeeNo}`
             );
 
             setEmployee(data);
@@ -116,6 +118,11 @@ export default function ContractAdd() {
             return false;
         }
 
+        if(contract.weeklyHolidayDay === "") {
+            toast.warning("주휴일을 선택해주세요");
+            return false;
+        }
+
         if(contract.writtenBreakMinutes === "") {
             toast.warning("휴게시간을 입력해주세요");
             return false;
@@ -149,6 +156,7 @@ export default function ContractAdd() {
         }
 
         const payday = parseInt(contract.payday, 10);
+
         if(contract.payday === "" || payday < 1 || payday > 31) {
             toast.warning("급여 지급일은 1일부터 31일 사이로 입력해주세요");
             return false;
@@ -175,6 +183,7 @@ export default function ContractAdd() {
             confirmButtonText:"작성",
             cancelButtonText:"취소"
         });
+
         if(result.isConfirmed === false) return;
 
         const request = {
@@ -185,7 +194,10 @@ export default function ContractAdd() {
         try {
             setSending(true);
 
-            const { data } = await apiClient.post("/contract/add", request);
+            const { data } = await apiClient.post(
+                "/employee/contract/add",
+                request
+            );
 
             toast.success("근로계약이 작성되었습니다");
             navigate(`/contract/sign/${data.contractNo}`);
@@ -203,20 +215,30 @@ export default function ContractAdd() {
     }, [contract, sending, checkContract, navigate]);
 
     return (<>
-        <Jumbotron title="근로계약 작성" content="계약 대상 직원과 근로조건을 입력해주세요"/>
+        <Jumbotron
+            title="근로계약 작성"
+            content="계약 대상 직원과 근로조건을 입력해주세요"
+        />
 
         {/* 계약 대상 직원 선택 */}
         <Row className="mt-5">
             <Form.Label column sm={3}>직원번호</Form.Label>
             <Col sm={9}>
-                <Form.Control type="text" value={employeeNo ?? ""} readOnly/>
+                <Form.Control
+                    type="text"
+                    value={employeeNo ?? ""}
+                    readOnly
+                />
             </Col>
         </Row>
 
         <Row className="mt-4">
             <Form.Label column sm={3}>직원유형</Form.Label>
             <Col sm={9}>
-                <Form.Select value={employeeType} onChange={changeEmployeeType}>
+                <Form.Select
+                    value={employeeType}
+                    onChange={changeEmployeeType}
+                >
                     <option value="">선택</option>
                     <option value="desk">데스크</option>
                     <option value="teacher">강사</option>
@@ -237,22 +259,30 @@ export default function ContractAdd() {
         <>
             <Row className="mt-4">
                 <Col sm={3} className="fw-bold text-info">이름</Col>
-                <Col sm={9} className="text-secondary">{employee.accountName}</Col>
+                <Col sm={9} className="text-secondary">
+                    {employee.accountName}
+                </Col>
             </Row>
 
             <Row className="mt-4">
                 <Col sm={3} className="fw-bold text-info">연락처</Col>
-                <Col sm={9} className="text-secondary">{employee.accountPhone}</Col>
+                <Col sm={9} className="text-secondary">
+                    {employee.accountPhone}
+                </Col>
             </Row>
 
             <Row className="mt-4">
                 <Col sm={3} className="fw-bold text-info">고용형태</Col>
-                <Col sm={9} className="text-secondary">{employee.employeeType}</Col>
+                <Col sm={9} className="text-secondary">
+                    {employee.employeeType}
+                </Col>
             </Row>
 
             <Row className="mt-4">
                 <Col sm={3} className="fw-bold text-info">고용상태</Col>
-                <Col sm={9} className="text-secondary">{employee.employeeStatus}</Col>
+                <Col sm={9} className="text-secondary">
+                    {employee.employeeStatus}
+                </Col>
             </Row>
 
             {employee.employeeStatus !== "대기" && (
@@ -280,8 +310,11 @@ export default function ContractAdd() {
             <Row className="mt-4">
                 <Form.Label column sm={3}>임금형태</Form.Label>
                 <Col sm={9}>
-                    <Form.Select name="wageType" value={contract.wageType}
-                            onChange={changeStringValue}>
+                    <Form.Select
+                        name="wageType"
+                        value={contract.wageType}
+                        onChange={changeStringValue}
+                    >
                         <option value="">선택</option>
                         <option value="monthly">월급</option>
                         <option value="hourly">시급</option>
@@ -293,38 +326,75 @@ export default function ContractAdd() {
             <Row className="mt-4">
                 <Form.Label column sm={3}>기본임금</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="number" min="1" name="baseWage"
-                            value={contract.baseWage}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        type="number"
+                        min="1"
+                        name="baseWage"
+                        value={contract.baseWage}
+                        onChange={changeStringValue}
+                    />
                 </Col>
             </Row>
 
             <Row className="mt-4">
                 <Form.Label column sm={3}>1일 소정근로시간</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="number" min="0.5" step="0.5"
-                            name="dailyWorkHours"
-                            value={contract.dailyWorkHours}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        type="number"
+                        min="0.5"
+                        step="0.5"
+                        name="dailyWorkHours"
+                        value={contract.dailyWorkHours}
+                        onChange={changeStringValue}
+                    />
                 </Col>
             </Row>
 
             <Row className="mt-4">
                 <Form.Label column sm={3}>1주 소정근로시간</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="number" min="0.5" step="0.5"
-                            name="weeklyWorkHours"
-                            value={contract.weeklyWorkHours}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        type="number"
+                        min="0.5"
+                        step="0.5"
+                        name="weeklyWorkHours"
+                        value={contract.weeklyWorkHours}
+                        onChange={changeStringValue}
+                    />
+                </Col>
+            </Row>
+
+            <Row className="mt-4">
+                <Form.Label column sm={3}>주휴일</Form.Label>
+                <Col sm={9}>
+                    <Form.Select
+                        name="weeklyHolidayDay"
+                        value={contract.weeklyHolidayDay}
+                        onChange={changeStringValue}
+                    >
+                        <option value="">선택</option>
+                        <option value="MONDAY">월요일</option>
+                        <option value="TUESDAY">화요일</option>
+                        <option value="WEDNESDAY">수요일</option>
+                        <option value="THURSDAY">목요일</option>
+                        <option value="FRIDAY">금요일</option>
+                        <option value="SATURDAY">토요일</option>
+                        <option value="SUNDAY">일요일</option>
+                    </Form.Select>
                 </Col>
             </Row>
 
             <Row className="mt-4">
                 <Form.Label column sm={3}>휴게시간</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="number" min="0" name="writtenBreakMinutes"
-                            value={contract.writtenBreakMinutes}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        type="number"
+                        min="0"
+                        name="writtenBreakMinutes"
+                        value={contract.writtenBreakMinutes}
+                        onChange={changeStringValue}
+                    />
+
                     <Form.Text className="text-muted">
                         4시간 이상 근무 시 30분 이상, 8시간 이상 근무 시 60분 이상
                     </Form.Text>
@@ -334,18 +404,25 @@ export default function ContractAdd() {
             <Row className="mt-4">
                 <Form.Label column sm={3}>계약 시작일</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="date" name="contractStart"
-                            value={contract.contractStart}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        type="date"
+                        name="contractStart"
+                        value={contract.contractStart}
+                        onChange={changeStringValue}
+                    />
                 </Col>
             </Row>
 
             <Row className="mt-4">
                 <Form.Label column sm={3}>계약 종료일</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="date" name="contractEnd"
-                            value={contract.contractEnd}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        type="date"
+                        name="contractEnd"
+                        value={contract.contractEnd}
+                        onChange={changeStringValue}
+                    />
+
                     <Form.Text className="text-muted">
                         기간의 정함이 없는 계약은 비워두세요
                     </Form.Text>
@@ -355,18 +432,27 @@ export default function ContractAdd() {
             <Row className="mt-4">
                 <Form.Label column sm={3}>급여 지급일</Form.Label>
                 <Col sm={9}>
-                    <Form.Control type="number" min="1" max="31" name="payday"
-                            value={contract.payday}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        type="number"
+                        min="1"
+                        max="31"
+                        name="payday"
+                        value={contract.payday}
+                        onChange={changeStringValue}
+                    />
                 </Col>
             </Row>
 
             <Row className="mt-4">
                 <Form.Label column sm={3}>기타 근로조건</Form.Label>
                 <Col sm={9}>
-                    <Form.Control as="textarea" rows={6} name="contractContent"
-                            value={contract.contractContent}
-                            onChange={changeStringValue}/>
+                    <Form.Control
+                        as="textarea"
+                        rows={6}
+                        name="contractContent"
+                        value={contract.contractContent}
+                        onChange={changeStringValue}
+                    />
                 </Col>
             </Row>
 
@@ -375,19 +461,28 @@ export default function ContractAdd() {
 
             <Row className="mt-5 mb-5">
                 <Col className="text-end">
-                    <Button variant="secondary" size="lg"
-                            onClick={()=>navigate(-1)}
-                            disabled={sending === true}>
+                    <Button
+                        variant="secondary"
+                        size="lg"
+                        onClick={()=>navigate(-1)}
+                        disabled={sending === true}
+                    >
                         <FaXmark/>
                         <span className="ms-2">취소</span>
                     </Button>
 
-                    <Button variant="success" size="lg" className="ms-2"
-                            onClick={sendData}
-                            disabled={sending === true}>
+                    <Button
+                        variant="success"
+                        size="lg"
+                        className="ms-2"
+                        onClick={sendData}
+                        disabled={sending === true}
+                    >
                         <FaCheck/>
                         <span className="ms-2">
-                            {sending === true ? "작성중..." : "근로계약 작성"}
+                            {sending === true
+                                ? "작성중..."
+                                : "근로계약 작성"}
                         </span>
                     </Button>
                 </Col>

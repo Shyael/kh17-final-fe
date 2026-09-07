@@ -31,7 +31,7 @@ export default function ContractSign() {
 
             //현재 Controller 명세가 PATCH이므로 그대로 사용
             const { data } = await apiClient.patch(
-                `/contract/recallBefore/${contractNo}`
+                `/employee/contract/recallBefore/${contractNo}`
             );
 
             console.log(data);
@@ -87,7 +87,7 @@ export default function ContractSign() {
             setSending(true);
 
             await apiClient.patch(
-                `/contract/${contractNo}/employeeSign`,
+                `/employee/contract/${contractNo}/employeeSign`,
                 {
                     contractNo,
                     employeeSignature
@@ -134,7 +134,7 @@ export default function ContractSign() {
             setSending(true);
 
             await apiClient.patch(
-                `/contract/${contractNo}/employerSign`,
+                `/employee/contract/${contractNo}/employerSign`,
                 {
                     contractNo,
                     employerSignature
@@ -163,7 +163,7 @@ export default function ContractSign() {
     const loadSignature = useCallback(async ()=>{
         try {
             const { data } = await apiClient.get(
-                `/contract/${contractNo}/findSignature`
+                `/employee/contract/${contractNo}/findSignature`
             );
 
             setSignatureInfo(data);

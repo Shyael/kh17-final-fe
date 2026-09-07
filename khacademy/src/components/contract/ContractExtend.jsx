@@ -34,7 +34,7 @@ export default function ContractExtend() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/contract/detail/${contractNo}`
+                `/employee/contract/detail/${contractNo}`
             );
 
             setContract(data);
@@ -102,7 +102,7 @@ export default function ContractExtend() {
 
             //Controller에서 path의 contractNo를 RequestVO에 설정하므로 종료일만 전달
             await apiClient.patch(
-                `/contract/${contractNo}/extend`,
+                `/employee/contract/${contractNo}/extend`,
                 { contractEnd }
             );
 

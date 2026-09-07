@@ -1,3 +1,4 @@
+
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Col, Row } from "react-bootstrap";
@@ -26,7 +27,7 @@ export default function ContractDetail() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/contract/detail/${contractNo}`
+                `/employee/contract/detail/${contractNo}`
             );
 
             setContract(data);
@@ -65,6 +66,18 @@ export default function ContractDetail() {
         return "dark";
     }, []);
 
+    //주휴일 한글 표시
+    const weeklyHolidayDayText = useCallback(day=>{
+        if(day === "MONDAY") return "월요일";
+        if(day === "TUESDAY") return "화요일";
+        if(day === "WEDNESDAY") return "수요일";
+        if(day === "THURSDAY") return "목요일";
+        if(day === "FRIDAY") return "금요일";
+        if(day === "SATURDAY") return "토요일";
+        if(day === "SUNDAY") return "일요일";
+        return day;
+    }, []);
+
     //계약 종료
     const exitContract = useCallback(async ()=>{
         const result = await Swal.fire({
@@ -79,7 +92,7 @@ export default function ContractDetail() {
         if(result.isConfirmed === false) return;
 
         try {
-            await apiClient.patch(`/contract/${contractNo}/exit`);
+            await apiClient.patch(`/employee/contract/${contractNo}/exit`);
 
             toast.success("근로계약이 종료되었습니다");
             loadData();
@@ -132,6 +145,13 @@ export default function ContractDetail() {
             <Col sm={3} className="fw-bold text-info">체결일시</Col>
             <Col sm={9} className="text-secondary">
                 {contract.signedTime ?? "양측 서명 전"}
+            </Col>
+        </Row>
+
+        <Row className="mt-4">
+            <Col sm={3} className="fw-bold text-info">주휴일</Col>
+            <Col sm={9} className="text-secondary">
+                {weeklyHolidayDayText(contract.weeklyHolidayDay)}
             </Col>
         </Row>
 

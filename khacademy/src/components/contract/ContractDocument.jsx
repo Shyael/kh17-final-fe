@@ -1,3 +1,4 @@
+
 import { Col, Row } from "react-bootstrap";
 import { useMemo } from "react";
 
@@ -10,6 +11,19 @@ export default function ContractDocument({ contract }) {
         if(contract.wageType === "hourly") return "시급";
         if(contract.wageType === "daily") return "일급";
         return contract.wageType ?? "";
+    }, [contract]);
+
+    //주휴일 한글 표시
+    const weeklyHolidayDayText = useMemo(()=>{
+        if(contract === null || contract === undefined) return "";
+        if(contract.weeklyHolidayDay === "MONDAY") return "월요일";
+        if(contract.weeklyHolidayDay === "TUESDAY") return "화요일";
+        if(contract.weeklyHolidayDay === "WEDNESDAY") return "수요일";
+        if(contract.weeklyHolidayDay === "THURSDAY") return "목요일";
+        if(contract.weeklyHolidayDay === "FRIDAY") return "금요일";
+        if(contract.weeklyHolidayDay === "SATURDAY") return "토요일";
+        if(contract.weeklyHolidayDay === "SUNDAY") return "일요일";
+        return contract.weeklyHolidayDay ?? "";
     }, [contract]);
 
     //날짜 출력용
@@ -110,7 +124,19 @@ export default function ContractDocument({ contract }) {
 
         <Row className="mt-5">
             <Col>
-                <h5 className="fw-bold">제4조 [휴게시간]</h5>
+                <h5 className="fw-bold">제4조 [주휴일]</h5>
+            </Col>
+        </Row>
+
+        <Row className="mt-3">
+            <Col>
+                1주 유급 주휴일은 <b>{weeklyHolidayDayText || "________"}</b>로 한다.
+            </Col>
+        </Row>
+
+        <Row className="mt-5">
+            <Col>
+                <h5 className="fw-bold">제5조 [휴게시간]</h5>
             </Col>
         </Row>
 
@@ -122,7 +148,7 @@ export default function ContractDocument({ contract }) {
 
         <Row className="mt-5">
             <Col>
-                <h5 className="fw-bold">제5조 [기타 근로조건]</h5>
+                <h5 className="fw-bold">제6조 [기타 근로조건]</h5>
             </Col>
         </Row>
 
