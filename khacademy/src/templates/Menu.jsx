@@ -221,7 +221,7 @@ export default function Menu() {
                             </NavDropdown>
 
                             {/* 학부모: 자녀가 여러명이면 자녀 선택 드롭다운 */}
-                            {children.length > 1 && (
+                            {children.length >= 1 && (
                                 <NavDropdown
                                     title={`자녀: ${selectedChild?.studentName ?? "선택"}`}
                                     id="child-nav-dropdown"
