@@ -70,6 +70,8 @@ import ContractHistory from "@components/contract/ContractHistory";
 import ContractExtend from "@components/contract/ContractExtend";
 import ContractChangeCondition from "@components/contract/ContractChangeCondition";
 
+import CourseCreate from "@components/course/CourseCreate";
+
 export default function Body() {
 
     const isLogin = useAtomValue(isLoginState);
@@ -179,6 +181,9 @@ export default function Body() {
             <Route path="/employee/contract/history/:employeeNo" element={<ContractHistory/>}/>
             <Route path="/employee/contract/extend/:contractNo" element={<ContractExtend/>}/>
             <Route path="/employee/contract/changeCondition/:contractNo" element={<ContractChangeCondition/>}/>
+            
+            {/* 강좌관련 */}
+            <Route path="/employee/course/create" element={<CourseCreate/>}/>
 
             {/* 근태관련 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
