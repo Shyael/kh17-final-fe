@@ -296,7 +296,7 @@ export default function ContractSign() {
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary"
-                        onClick={()=>navigate(`/contract/detail/${contractNo}`)}>
+                        onClick={()=>navigate(`/employee/contract/detail/${contractNo}`)}>
                     계약 상세
                 </Button>
             </Col>

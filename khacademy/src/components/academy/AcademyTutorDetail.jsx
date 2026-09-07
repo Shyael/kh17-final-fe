@@ -5,6 +5,7 @@ import { FaArrowLeft, FaCommentDots, FaGraduationCap, FaPhone } from "react-icon
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
+import NoImage from "@assets/no-image.png";
 
 export default function AcademyTutorDetail() {
     // URL
@@ -21,7 +22,8 @@ export default function AcademyTutorDetail() {
             tutorIntro: ""
         },
         careerList: [],
-        subjectList: []
+        subjectList: [],
+        image: null
     });
 
     // 학원에 등록된 과목 목록=
@@ -80,7 +82,8 @@ export default function AcademyTutorDetail() {
                 tutorIntro: data.tutorIntro ?? ""
             },
             careerList: data.careerList ?? [],
-            subjectList: subjectList
+            subjectList: subjectList,
+            image: data.image ?? null
         });
     }, [tutorNo, navigate]);
 
@@ -114,7 +117,11 @@ export default function AcademyTutorDetail() {
                     <Card className="text-center mb-4">
                         <Card.Body className="py-5">
                             <img
-                                src={`https://picsum.photos/seed/tutor-${info.tutorNo}/200/200`}
+                                src={
+                                    tutor.image
+                                            ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
+                                            : NoImage
+                                }
                                 alt={`${info.accountName} 강사`}
                                 className="rounded-circle mb-3"
                                 width={140}

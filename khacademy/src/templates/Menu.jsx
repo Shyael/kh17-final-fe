@@ -5,25 +5,25 @@ import Nav from 'react-bootstrap/Nav';
 import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Link } from "react-router-dom";
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RESET } from "jotai/utils";
 import { isLoginState, isEmployeeState } from "@utils/storage";
+import { childrenState, selectedChildNoState, selectedChildState } from "@utils/storage";
 import { logoutActionState } from "@utils/storage";
 import axios from "axios";
 import { loginActionState } from "@utils/storage";
 import { authClient } from "@utils/reaxios";
 import { FaCartShopping } from "react-icons/fa6";
-import { Button, Col, Row, Form, Spinner } from "react-bootstrap";
-import Swal from "sweetalert2";
-import { toast } from "react-toastify";
-import { apiClient } from "@utils/reaxios";
+import { Button } from "react-bootstrap";
 import AttendanceButton from "@templates/AttendanceButton";
 
+import AcademyConsultReservation from "@components/academy/AcademyConsultReservation";
 
 export default function Menu() {
     //메뉴에서는 로그인 상태 데이터가 필요하다
     const [loginUser, setLoginUser] = useAtom(loginUserState);
 
+    console.log(loginUserState);
     //읽기전용 atom을 불러오는법
     //const [isLogin] = useAtom(isLoginState);
     const isLogin = useAtomValue(isLoginState);
@@ -31,6 +31,26 @@ export default function Menu() {
 
     const loginAction = useSetAtom(loginActionState);
     const logoutAction = useSetAtom(logoutActionState);
+
+    //자녀 목록 및 선택된 자녀
+    const children = useAtomValue(childrenState);
+    const selectedChild = useAtomValue(selectedChildState);
+    const [selectedChildNo, setSelectedChildNo] = useAtom(selectedChildNoState);
+
+    //자녀가 있는데 선택된 자녀가 없거나 목록에 없는 번호면 첫번째 자녀로 자동 선택
+    useEffect(() => {
+        if (children.length === 0) {
+            return;
+        }
+
+        const exists = children.some(
+            child => child.studentNo === selectedChildNo
+        );
+
+        if (!exists) {
+            setSelectedChildNo(children[0].studentNo);
+        }
+    }, [children, selectedChildNo, setSelectedChildNo]);
 
     //서버에 로그아웃 요청 및 Jotai 저장소 초기화 요청을 수행하는 함수
     const logout = useCallback(async () => {
@@ -46,125 +66,130 @@ export default function Menu() {
         }
     }, []);
 
-
-
+    const [showModal, setShowModal] = useState(false);
 
     return (<>
         <Navbar
-            expand="md"
-            className="bg-body-tertiary sticky-top"
-            bg="dark"
-            data-bs-theme="dark"
-        >
-            {/* 비로그인 */}
-            {!isLogin && (
-                <Container fluid>
-                    <Navbar.Brand as={Link} to="/">
-                        KH정보교육원
-                    </Navbar.Brand>
+                expand="md"
+                className="bg-body-tertiary sticky-top"
+                bg="dark"
+                data-bs-theme="dark"
+            >
+                {/* 비로그인 */}
+                {!isLogin && (
+                    <Container fluid>
+                        <Navbar.Brand as={Link} to="/">
+                            KH정보교육원
+                        </Navbar.Brand>
 
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                        <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
-                    <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto">
-                            <NavDropdown
-                                title="외부페이지"
-                                id="public-nav-dropdown"
-                            >
-                                <NavDropdown.Item
-                                    as={Link}
-                                    to="/academy"
-                                >
-                                    학원정보
-                                </NavDropdown.Item>
-
-                                <NavDropdown.Item
-                                    as={Link}
-                                    to="/academy/tutor"
-                                >
-                                    외부강사목록
-                                </NavDropdown.Item>
-                            </NavDropdown>
-                        </Nav>
-
-                        <Nav>
-                            <Nav.Link
-                                as={Link}
-                                to="/employee/login"
-                            >
-                                로그인
-                            </Nav.Link>
-                        </Nav>
-                    </Navbar.Collapse>
-                </Container>
-            )}
-
-            {/* 직원 */}
-            {isLogin && isEmployee && (
-                <Container fluid>
-                    <Navbar.Brand as={Link} to="/">
-                        KH정보교육원
-                    </Navbar.Brand>
-
-                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
-
-                    <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto">
-
-                            <NavDropdown
-                                title="상담관리"
-                                id="consult-nav-dropdown"
-                            >
-                                <NavDropdown.Item
-                                    as={Link}
-                                    to="/consult/reservation"
-                                >
-                                    상담 예약 목록
-                                </NavDropdown.Item>
-                            </NavDropdown>
+                        <Navbar.Collapse id="basic-navbar-nav">
                             <Nav className="me-auto">
-                                <NavDropdown title="직원관리" id="basic-nav-dropdown">
-                                    <NavDropdown.Item as={Link} to="/employee/register">직원 등록</NavDropdown.Item>
+                                <NavDropdown
+                                    title="외부페이지"
+                                    id="public-nav-dropdown"
+                                >
+                                    <NavDropdown.Item
+                                        as={Link}
+                                        to="/academy"
+                                    >
+                                        학원정보
+                                    </NavDropdown.Item>
+
+                                    <NavDropdown.Item
+                                        as={Link}
+                                        to="/academy/tutor"
+                                    >
+                                        외부강사목록
+                                    </NavDropdown.Item>
                                 </NavDropdown>
                             </Nav>
-
-                            <NavDropdown
-                                title="외부정보관리"
-                                id="employee-nav-dropdown"
-                            >
-                                <NavDropdown.Item
+                            <Nav>
+                                <Nav.Link onClick={() => setShowModal(true)}>
+                                    상담신청
+                                </Nav.Link>
+                                <AcademyConsultReservation 
+                                    show={showModal} 
+                                    handleClose={() => setShowModal(false)} 
+                                />
+                            </Nav>
+                            <Nav>
+                                <Nav.Link
                                     as={Link}
-                                    to="/employee/academy"
+                                    to="/employee/login"
                                 >
-                                    학원정보관리
-                                </NavDropdown.Item>
+                                    로그인
+                                </Nav.Link>
+                            </Nav>
+                        </Navbar.Collapse>
+                    </Container>
+                )}
 
-                                <NavDropdown.Item
+                {/* 직원 */}
+                {isLogin && isEmployee && (
+                    <Container fluid>
+                        <Navbar.Brand as={Link} to="/">
+                            KH정보교육원
+                        </Navbar.Brand>
+                        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+
+                        <Navbar.Collapse id="basic-navbar-nav">
+                            <Nav className="me-auto">
+                                <NavDropdown title="수납관리" id="basic-nav-dropdown">
+                                    <NavDropdown.Item as={Link} to="/payment/list">수납 목록</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/payment/discount">할인 관리</NavDropdown.Item>
+                                </NavDropdown>
+                                <Nav.Link as={Link} to="/student/list">학생목록</Nav.Link>
+                                <NavDropdown
+                                    title="상담관리"
+                                    id="consult-nav-dropdown"
+                                >
+                                    <NavDropdown.Item as={Link} to="/employee/consult/reservation">상담 예약 목록</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/employee/consult/manage">상담 관리</NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/employee/consult/chat">채팅 관리</NavDropdown.Item>
+                                </NavDropdown>
+                                <Nav className="me-auto">
+                                    <NavDropdown title="직원관리" id="basic-nav-dropdown">
+                                        <NavDropdown.Item as={Link} to="/employee/register">직원 등록</NavDropdown.Item>
+                                    </NavDropdown>
+                                </Nav>
+                                <NavDropdown
+                                    title="외부정보관리"
+                                    id="employee-nav-dropdown"
+                                >
+                                    <NavDropdown.Item
+                                        as={Link}
+                                        to="/employee/academy"
+                                    >
+                                        학원정보관리
+                                    </NavDropdown.Item>
+
+                                    <NavDropdown.Item
+                                        as={Link}
+                                        to="/employee/tutor"
+                                    >
+                                        강사정보리스트
+                                    </NavDropdown.Item>
+
+                                    <NavDropdown.Item
+                                        as={Link}
+                                        to="/employee/assignment"
+                                    >
+                                        과제리스트
+                                    </NavDropdown.Item>
+                                </NavDropdown>
+
+                            </Nav>
+
+                            <Nav>
+                                <AttendanceButton/>
+                                <Nav.Link
                                     as={Link}
-                                    to="/employee/tutor"
+                                    to={`/employee/worker/myInfo`}
                                 >
-                                    강사정보리스트
-                                </NavDropdown.Item>
-
-                                <NavDropdown.Item
-                                    as={Link}
-                                    to="/employee/assignment"
-                                >
-                                    과제리스트
-                                </NavDropdown.Item>
-                            </NavDropdown>
-
-                        </Nav>
-
-                        <Nav>
-                            <AttendanceButton/>
-                            <Nav.Link
-                                as={Link}
-                                to={`/employee/myInfo`}
-                            >
-                                내정보
-                            </Nav.Link>
-
+                                    내정보
+                                </Nav.Link>
                             <Nav.Link onClick={logout}>
                                 로그아웃
                             </Nav.Link>
@@ -194,6 +219,29 @@ export default function Menu() {
                                     내 과제
                                 </NavDropdown.Item>
                             </NavDropdown>
+
+                            {/* 학부모: 자녀가 여러명이면 자녀 선택 드롭다운 */}
+                            {children.length > 1 && (
+                                <NavDropdown
+                                    title={`자녀: ${selectedChild?.studentName ?? "선택"}`}
+                                    id="child-nav-dropdown"
+                                >
+                                    {children.map(child => (
+                                        <NavDropdown.Item
+                                            key={child.studentNo}
+                                            active={child.studentNo === selectedChildNo}
+                                            onClick={() =>
+                                                setSelectedChildNo(child.studentNo)
+                                            }
+                                        >
+                                            {child.studentName}
+                                            <span className="text-muted ms-2">
+                                                ({child.relationship})
+                                            </span>
+                                        </NavDropdown.Item>
+                                    ))}
+                                </NavDropdown>
+                            )}
                         </Nav>
 
                         <Nav>
@@ -206,7 +254,6 @@ export default function Menu() {
                             </Nav.Link>
                         </Nav>
                     </Navbar.Collapse>
-
                 </Container>
             )}
         </Navbar>
