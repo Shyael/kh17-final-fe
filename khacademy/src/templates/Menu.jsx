@@ -5,7 +5,7 @@ import Navbar from 'react-bootstrap/Navbar';
 import NavDropdown from 'react-bootstrap/NavDropdown';
 import { Link } from "react-router-dom";
 import { loginUserState } from "@utils/storage";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { RESET } from "jotai/utils";
 import { isLoginState, isEmployeeState } from "@utils/storage";
 import { childrenState, selectedChildNoState, selectedChildState } from "@utils/storage";
@@ -14,6 +14,9 @@ import axios from "axios";
 import { loginActionState } from "@utils/storage";
 import { authClient } from "@utils/reaxios";
 import { FaCartShopping } from "react-icons/fa6";
+import { Button } from "react-bootstrap";
+
+import AcademyConsultReservation from "@components/academy/AcademyConsultReservation";
 
 export default function Menu() {
     //메뉴에서는 로그인 상태 데이터가 필요하다
@@ -62,6 +65,8 @@ export default function Menu() {
         }
     }, []);
 
+    const [showModal, setShowModal] = useState(false);
+
     return (<>
         <Navbar
             expand="md"
@@ -99,7 +104,15 @@ export default function Menu() {
                                 </NavDropdown.Item>
                             </NavDropdown>
                         </Nav>
-
+                        <Nav>
+                            <Nav.Link onClick={() => setShowModal(true)}>
+                                상담신청
+                            </Nav.Link>
+                            <AcademyConsultReservation 
+                                show={showModal} 
+                                handleClose={() => setShowModal(false)} 
+                            />
+                        </Nav>
                         <Nav>
                             <Nav.Link
                                 as={Link}
