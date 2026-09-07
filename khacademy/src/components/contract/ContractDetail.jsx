@@ -169,13 +169,13 @@ export default function ContractDetail() {
                 {contract.contractStatus === "pending" && (
                 <>
                     <Button variant="warning" className="ms-2"
-                            onClick={()=>navigate(`/contract/edit/${contractNo}`)}>
+                            onClick={()=>navigate(`/employee/contract/edit/${contractNo}`)}>
                         <FaSquarePen/>
                         <span className="ms-2">서명 전 수정</span>
                     </Button>
 
                     <Button variant="success" className="ms-2"
-                            onClick={()=>navigate(`/contract/sign/${contractNo}`)}>
+                            onClick={()=>navigate(`/employee/contract/sign/${contractNo}`)}>
                         <FaLock/>
                         <span className="ms-2">계약 서명</span>
                     </Button>
@@ -199,7 +199,7 @@ export default function ContractDetail() {
                 {contract.contractStatus === "active" && (
                 <>
                     <Button variant="warning" className="ms-2"
-                            onClick={()=>navigate(`/contract/change-condition/${contractNo}`)}>
+                            onClick={()=>navigate(`/employee/contract/change-condition/${contractNo}`)}>
                         <FaSquarePen/>
                         <span className="ms-2">근로조건 변경</span>
                     </Button>

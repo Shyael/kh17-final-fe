@@ -107,7 +107,7 @@ export default function ContractExtend() {
             );
 
             toast.success("근로계약 기간이 연장되었습니다");
-            navigate(`/contract/detail/${contractNo}`);
+            navigate(`/employee/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);
@@ -176,7 +176,7 @@ export default function ContractExtend() {
             <Row className="mt-5 mb-5">
                 <Col className="text-end">
                     <Button variant="secondary" size="lg"
-                            onClick={()=>navigate(`/contract/detail/${contractNo}`)}
+                            onClick={()=>navigate(`/employee/contract/detail/${contractNo}`)}
                             disabled={sending === true}>
                         <FaXmark/>
                         <span className="ms-2">취소</span>

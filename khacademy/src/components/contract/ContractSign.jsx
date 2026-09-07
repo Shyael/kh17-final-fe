@@ -99,7 +99,7 @@ export default function ContractSign() {
             setEmployeeSignature("");
             setSignatureInfo(null);
             await loadData();
-            navigate(`/contract/detail/${contractNo}`);
+            navigate(`/employee/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);
@@ -146,7 +146,7 @@ export default function ContractSign() {
             setEmployerSignature("");
             setSignatureInfo(null);
             await loadData();
-            navigate(`/contract/detail/${contractNo}`);
+            navigate(`/employee/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);

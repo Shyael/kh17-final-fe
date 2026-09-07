@@ -203,7 +203,7 @@ export default function ContractChangeCondition() {
             );
 
             toast.success("변경된 근로조건으로 새 계약이 작성되었습니다");
-            navigate(`/contract/sign/${data.contractNo}`);
+            navigate(`/employee/contract/sign/${data.contractNo}`);
         }
         catch(e) {
             console.error(e);
@@ -378,7 +378,7 @@ export default function ContractChangeCondition() {
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary" size="lg"
-                        onClick={()=>navigate(`/contract/detail/${contractNo}`)}
+                        onClick={()=>navigate(`/employee/contract/detail/${contractNo}`)}
                         disabled={sending === true}>
                     <FaXmark/>
                     <span className="ms-2">취소</span>

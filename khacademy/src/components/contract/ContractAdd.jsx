@@ -200,7 +200,7 @@ export default function ContractAdd() {
             );
 
             toast.success("근로계약이 작성되었습니다");
-            navigate(`/contract/sign/${data.contractNo}`);
+            navigate(`/employee/contract/sign/${data.contractNo}`);
         }
         catch(e) {
             console.error(e);
