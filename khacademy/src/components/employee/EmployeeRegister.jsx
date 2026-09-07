@@ -112,7 +112,7 @@ export default function EmployeeRegister() {
             return;
         }
         //형식 통과 → 중복 검사
-        const { data } = await apiClient.get(`/employee/check-id/${account.accountId}`);
+        const { data } = await apiClient.get(`/account/check-id/${account.accountId}`);
         const clazz = data ? "" : "is-invalid"; //형식과 중복검사를 통과하더라도 아직 인증번호가 남아있음
         const code = data ? null : "duplicate";
         setResult(prev => ({
@@ -275,7 +275,7 @@ export default function EmployeeRegister() {
             // const copy = {...acount};
             // delete copy.acountPassword2; //아래 구조분해 할당 or 두줄 코드
             const { accountPassword2, ...copy } = account;
-            const response = await apiClient.post("/employee/", copy);
+            const response = await apiClient.post("/employee/worker", copy);
             //toast.success("회원 등록이 완료되었습니다");
             navigate("/employee/registerSuccess");
         }
