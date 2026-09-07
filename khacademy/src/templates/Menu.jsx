@@ -15,6 +15,7 @@ import { loginActionState } from "@utils/storage";
 import { authClient } from "@utils/reaxios";
 import { FaCartShopping } from "react-icons/fa6";
 import { Button } from "react-bootstrap";
+import AttendanceButton from "@templates/AttendanceButton";
 
 import AcademyConsultReservation from "@components/academy/AcademyConsultReservation";
 
@@ -182,6 +183,7 @@ export default function Menu() {
                             </Nav>
 
                             <Nav>
+                                <AttendanceButton/>
                                 <Nav.Link
                                     as={Link}
                                     to={`/employee/myInfo`}

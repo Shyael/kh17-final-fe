@@ -59,6 +59,17 @@ import PaymentList from "@components/payment/PaymentList";
 import DiscountList from "@components/payment/DiscountList";
 import PaymentDetail from '@components/payment/PaymentDetail';
 
+import EmployeeAttendance from "@components/employeeAttendance/EmployeeAttendance";
+import AdminAttendance from "@components/attendance/admin/AdminAttendance";
+
+import ContractAdd from "@components/contract/ContractAdd";
+import ContractEditBeforeSigned from "@components/contract/ContractEditBeforeSigned";
+import ContractSign from "@components/contract/ContractSign";
+import ContractDetail from "@components/contract/ContractDetail";
+import ContractHistory from "@components/contract/ContractHistory";
+import ContractExtend from "@components/contract/ContractExtend";
+import ContractChangeCondition from "@components/contract/ContractChangeCondition";
+
 export default function Body() {
 
     const isLogin = useAtomValue(isLoginState);
@@ -157,7 +168,26 @@ export default function Body() {
             <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />}/>
 
             {/* fallback route */}
-            <Route path="*" element={<NotFound />} />
-        </Routes>
+
+            <Route path="*" element={<NotFound/>}/>
+
+            {/* 계약관련 */}
+            <Route path="/contract/add/:employeeNo" element={<ContractAdd/>}/>
+            <Route path="/contract/before/:contractNo" element={<ContractEditBeforeSigned/>}/>
+            <Route path="/contract/sign/:contractNo" element={<ContractSign/>}/>
+            <Route path="/contract/detail/:contractNo" element={<ContractDetail/>}/>
+            <Route path="/contract/history/:employeeNo" element={<ContractHistory/>}/>
+            <Route path="/contract/extend/:contractNo" element={<ContractExtend/>}/>
+            <Route path="/contract/changeCondition/:contractNo" element={<ContractChangeCondition/>}/>
+
+            {/* 근태관련 */}
+            <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
+            {/* 관리자 전용 근태 */}
+            <Route path="/admin/attendance/" element={<AdminAttendance/>}/>
+            
+        </Routes>   
+
+            
+  
     )
 }
