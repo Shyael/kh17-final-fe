@@ -186,7 +186,7 @@ export default function Menu() {
                                 <AttendanceButton/>
                                 <Nav.Link
                                     as={Link}
-                                    to={`/employee/myInfo`}
+                                    to={`/employee/worker/myInfo`}
                                 >
                                     내정보
                                 </Nav.Link>

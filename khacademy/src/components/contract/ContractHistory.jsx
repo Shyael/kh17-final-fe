@@ -338,7 +338,7 @@ export default function ContractHistory() {
                             variant="outline-primary"
                             onClick={()=>
                                 navigate(
-                                    `/contract/detail/${contract.contractNo}`
+                                    `/employee/contract/detail/${contract.contractNo}`
                                 )
                             }
                         >

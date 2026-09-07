@@ -16,7 +16,7 @@ const AttendanceButton = () => {
         try {
             const response =
                 await apiClient.get(
-                    "/attendance/working"
+                    "/employee/attendance/working"
                 );
 
             setWorking(response.data);
@@ -34,7 +34,7 @@ const AttendanceButton = () => {
             setLoading(true);
 
             await apiClient.post(
-                "/attendance/clockIn"
+                "/employee/attendance/clockIn"
             );
 
             setWorking(true);
@@ -70,7 +70,7 @@ const AttendanceButton = () => {
             setLoading(true);
 
             await apiClient.patch(
-                "/attendance/clockOut"
+                "/employee/attendance/clockOut"
             );
 
             setWorking(false);

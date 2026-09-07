@@ -162,7 +162,7 @@ export default function ContractDetail() {
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary"
-                        onClick={()=>navigate(`/contract/history/${contract.employeeNo}`)}>
+                        onClick={()=>navigate(`/employee/contract/history/${contract.employeeNo}`)}>
                     계약 이력
                 </Button>
 
@@ -184,14 +184,14 @@ export default function ContractDetail() {
 
                 {contract.signedTime !== null && contract.signedTime !== undefined && (
                 <Button variant="outline-dark" className="ms-2"
-                        onClick={()=>navigate(`/contract/sign/${contractNo}`)}>
+                        onClick={()=>navigate(`/employee/contract/sign/${contractNo}`)}>
                     서명 보기
                 </Button>
                 )}
 
                 {contract.contractStatus === "active" && contract.contractEnd !== null && (
                 <Button variant="info" className="ms-2"
-                        onClick={()=>navigate(`/contract/extend/${contractNo}`)}>
+                        onClick={()=>navigate(`/employee/contract/extend/${contractNo}`)}>
                     기간 연장
                 </Button>
                 )}

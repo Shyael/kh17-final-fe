@@ -172,13 +172,13 @@ export default function Body() {
             <Route path="*" element={<NotFound/>}/>
 
             {/* 계약관련 */}
-            <Route path="/contract/add/:employeeNo" element={<ContractAdd/>}/>
-            <Route path="/contract/before/:contractNo" element={<ContractEditBeforeSigned/>}/>
-            <Route path="/contract/sign/:contractNo" element={<ContractSign/>}/>
-            <Route path="/contract/detail/:contractNo" element={<ContractDetail/>}/>
-            <Route path="/contract/history/:employeeNo" element={<ContractHistory/>}/>
-            <Route path="/contract/extend/:contractNo" element={<ContractExtend/>}/>
-            <Route path="/contract/changeCondition/:contractNo" element={<ContractChangeCondition/>}/>
+            <Route path="/employee/contract/add/:employeeNo" element={<ContractAdd/>}/>
+            <Route path="/employee/contract/before/:contractNo" element={<ContractEditBeforeSigned/>}/>
+            <Route path="/employee/contract/sign/:contractNo" element={<ContractSign/>}/>
+            <Route path="/employee/contract/detail/:contractNo" element={<ContractDetail/>}/>
+            <Route path="/employee/contract/history/:employeeNo" element={<ContractHistory/>}/>
+            <Route path="/employee/contract/extend/:contractNo" element={<ContractExtend/>}/>
+            <Route path="/employee/contract/changeCondition/:contractNo" element={<ContractChangeCondition/>}/>
 
             {/* 근태관련 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
