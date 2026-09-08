@@ -19,7 +19,8 @@ export default function StudentDetail() {
     const [studentDiscounts, setStudentDiscounts] = useState([]); 
     const [selectedDiscountNo, setSelectedDiscountNo] = useState(""); 
 
-    const [parentList, setParentList] = useState([]); 
+    const [parentList, setParentList] = useState([]);
+    const [payAmount, setPayAmount] = useState(""); 
 
     // ==========================================
     // 2. 데이터 불러오기 (Fetch API) 구역
@@ -48,7 +49,7 @@ export default function StudentDetail() {
         try {
             const allRes = await apiClient.get("/payment/discount/list");
             setAllDiscounts(allRes.data.filter(d => d.discountStatus === 'Y'));
-            const studentRes = await apiClient.get(`/student/${studentNo}/discount`);
+            const studentRes = await apiClient.get(`/employee/student/${studentNo}/discount`);
             setStudentDiscounts(studentRes.data);
         } catch (error) {
             console.error("할인 정보 로딩 실패:", error);
@@ -63,6 +64,7 @@ export default function StudentDetail() {
             console.error("학부모 정보 로딩 실패:", error);
         }
     }, [studentNo]);
+    
 
     useEffect(() => {
         fetchStudentDetail();
@@ -264,7 +266,7 @@ export default function StudentDetail() {
                         <Row className="mb-3 g-3">
                             <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이름</Form.Label><Form.Control size="sm" type="text" name="studentName" value={student.studentName || ""} onChange={handleChange} /></Form.Group>
                             <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">연락처</Form.Label><Form.Control size="sm" type="text" name="studentPhone" value={student.studentPhone || ""} onChange={handleChange} /></Form.Group>
-                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이메일</Form.Label><Form.Control size="sm" type="email" name="studentEmail" value={student.studentEmail || ""} onChange={handleChange} /></Form.Group>
+                            <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">이메일</Form.Label><Form.Control size="sm" type="email" name="studentEmail" value={student.studentEmail || ""} readOnly /></Form.Group>
                         </Row>
 
                         <div className="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2 mt-5">
@@ -313,7 +315,7 @@ export default function StudentDetail() {
                             <Form.Group as={Col} md={4}>
                                 <Form.Label className="small text-muted mb-1">성별</Form.Label>
                                 <Form.Select size="sm" name="studentGender" value={student.studentGender || ""} onChange={handleChange}>
-                                    <option>M</option><option>F</option>
+                                    <option>남</option><option>여</option>
                                 </Form.Select>
                             </Form.Group>
                         </Row>

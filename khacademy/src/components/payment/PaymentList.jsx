@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Card, Form, Button, Table, Row, Col, Badge, InputGroup } from "react-bootstrap";
 import { FaSearch, FaRegBell } from "react-icons/fa";
-import { authClient } from "@utils/reaxios"; 
+import { apiClient } from "@utils/reaxios"; 
 import { useNavigate } from "react-router-dom";
 
 export default function PaymentList() {
@@ -31,7 +31,7 @@ export default function PaymentList() {
     // 🌟 데이터 가져오기 로직 
     const fetchPayments = useCallback(async () => {
         try {
-            const response = await authClient.get("http://localhost:8080/api/payment/list", {
+            const response = await apiClient.get("/payment/list", {
                 params: filters
             });
             

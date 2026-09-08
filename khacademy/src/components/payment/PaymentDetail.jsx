@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Table, Badge, Button, Row, Col, Spinner } from "react-bootstrap";
-import { authClient } from "@utils/reaxios";
+import { Card, Table, Badge, Button, Row, Col, Spinner, Form } from "react-bootstrap";
+import { apiClient } from "@utils/reaxios";
 
 export default function PaymentDetail() {
     const { paymentNo } = useParams(); 
@@ -9,10 +9,11 @@ export default function PaymentDetail() {
 
     const [paymentData, setPaymentData] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [payAmount, setPayAmount] = useState("");
 
     const fetchPaymentDetail = useCallback(async () => {
         try {
-            const response = await authClient.get(`http://localhost:8080/api/payment/detail/${paymentNo}`);
+            const response = await apiClient.get(`/payment/detail/${paymentNo}`);
             setPaymentData(response.data);
         } catch (error) {
             console.error("수납 상세 정보 로딩 실패:", error);
@@ -21,6 +22,27 @@ export default function PaymentDetail() {
             setLoading(false);
         }
     }, [paymentNo]);
+
+    // 수납 처리 함수
+    const handlePay = async () => {
+        // 방어 로직: 숫자 미입력 또는 0원 이하 결제 방지
+        const amount = parseInt(payAmount, 10);
+        if (!amount || amount <= 0) {
+            return alert("올바른 수납 금액을 입력해 주세요.");
+        }
+
+        if (!window.confirm(`₩${amount.toLocaleString()}원을 수납 처리하시겠습니까?`)) return;
+
+        try {
+            // x-www-form-urlencoded 형식으로 쿼리 파라미터 전송
+            await apiClient.post(`/payment/pay?paymentNo=${paymentNo}&payAmount=${amount}`);
+            alert("수납이 완료되었습니다.");
+            setPayAmount(""); // 인풋창 비우기
+            fetchPaymentDetail(); // 화면 새로고침하여 바뀐 상태(완납/부분납)와 이력 표시
+        } catch (error) {
+            alert("수납 처리에 실패했습니다.");
+        }
+    };
 
     useEffect(() => {
         fetchPaymentDetail();
@@ -154,9 +176,29 @@ export default function PaymentDetail() {
                             </Table>
                         </Card.Body>
                     </Card>
+                    {/* ===================================== */}
+                    {/* 4. 납부 이력 (Payment History) 영역 */}
+                    {/* ===================================== */}
                     <Card className="shadow-sm border-0 mt-4">
-                        <Card.Header className="bg-white pt-4 pb-2 px-4">
+                        {/* 🌟 카드 헤더를 입력창 + 버튼 구조로 변경 */}
+                        <Card.Header className="bg-white pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
                             <h6 className="fw-bold text-secondary mb-0">납부 이력 (결제 내역)</h6>
+                            
+                            {/* 완납 상태가 아닐 때만 수납 입력창 표시 */}
+                            {payment.paymentStatus !== '완납' && (
+                                <div className="d-flex gap-2" style={{ width: "250px" }}>
+                                    <Form.Control 
+                                        type="number" 
+                                        size="sm" 
+                                        placeholder="수납 금액 입력"
+                                        value={payAmount}
+                                        onChange={(e) => setPayAmount(e.target.value)}
+                                    />
+                                    <Button variant="primary" size="sm" className="flex-shrink-0 fw-bold" onClick={handlePay}>
+                                        납부 확인
+                                    </Button>
+                                </div>
+                            )}
                         </Card.Header>
                         <Card.Body className="p-0">
                             <Table responsive className="align-middle text-center mb-0">
