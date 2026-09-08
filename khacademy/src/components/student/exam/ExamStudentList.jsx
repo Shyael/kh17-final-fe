@@ -141,8 +141,7 @@ export default function ExamStudentList() {
     // 상태별 액션 버튼
     const actionButton = (exam) => {
         const label = getAttemptLabel(exam);
-        const take = `/student/exam/${exam.examNo}`;
-        const result = `/student/exam/${exam.examNo}/result`;
+        const detail = `/student/exam/${exam.examNo}`;
 
         switch (label) {
             case "제출완료":
@@ -150,7 +149,7 @@ export default function ExamStudentList() {
                     <Button
                         variant="outline-success"
                         size="sm"
-                        onClick={() => navigate(result)}>
+                        onClick={() => navigate(detail)}>
                         결과보기
                     </Button>
                 );
@@ -159,7 +158,7 @@ export default function ExamStudentList() {
                     <Button
                         variant="outline-primary"
                         size="sm"
-                        onClick={() => navigate(take)}>
+                        onClick={() => navigate(detail)}>
                         이어서 응시
                     </Button>
                 );
@@ -180,7 +179,7 @@ export default function ExamStudentList() {
                     <Button
                         variant="outline-primary"
                         size="sm"
-                        onClick={() => navigate(take)}>
+                        onClick={() => navigate(detail)}>
                         응시하기
                     </Button>
                 );

@@ -75,6 +75,8 @@ import ExamManage from "@components/employee/exam/ExamManage";
 import ExamResult from "@components/employee/exam/ExamResult";
 
 import ExamStudentList from "@components/student/exam/ExamStudentList";
+import ExamStudentDetail from "@components/student/exam/ExamStudentDetail";
+import ExamStudentAttempt from "@components/student/exam/ExamStudentAttempt";
 
 export default function Body() {
 
@@ -181,7 +183,9 @@ export default function Body() {
 
             {/* 학생 시험 */}
             <Route path="/student/exam" element={<ExamStudentList />}/>
-            
+            <Route path="/student/exam/:examNo" element={<ExamStudentDetail />}/>
+            <Route path="/student/exam/:examNo/attempt/:attemptNo" element={<ExamStudentAttempt />}/>
+
             {/* fallback route */}
 
             <Route path="*" element={<NotFound/>}/>
