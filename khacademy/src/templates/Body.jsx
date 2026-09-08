@@ -70,6 +70,12 @@ import ContractHistory from "@components/contract/ContractHistory";
 import ContractExtend from "@components/contract/ContractExtend";
 import ContractChangeCondition from "@components/contract/ContractChangeCondition";
 
+import ExamManageList from "@components/employee/exam/ExamManageList";
+import ExamManage from "@components/employee/exam/ExamManage";
+import ExamResult from "@components/employee/exam/ExamResult";
+
+import ExamStudentList from "@components/student/exam/ExamStudentList";
+
 export default function Body() {
 
     const isLogin = useAtomValue(isLoginState);
@@ -167,6 +173,15 @@ export default function Body() {
             {/* 학부모 : 자녀 과제 상세 */}
             <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />}/>
 
+            {/* 시험(관리) */}
+            <Route path="/employee/exam" element={<ExamManageList />}/>
+            <Route path="/employee/exam/add" element={<ExamManage />}/>
+            <Route path="/employee/exam/:examNo" element={<ExamManage />}/>
+            <Route path="/employee/exam/:examNo/result" element={<ExamResult />}/>
+
+            {/* 학생 시험 */}
+            <Route path="/student/exam" element={<ExamStudentList />}/>
+            
             {/* fallback route */}
 
             <Route path="*" element={<NotFound/>}/>

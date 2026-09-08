@@ -178,6 +178,12 @@ export default function Menu() {
                                     >
                                         과제리스트
                                     </NavDropdown.Item>
+                                    <NavDropdown.Item 
+                                        as={Link} 
+                                        to="/employee/exam"
+                                    >
+                                        시험리스트
+                                    </NavDropdown.Item>
                                 </NavDropdown>
 
                             </Nav>
@@ -217,6 +223,11 @@ export default function Menu() {
                                     as={Link}
                                     to="/student/assignment">
                                     내 과제
+                                </NavDropdown.Item>
+                                <NavDropdown.Item
+                                    as={Link}
+                                    to="/student/exam">
+                                    내 시험
                                 </NavDropdown.Item>
                             </NavDropdown>
 

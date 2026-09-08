@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Col, Form, Row, Table } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import { Link } from "react-router-dom";
-import { FaXmark } from "react-icons/fa6";
+import { FaPlus, FaXmark } from "react-icons/fa6";
 
 export default function TutorList() {
 
@@ -28,7 +28,7 @@ export default function TutorList() {
             <Col className="text-end">
                 {/* 위치 나중에 생기면 수정 */}
                 <Button as={Link} to={`/employee/tutor/add`} variant="success" className="ms-2">
-                    <FaXmark className="me-2" />
+                    <FaPlus className="me-2" />
                     <span>강사정보생성</span>
                 </Button>
             </Col>
