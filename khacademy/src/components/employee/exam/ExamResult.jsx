@@ -350,8 +350,7 @@ export default function ExamResult() {
                                                         size="sm"
                                                         className="p-0"
                                                         onClick={() =>
-                                                            //TODO: 학생 결과 상세 페이지 경로 확정되면 수정
-                                                            navigate(`/employee/exam/${examNo}/attempt/${item.submissionNo}`)}>
+                                                            navigate(`/employee/exam/${examNo}/result/${item.submissionNo}`)}>
                                                         상세
                                                     </Button>
                                                 )}

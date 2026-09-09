@@ -181,6 +181,7 @@ export default function Body() {
             <Route path="/employee/exam/add" element={<ExamManage />}/>
             <Route path="/employee/exam/:examNo" element={<ExamManage />}/>
             <Route path="/employee/exam/:examNo/result" element={<ExamResult />}/>
+            <Route path="/employee/exam/:examNo/result/:attemptNo" element={<ExamStudentResult />}/>
 
             {/* 학생 시험 */}
             <Route path="/student/exam" element={<ExamStudentList />}/>

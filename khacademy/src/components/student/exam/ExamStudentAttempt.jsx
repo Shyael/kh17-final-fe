@@ -285,10 +285,22 @@ export default function ExamStudentAttempt() {
             const unansweredCount = questionList.length - answerList.length;
 
             const message = unansweredCount > 0
-                ? `미응답 문항이 ${unansweredCount}개 있습니다.\n그래도 제출하시겠습니까?`
+                ? `미응답 문항이 ${unansweredCount}개 있습니다. 그래도 제출하시겠습니까?`
                 : "시험을 최종 제출하시겠습니까?";
 
-            if (!window.confirm(message)) {
+            const result = await Swal.fire({
+                title: "시험 제출",
+                text: message,
+                icon: "question",
+                showCancelButton: true,
+                confirmButtonText: "제출",
+                cancelButtonText: "취소",
+                reverseButtons: true,
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+
+            if (!result.isConfirmed) {
                 return;
             }
         }

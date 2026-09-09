@@ -1,0 +1,421 @@
+/* =========================================================
+   학원 그룹웨어 메뉴 테마 - "1. 딥 슬레이트 & 틸" (초기 시안)
+   - 상단바(TopMenu): 비로그인 / 학생 / 학부모
+   - 사이드바(EmployeeLayout): 직원
+   나중에 다른 테마로 교체하려면 아래 토큰 값만 바꾸면 됨
+   ========================================================= */
+:root {
+  --kh-bg: #F5F7F6;
+  --kh-surface: #FFFFFF;
+  --kh-primary: #527D8A;
+  --kh-primary-dark: #263746;
+  --kh-primary-light: #E8F0F2;
+  --kh-accent: #6B9B83;
+  --kh-text: #29343A;
+  --kh-muted: #718087;
+  --kh-border: #DCE3E4;
+  --kh-sidebar-w: 230px;
+  --kh-topbar-h: 64px;
+}
+
+/* ============ 공용 상단바 (비로그인 / 학생 / 학부모) ============ */
+/* 페이지 배경과 어울리는 밝은 헤더 (KH AX 사이트 톤) */
+.kh-topnav.navbar {
+  background-color: var(--kh-surface) !important;
+  border-bottom: 1px solid var(--kh-border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  min-height: 56px;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+/* 스크롤이 맨 위일 때는 구분선/그림자 숨김 */
+.kh-topnav.navbar.at-top {
+  border-bottom-color: transparent;
+  box-shadow: none;
+}
+.kh-topnav .navbar-brand {
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--kh-primary-dark);
+}
+.kh-topnav .nav-link {
+  color: var(--kh-text);
+  font-weight: 500;
+}
+.kh-topnav .nav-link:hover,
+.kh-topnav .nav-link:focus,
+.kh-topnav .nav-link.active,
+.kh-topnav .show > .nav-link {
+  color: var(--kh-primary);
+}
+.kh-topnav .navbar-toggler {
+  border-color: var(--kh-border);
+}
+.kh-topnav .dropdown-menu {
+  border: 1px solid var(--kh-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 6px;
+}
+.kh-topnav .dropdown-item {
+  border-radius: 6px;
+  font-size: 13.5px;
+  padding: 8px 12px;
+  color: var(--kh-text);
+}
+.kh-topnav .dropdown-item:hover,
+.kh-topnav .dropdown-item:focus {
+  background: var(--kh-primary-light);
+  color: var(--kh-primary-dark);
+}
+.kh-topnav .dropdown-item.active,
+.kh-topnav .dropdown-item:active {
+  background: var(--kh-primary);
+  color: #fff;
+}
+
+/* 로그인 / 수강신청 같은 강조 버튼 */
+.kh-topnav .kh-btn-primary {
+  background: var(--kh-primary);
+  border: 1px solid var(--kh-primary);
+  color: #fff;
+  font-weight: 600;
+}
+.kh-topnav .kh-btn-primary:hover {
+  opacity: 0.9;
+  color: #fff;
+}
+.kh-topnav .kh-btn-outline {
+  background: transparent;
+  border: 1px solid var(--kh-border);
+  color: var(--kh-text);
+  font-weight: 600;
+}
+.kh-topnav .kh-btn-outline:hover {
+  background: var(--kh-primary-light);
+  color: var(--kh-primary-dark);
+}
+
+/* ============ 직원 전용 그룹웨어 레이아웃 ============ */
+.kh-gw-layout {
+  display: flex;
+  align-items: flex-start;
+  min-height: 100vh;
+  background: var(--kh-bg);
+}
+
+/* --- 좌측 사이드바 --- */
+.kh-gw-sidebar {
+  width: var(--kh-sidebar-w);
+  flex: 0 0 var(--kh-sidebar-w);
+  align-self: stretch;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  background: var(--kh-primary-dark);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--kh-border);
+  z-index: 1020;
+}
+.kh-gw-sidebar-head {
+  min-height: var(--kh-topbar-h);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.kh-gw-sidebar-head .brand {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.2px;
+  color: #fff;
+  text-decoration: none;
+}
+.kh-gw-sidebar-head .sub {
+  font-size: 11px;
+  color: #93A2AE;
+  margin-top: 2px;
+}
+
+.kh-gw-menu {
+  list-style: none;
+  padding: 12px 8px;
+  margin: 0;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kh-gw-menu .grp-btn,
+.kh-gw-menu .item-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #CFD7DE;
+  font-size: 13.5px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.kh-gw-menu .grp-btn:hover,
+.kh-gw-menu .item-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+.kh-gw-menu .grp-btn .chev {
+  margin-left: auto;
+  font-size: 11px;
+  opacity: 0.7;
+}
+.kh-gw-menu .item-link.active {
+  background: var(--kh-primary);
+  color: #fff;
+  font-weight: 600;
+}
+.kh-gw-submenu {
+  list-style: none;
+  margin: 2px 0 2px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.kh-gw-submenu .item-link {
+  padding-left: 34px;
+  font-size: 13px;
+}
+
+/* --- 우측 메인 영역 --- */
+.kh-gw-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.kh-gw-topbar {
+  min-height: var(--kh-topbar-h);
+  background: var(--kh-surface);
+  border-bottom: 1px solid var(--kh-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 28px;
+  position: sticky;
+  top: 0;
+  z-index: 1010;
+}
+.kh-gw-search {
+  padding: 8px 14px;
+  border: 1px solid var(--kh-border);
+  border-radius: 6px;
+  width: 240px;
+  max-width: 40vw;
+  font-size: 13px;
+  outline: none;
+  background: var(--kh-bg);
+  color: var(--kh-text);
+}
+.kh-gw-search:focus {
+  border-color: var(--kh-primary);
+  background: var(--kh-surface);
+}
+.kh-gw-topbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.kh-gw-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--kh-text);
+}
+.kh-gw-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--kh-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  color: #fff;
+  font-size: 13px;
+}
+.kh-gw-content {
+  flex: 1 1 auto;
+  padding: 24px 28px;
+}
+
+/* ============ 푸터 (상단 헤더와 같은 밝은 톤) ============ */
+.kh-footer {
+  background: var(--kh-surface);
+  border-top: 1px solid var(--kh-border);
+  color: var(--kh-muted);
+  font-size: 13px;
+  padding: 28px 4px 20px;
+}
+.kh-footer-main {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 20px;
+}
+.kh-footer-brand {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--kh-primary-dark);
+  margin-bottom: 8px;
+}
+.kh-footer-info p {
+  margin: 2px 0;
+}
+.kh-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 18px;
+}
+.kh-footer-links a,
+.kh-footer-links span {
+  color: var(--kh-text);
+  text-decoration: none;
+  cursor: pointer;
+}
+.kh-footer-links a:hover,
+.kh-footer-links span:hover {
+  color: var(--kh-primary);
+}
+.kh-footer-copy {
+  margin-top: 20px;
+  padding-top: 14px;
+  border-top: 1px solid var(--kh-border);
+  font-size: 12px;
+  color: var(--kh-muted);
+}
+
+/* ============ 인증 화면 상단 로고 바 (헤더/푸터 대신) ============ */
+.kh-auth-bar {
+  display: flex;
+  justify-content: center;
+  padding: 28px 0 4px;
+}
+.kh-auth-logo {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--kh-primary-dark);
+  text-decoration: none;
+}
+.kh-auth-logo:hover {
+  color: var(--kh-primary);
+}
+
+/* ============ 회원 로그인 화면 (네이버 로그인 스타일) ============ */
+.kh-login {
+  max-width: 550px;
+  margin: 24px auto;
+}
+.kh-login-card {
+  background: var(--kh-surface);
+  border: 1px solid var(--kh-border);
+  border-radius: 12px;
+  padding: 40px 36px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+.kh-login-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--kh-primary-dark);
+  text-align: center;
+  margin-bottom: 24px;
+}
+.kh-login .form-control {
+  height: 48px;
+  font-size: 15px;
+}
+.kh-login .form-control:focus {
+  border-color: var(--kh-primary);
+  box-shadow: 0 0 0 0.15rem var(--kh-primary-light);
+}
+.kh-login-submit {
+  height: 48px;
+  font-weight: 700;
+}
+.kh-login-links {
+  margin-top: 18px;
+  text-align: center;
+  font-size: 13px;
+}
+.kh-login-links a,
+.kh-login-links button {
+  color: var(--kh-muted);
+  text-decoration: none;
+  padding: 0 8px;
+  background: none;
+  border: none;
+}
+.kh-login-links a:hover,
+.kh-login-links button:hover {
+  color: var(--kh-primary);
+}
+.kh-login-links .sep {
+  color: var(--kh-border);
+}
+
+/* 화면이 좁아지면 카드 해제 (네이버 모바일 로그인처럼) */
+@media (max-width: 575.98px) {
+  .kh-login {
+    max-width: none;
+    margin: 8px 0;
+  }
+  .kh-login-card {
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 24px 2px;
+  }
+}
+
+/* 모바일: 사이드바를 상단 가로 스크롤 바로 축소 */
+@media (max-width: 767.98px) {
+  .kh-gw-layout {
+    flex-direction: column;
+  }
+  .kh-gw-sidebar {
+    width: 100%;
+    flex-basis: auto;
+    position: static;
+    height: auto;
+  }
+  .kh-gw-menu {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .kh-gw-submenu {
+    display: none;
+  }
+  .kh-gw-menu .grp-btn .chev {
+    display: none;
+  }
+  .kh-gw-search {
+    max-width: 55vw;
+  }
+}

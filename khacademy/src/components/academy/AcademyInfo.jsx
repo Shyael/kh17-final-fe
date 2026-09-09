@@ -133,9 +133,6 @@ export default function AcademyInfo() {
 
     return (
         <>
-            <Jumbotron
-                title={info.academyName || "학원 소개"} />
-
             {/* 메인 배너 이미지 (Lorem Picsum 자리잡기) */}
             <Row>
                 <Col>

@@ -1,14 +1,12 @@
-import Jumbotron from "@templates/Jumbotron";
-import axios from "axios";
-import { useAtom, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useCallback, useState } from "react";
-import { Button, Col, Form, Row } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import { FaRightToBracket } from "react-icons/fa6";
 import Swal from "sweetalert2";
-import { loginUserState } from "@utils/storage";
 import { useNavigate } from "react-router-dom";
 import { loginActionState } from "@utils/storage";
 import { authClient } from "@utils/reaxios";
+import "@templates/menu/menu.css";
 
 export default function AccountLogin() {
     //state
@@ -16,11 +14,8 @@ export default function AccountLogin() {
         accountId: "",
         accountPassword: ""
     });
-    //jotai state
-    //const [loginUser, setLoginUser] = useAtom(loginUserState);
 
     //쓰기 전용 atom
-    //const [_, loginAction] = useAtom(loginActionState);
     const loginAction = useSetAtom(loginActionState);
 
     //navigate
@@ -42,12 +37,8 @@ export default function AccountLogin() {
             return;
         }
         try {
-            //const {data} = await axios.post("/service/auth/login", account);
             const { data } = await authClient.post("/login", account);
-            //로그인 성공 → data를 jotai storage에 저장하자!
             console.log(data);
-            //setLoginUser(data);//jotai storage에 저장 완료
-            //loginAction(data);//jotai setter atom 사용
 
             //data에서 needUpdate와 나머지를 뽑아내서 나눠서 사용 (구조 분해 할당)
             const { needUpdate, ...userData } = data;
@@ -63,8 +54,6 @@ export default function AccountLogin() {
             }
         }
         catch (e) {
-            const status = e.response?.status;
-
             console.log("에러:", e);
             console.log("응답:", e.response);
             console.log("상태 코드:", e.response?.data);
@@ -80,55 +69,53 @@ export default function AccountLogin() {
         }
     }, [account]);
 
-    return (<>
-        <Jumbotron title="직원 로그인" content="로그인을 위한 정보를 입력해주세요" />
+    const goFind = () =>
+        navigate("/account/find", { state: { loginPath: "/employee/login" } });
 
-        <Row className="mt-4">
-            <Form.Label column sm={3}>아이디</Form.Label>
-            <Col sm={9}>
-                <Form.Control type="text" name="accountId" value={account.accountId}
-                    onChange={changeStringValue} placeholder="User ID"
-                    autoFocus />
-            </Col>
-        </Row>
-        <Row className="mt-4">
-            <Form.Label column sm={3}>비밀번호</Form.Label>
-            <Col sm={9}>
-                <Form.Control type="password" name="accountPassword"
-                    value={account.accountPassword}
-                    onChange={changeStringValue} placeholder="User Password" />
-            </Col>
-        </Row>
+    const onSubmit = (e) => {
+        e.preventDefault();
+        sendLogin();
+    };
 
-        <Row className="mt-5">
-            <Col className="text-end">
-                <Button variant="success" size="lg" onClick={sendLogin}>
-                    <FaRightToBracket />
-                    <span className="ms-2">로그인</span>
-                </Button>
-            </Col>
-        </Row>
+    return (
+        <div className="kh-login">
+            <div className="kh-login-card">
+                <div className="kh-login-title">직원 로그인</div>
 
-        <Row className="mt-5">
-            <Col className="text-center">
-                <Button variant="link"
-                    onClick={() => navigate("/account/find", {
-                        state: {
-                            loginPath: "/employee/login"
-                        }
-                    })} >
-                    아이디 찾기
-                </Button>
-                <span className="text-muted"> | </span>
-                <Button variant="link"
-                    onClick={() => navigate("/account/find", {
-                        state: {
-                            loginPath: "/employee/login"
-                        }
-                    })} >
-                    비밀번호 찾기
-                </Button>
-            </Col>
-        </Row>
-    </>)
+                <Form onSubmit={onSubmit}>
+                    <Form.Control
+                        type="text"
+                        name="accountId"
+                        value={account.accountId}
+                        onChange={changeStringValue}
+                        placeholder="아이디"
+                        autoFocus
+                    />
+                    <Form.Control
+                        type="password"
+                        name="accountPassword"
+                        value={account.accountPassword}
+                        onChange={changeStringValue}
+                        placeholder="비밀번호"
+                        className="mt-3 mb-3"
+                    />
+
+                    <Button
+                        type="submit"
+                        variant="success"
+                        className="w-100 mt-5 kh-login-submit"
+                    >
+                        <FaRightToBracket />
+                        <span className="ms-2">로그인</span>
+                    </Button>
+                </Form>
+
+                <div className="kh-login-links">
+                    <button type="button" onClick={goFind}>아이디 찾기</button>
+                    <span className="sep">|</span>
+                    <button type="button" onClick={goFind}>비밀번호 찾기</button>
+                </div>
+            </div>
+        </div>
+    );
 }

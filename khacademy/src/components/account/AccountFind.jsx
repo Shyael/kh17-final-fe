@@ -1,9 +1,9 @@
-import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useState } from "react";
-import { Button, Col, Form, Row } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { apiClient } from "@utils/reaxios";
+import "@templates/menu/menu.css";
 
 export default function AccountFind() {
 
@@ -179,278 +179,135 @@ export default function AccountFind() {
 
 
     return (
-        <>
+        <div className="kh-login">
+            <div className="kh-login-card">
+                <div className="kh-login-title">아이디 · 비밀번호 찾기</div>
 
-            <Jumbotron
-                title="아이디, 비밀번호 찾기"
-                content="가입하신 계정의 정보를 입력해주세요."
-            />
-
-
-            {/* =========================
-                탭
-            ========================= */}
-
-            <Row className="mt-4">
-                <Col className="d-flex">
-
+                {/* 탭 */}
+                <div className="d-flex mb-4">
                     <Button
-                        variant={
-                            mode === "id"
-                                ? "success"
-                                : "outline-success"
-                        }
+                        variant={mode === "id" ? "success" : "outline-success"}
                         className="flex-fill me-2"
                         onClick={() => changeMode("id")}
                     >
                         아이디 찾기
                     </Button>
-
                     <Button
-                        variant={
-                            mode === "password"
-                                ? "success"
-                                : "outline-success"
-                        }
+                        variant={mode === "password" ? "success" : "outline-success"}
                         className="flex-fill"
                         onClick={() => changeMode("password")}
                     >
                         비밀번호 찾기
                     </Button>
+                </div>
 
-                </Col>
-            </Row>
-
-
-            {/* =========================
-                아이디 찾기
-            ========================= */}
-
-            {mode === "id" && (
-                <>
-                    {foundAccountId === "" ? (
-                        <>
-
-                            <Row className="mt-5">
-                                <Form.Label column sm={3}>
-                                    이름
-                                </Form.Label>
-
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="text"
-                                        name="accountName"
-                                        value={idFind.accountName}
-                                        onChange={changeIdValue}
-                                        placeholder="이름"
-                                        autoFocus
-                                    />
-                                </Col>
-                            </Row>
-
-
-                            <Row className="mt-4">
-                                <Form.Label column sm={3}>
-                                    휴대폰번호
-                                </Form.Label>
-
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="tel"
-                                        name="accountPhone"
-                                        value={idFind.accountPhone}
-                                        onChange={changeIdValue}
-                                        placeholder="휴대폰번호"
-                                    />
-                                </Col>
-                            </Row>
-
-
-                            <Row className="mt-5">
-                                <Col className="text-end">
-
-                                    <Button
-                                        variant="success"
-                                        size="lg"
-                                        onClick={findAccountId}
-                                    >
-                                        아이디 찾기
-                                    </Button>
-
-                                </Col>
-                            </Row>
-
-                        </>
+                {/* 아이디 찾기 */}
+                {mode === "id" && (
+                    foundAccountId === "" ? (
+                        <Form
+                            onSubmit={(e) => { e.preventDefault(); findAccountId(); }}
+                        >
+                            <Form.Control
+                                type="text"
+                                name="accountName"
+                                value={idFind.accountName}
+                                onChange={changeIdValue}
+                                placeholder="이름"
+                                autoFocus
+                            />
+                            <Form.Control
+                                type="tel"
+                                name="accountPhone"
+                                value={idFind.accountPhone}
+                                onChange={changeIdValue}
+                                placeholder="휴대폰번호"
+                                className="mt-3"
+                            />
+                            <Button
+                                type="submit"
+                                variant="success"
+                                className="w-100 mt-4 kh-login-submit"
+                            >
+                                아이디 찾기
+                            </Button>
+                        </Form>
                     ) : (
-                        <>
+                        <div className="text-center">
+                            <div className="text-muted mb-3">회원님의 아이디는</div>
+                            <h3>{foundAccountId}</h3>
+                            <div className="text-muted mt-3 mb-4">입니다.</div>
+                            <Button
+                                type="button"
+                                variant="success"
+                                className="w-100 kh-login-submit"
+                                onClick={() => navigate(loginPath)}
+                            >
+                                로그인으로 이동
+                            </Button>
+                        </div>
+                    )
+                )}
 
-                            {/* 아이디 찾기 결과 */}
-
-                            <Row className="mt-5">
-                                <Col className="text-center">
-
-                                    <div className="text-muted mb-3">
-                                        회원님의 아이디는
-                                    </div>
-
-                                    <h3>
-                                        {foundAccountId}
-                                    </h3>
-
-                                    <div className="text-muted mt-3">
-                                        입니다.
-                                    </div>
-
-                                </Col>
-                            </Row>
-
-
-                            <Row className="mt-5">
-                                <Col className="text-center">
-
-                                    <Button
-                                        type="button"
-                                        variant="success"
-                                        size="lg"
-                                        onClick={() =>
-                                            navigate(loginPath)
-                                        }
-                                    >
-                                        로그인으로 이동
-                                    </Button>
-
-                                </Col>
-                            </Row>
-
-                        </>
-                    )}
-                </>
-            )}
-
-
-            {/* =========================
-                비밀번호 찾기
-            ========================= */}
-
-            {mode === "password" && (
-                <>
-                    {passwordFindComplete === false ? (
-                        <>
-
-                            <Row className="mt-5">
-                                <Form.Label column sm={3}>
-                                    아이디
-                                </Form.Label>
-
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="email"
-                                        name="accountId"
-                                        value={passwordFind.accountId}
-                                        onChange={changePasswordValue}
-                                        placeholder="이메일"
-                                        autoFocus
-                                    />
-                                </Col>
-                            </Row>
-
-
-                            <Row className="mt-4">
-                                <Form.Label column sm={3}>
-                                    이름
-                                </Form.Label>
-
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="text"
-                                        name="accountName"
-                                        value={passwordFind.accountName}
-                                        onChange={changePasswordValue}
-                                        placeholder="이름"
-                                    />
-                                </Col>
-                            </Row>
-
-
-                            <Row className="mt-4">
-                                <Form.Label column sm={3}>
-                                    휴대폰번호
-                                </Form.Label>
-
-                                <Col sm={9}>
-                                    <Form.Control
-                                        type="tel"
-                                        name="accountPhone"
-                                        value={passwordFind.accountPhone}
-                                        onChange={changePasswordValue}
-                                        placeholder="휴대폰번호"
-                                    />
-                                </Col>
-                            </Row>
-
-
-                            <Row className="mt-5">
-                                <Col className="text-end">
-
-                                    <Button
-                                        variant="success"
-                                        size="lg"
-                                        onClick={findAccountPassword}
-                                        disabled={loading}
-                                    >
-                                        {loading ? "이메일 발송 중..." : "이메일 인증"}
-                                    </Button>
-
-                                </Col>
-                            </Row>
-
-                        </>
+                {/* 비밀번호 찾기 */}
+                {mode === "password" && (
+                    passwordFindComplete === false ? (
+                        <Form
+                            onSubmit={(e) => { e.preventDefault(); findAccountPassword(); }}
+                        >
+                            <Form.Control
+                                type="email"
+                                name="accountId"
+                                value={passwordFind.accountId}
+                                onChange={changePasswordValue}
+                                placeholder="이메일"
+                                autoFocus
+                            />
+                            <Form.Control
+                                type="text"
+                                name="accountName"
+                                value={passwordFind.accountName}
+                                onChange={changePasswordValue}
+                                placeholder="이름"
+                                className="mt-3"
+                            />
+                            <Form.Control
+                                type="tel"
+                                name="accountPhone"
+                                value={passwordFind.accountPhone}
+                                onChange={changePasswordValue}
+                                placeholder="휴대폰번호"
+                                className="mt-3"
+                            />
+                            <Button
+                                type="submit"
+                                variant="success"
+                                className="w-100 mt-4 kh-login-submit"
+                                disabled={loading}
+                            >
+                                {loading ? "이메일 발송 중..." : "이메일 인증"}
+                            </Button>
+                        </Form>
                     ) : (
-                        <>
-
-                            {/* 비밀번호 찾기 결과 */}
-
-                            <Row className="mt-5">
-                                <Col className="text-center">
-
-                                    <div className="text-muted mb-3">
-                                        임시 비밀번호가 이메일로 발송되었습니다.
-                                    </div>
-
-                                    <h4>
-                                        {passwordFind.accountId}
-                                    </h4>
-
-                                    <div className="text-muted mt-3">
-                                        이메일을 확인해주세요.
-                                    </div>
-
-                                </Col>
-                            </Row>
-
-
-                            <Row className="mt-5">
-                                <Col className="text-center">
-
-                                    <Button
-                                        type="button"
-                                        variant="success"
-                                        size="lg"
-                                        onClick={() =>
-                                            navigate(loginPath)
-                                        }
-                                    >
-                                        로그인으로 이동
-                                    </Button>
-
-                                </Col>
-                            </Row>
-
-                        </>
-                    )}
-                </>
-            )}
-
-        </>
+                        <div className="text-center">
+                            <div className="text-muted mb-3">
+                                임시 비밀번호가 이메일로 발송되었습니다.
+                            </div>
+                            <h4>{passwordFind.accountId}</h4>
+                            <div className="text-muted mt-3 mb-4">
+                                이메일을 확인해주세요.
+                            </div>
+                            <Button
+                                type="button"
+                                variant="success"
+                                className="w-100 kh-login-submit"
+                                onClick={() => navigate(loginPath)}
+                            >
+                                로그인으로 이동
+                            </Button>
+                        </div>
+                    )
+                )}
+            </div>
+        </div>
     );
 }
