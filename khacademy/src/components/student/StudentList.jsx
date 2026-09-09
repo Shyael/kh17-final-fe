@@ -148,9 +148,9 @@ export default function StudentList() {
                                                         />
                                                     </td>
                                                     <td>
-                                                        {student.totalUnpaidAmount > 0 ? (
+                                                        {student.unpaidAmount > 0 ? (
                                                             <span className="text-danger fw-bold">
-                                                                {student.totalUnpaidAmount?.toLocaleString()}원
+                                                                {student.unpaidAmount?.toLocaleString()}원
                                                             </span>
                                                         ) : (
                                                             <span className="text-muted">없음</span>
@@ -198,9 +198,9 @@ export default function StudentList() {
                                         <Card className="border-0 shadow-sm">
                                             <Card.Body className="p-3">
                                                 <div className="text-muted" style={{ fontSize: "0.8rem" }}>미납액</div>
-                                                <div className={`fs-5 fw-bold mt-1 ${selectedStudent.totalUnpaidAmount > 0 ? 'text-danger' : 'text-dark'}`}>
-                                                    {selectedStudent.totalUnpaidAmount > 0 
-                                                        ? `${selectedStudent.totalUnpaidAmount?.toLocaleString()}원` 
+                                                <div className={`fs-5 fw-bold mt-1 ${selectedStudent.unpaidAmount > 0 ? 'text-danger' : 'text-dark'}`}>
+                                                    {selectedStudent.unpaidAmount > 0 
+                                                        ? `${selectedStudent.unpaidAmount?.toLocaleString()}원` 
                                                         : '없음'}
                                                 </div>
                                             </Card.Body>

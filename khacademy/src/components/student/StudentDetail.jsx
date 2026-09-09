@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup } from "react-bootstrap";
+import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup, Modal } from "react-bootstrap";
 import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie } from "react-icons/fa"; 
 import { useParams, useNavigate } from "react-router-dom";
 import { apiClient } from "@utils/reaxios"; 
@@ -21,6 +21,14 @@ export default function StudentDetail() {
 
     const [parentList, setParentList] = useState([]);
     const [payAmount, setPayAmount] = useState(""); 
+
+    // 수강 신청 모달 제어용 State
+    const [showCourseModal, setShowCourseModal] = useState(false);
+    const [selectedCourseNo, setSelectedCourseNo] = useState("");
+    
+    // 수강 중인 강의 목록과 전체 강의 목록을 담을 State
+    const [enrolledCourses, setEnrolledCourses] = useState([]);
+    const [availableCourses, setAvailableCourses] = useState([]);
 
     // ==========================================
     // 2. 데이터 불러오기 (Fetch API) 구역
@@ -64,14 +72,71 @@ export default function StudentDetail() {
             console.error("학부모 정보 로딩 실패:", error);
         }
     }, [studentNo]);
-    
 
+    // [추가] 모달창에 띄울 전체 강의 목록 (모집중)
+    const fetchAvailableCourses = useCallback(async () => {
+        try {
+            const response = await apiClient.get("/employee/student/course/list");
+            setAvailableCourses(response.data || []);
+        } catch (error) {
+            console.error("개설된 강의 목록 로딩 실패:", error);
+        }
+    }, []);
+
+    // [추가] 현재 학생이 수강 중인 강의 목록
+    const fetchEnrolledCourses = useCallback(async () => {
+        try {
+            // 백엔드 컨트롤러 주소에 맞게 수정 필요 시 변경
+            const response = await apiClient.get(`/employee/student/course/enrolled/${studentNo}`);
+            setEnrolledCourses(response.data || []);
+        } catch (error) {
+            console.error("수강 중인 강의 로딩 실패:", error);
+        }
+    }, [studentNo]);
+
+
+    // 수강 신청 실행 함수 (백엔드 에러 핸들링 포함)
+    const handleCourseEnrollSubmit = async () => {
+        if (!selectedCourseNo) {
+            return alert("신청할 강의를 선택해주세요.");
+        }
+
+        try {
+            const response = await apiClient.post("/employee/student/course/add", {
+                studentNo: student.studentNo,
+                courseNo: selectedCourseNo
+            });
+            
+            alert(response.data); 
+            setShowCourseModal(false);
+            setSelectedCourseNo("");
+            fetchEnrolledCourses(); // 등록 성공 시 목록 갱신
+            
+        } catch (error) {
+            if (error.response && error.response.data) {
+                alert(error.response.data); 
+            } else {
+                alert("수강 신청 중 오류가 발생했습니다.");
+            }
+        }
+    };
+    
+    // useEffect에 새로운 fetch 함수들 추가
     useEffect(() => {
         fetchStudentDetail();
         fetchStudentPayments();
         fetchDiscounts();
         fetchParentInfo();
-    }, [fetchStudentDetail, fetchStudentPayments, fetchDiscounts, fetchParentInfo]);
+        fetchAvailableCourses();
+        fetchEnrolledCourses();
+    }, [
+        fetchStudentDetail, 
+        fetchStudentPayments, 
+        fetchDiscounts, 
+        fetchParentInfo, 
+        fetchAvailableCourses, 
+        fetchEnrolledCourses
+    ]);
 
     // ==========================================
     // 3. 이벤트 핸들러 (Action) 구역
@@ -149,12 +214,10 @@ export default function StudentDetail() {
                             <Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>← 뒤로</Button>
                             <h4 className="fw-bold mb-0 text-primary">학생 상세 정보</h4>
                             
-                            {/* 🌟 현재 상태 배지 표시 */}
                             <Badge bg={student.studentAcademicStatus === '재원' ? 'success' : 'warning'} text={student.studentAcademicStatus === '대기' ? 'dark' : ''} className="fs-6 ms-2">
                                 {student.studentAcademicStatus}
                             </Badge>
 
-                            {/* 🌟 '대기' 상태일 때만 승인 버튼 노출 */}
                             {student.studentAcademicStatus === '대기' && (
                                 <Button variant="primary" size="sm" onClick={handleApproveStudent} className="ms-2 fw-bold">
                                     재원 승인
@@ -171,7 +234,7 @@ export default function StudentDetail() {
                         <Col md={4}>
                             <Card className="border-0 shadow-sm h-100 p-3">
                                 <div className="text-muted small fw-bold mb-2">출석률 (4주)</div>
-                                <h4 className="fw-bold mb-0">100%</h4>
+                                <h4 className="fw-bold mb-0">{student.attendanceRate}%</h4>
                             </Card>
                         </Col>
                         <Col md={4}>
@@ -261,6 +324,50 @@ export default function StudentDetail() {
                         )}
                     </div>
 
+                    {/* 수강 중인 강의 관리 */}
+                    <div className="mt-5">
+                        <h6 className="fw-bold mb-3 text-secondary border-bottom pb-2">수강 중인 강의 관리</h6>
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <p className="text-muted mb-0 small">현재 수강 중이거나 신청한 강의 목록입니다.</p>
+                            <Button variant="dark" size="sm" onClick={() => setShowCourseModal(true)}>
+                                + 수강 신청
+                            </Button>
+                        </div>
+                        
+                        <Table bordered hover responsive className="text-center align-middle bg-white">
+                            <thead className="table-light">
+                                <tr>
+                                    <th>강의명</th>
+                                    <th>과목</th>
+                                    <th>강의 유형</th>
+                                    <th>상태</th>
+                                    <th>수강료</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {enrolledCourses.length === 0 ? (
+                                    <tr>
+                                        <td colSpan="5" className="py-4 text-muted bg-light">수강 중인 강의가 없습니다.</td>
+                                    </tr>
+                                ) : (
+                                    enrolledCourses.map(course => (
+                                        <tr key={course.courseNo}>
+                                            <td className="fw-bold">{course.courseTitle}</td>
+                                            <td>{course.courseSubject}</td>
+                                            <td>{course.courseType}</td>
+                                            <td>
+                                                <Badge bg={course.studentCourseStatus === '수강중' ? 'success' : 'secondary'}>
+                                                    {course.studentCourseStatus}
+                                                </Badge>
+                                            </td>
+                                            <td>₩{course.courseFee?.toLocaleString()}</td>
+                                        </tr>
+                                    ))
+                                )}
+                            </tbody>
+                        </Table>
+                    </div>
+
                     <Form>
                         <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">기본 인적 사항</h6>
                         <Row className="mb-3 g-3">
@@ -301,15 +408,24 @@ export default function StudentDetail() {
                             <div className="text-center text-muted small py-4 bg-light rounded mb-4">현재 연결된 보호자 계정이 없습니다.</div>
                         )}
 
-                        <Row className="mb-3 g-3 mt-4">
-                            <Form.Group as={Col} md={12}><Form.Label className="small text-muted mb-1">주소</Form.Label><Form.Control size="sm" type="text" name="address" value={student.address || ""} onChange={handleChange} /></Form.Group>
-                        </Row>
                         <Row className="mb-4 g-3">
                             <Form.Group as={Col} md={4}><Form.Label className="small text-muted mb-1">학교</Form.Label><Form.Control size="sm" type="text" name="studentSchool" value={student.studentSchool || ""} onChange={handleChange} /></Form.Group>
                             <Form.Group as={Col} md={4}>
                                 <Form.Label className="small text-muted mb-1">학년</Form.Label>
                                 <Form.Select size="sm" name="studentGrade" value={student.studentGrade || ""} onChange={handleChange}>
-                                    <option>초등학생</option><option>중학생</option><option>고등학생</option>
+                                    <option>초1</option>
+                                    <option>초2</option>
+                                    <option>초3</option>
+                                    <option>초4</option>
+                                    <option>초5</option>
+                                    <option>초6</option>
+                                    <option>중1</option>
+                                    <option>중2</option>
+                                    <option>중3</option>
+                                    <option>고1</option>
+                                    <option>고2</option>
+                                    <option>고3</option>
+                                    <option>졸업</option>
                                 </Form.Select>
                             </Form.Group>
                             <Form.Group as={Col} md={4}>
@@ -331,6 +447,41 @@ export default function StudentDetail() {
                     </Form>
                 </Card.Body>
             </Card>
+            
+            {/* 수강 신청 모달 창 */}
+            <Modal show={showCourseModal} onHide={() => setShowCourseModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title className="fw-bold fs-5">신규 수강 신청</Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="bg-light p-4">
+                    <Form.Group>
+                        <Form.Label className="fw-bold text-secondary small">개설된 강의 목록</Form.Label>
+                        <Form.Select 
+                            value={selectedCourseNo} 
+                            onChange={(e) => setSelectedCourseNo(e.target.value)}
+                        >
+                            <option value="">수강할 강의를 선택하세요</option>
+                            {/* 백엔드 데이터 바인딩 */}
+                            {availableCourses.map(course => (
+                                <option key={course.courseNo} value={course.courseNo}>
+                                    [{course.courseSubject} / {course.gradeLevel}] {course.courseTitle} - {course.teacherName} 강사
+                                </option>
+                            ))}
+                        </Form.Select>
+                        <Form.Text className="text-muted mt-2">
+                            * 학생의 학년과 일치하고, 기존 시간표와 겹치지 않는 강의만 신청할 수 있습니다.
+                        </Form.Text>
+                    </Form.Group>
+                </Modal.Body>
+                <Modal.Footer className="border-0">
+                    <Button variant="secondary" onClick={() => setShowCourseModal(false)}>
+                        취소
+                    </Button>
+                    <Button variant="primary" onClick={handleCourseEnrollSubmit}>
+                        신청하기
+                    </Button>
+                </Modal.Footer>
+            </Modal>
         </div>
     );
 }
