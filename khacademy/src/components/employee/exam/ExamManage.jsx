@@ -229,7 +229,9 @@ export default function ExamManage() {
                 examInfo: exam.examInfo,
                 examStart: exam.examStart,
                 examEnd: exam.examEnd,
-                examLimit: exam.examLimit === "" ? null : Number(exam.examLimit)
+                examLimit: exam.examLimit === "" ? null : Number(exam.examLimit),
+                //현재 상태 유지
+                examStatus: exam.examStatus
             };
 
             await apiClient.put(`/exam/${examNo}`, data);

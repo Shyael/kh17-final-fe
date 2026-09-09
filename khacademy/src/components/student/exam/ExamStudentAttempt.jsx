@@ -1,12 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom"
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import { Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
 import { FaChevronLeft, FaChevronRight, FaPaperPlane } from "react-icons/fa6";
+import Swal from "sweetalert2";
 
-export default function ExamStudentAttempt(){
-    const{ examNo, attemptNo } =useParams();
+// 응시 화면 최대 폭 (가운데 정렬)
+const PAGE_MAX_WIDTH = 1280;
+
+// 문제 첨부 이미지 URL (강사쪽 ExamManage와 동일 규칙)
+const buildAttachUrl = (attachNo) =>
+    `${import.meta.env.VITE_SERVER_URL}/api/attach/${attachNo}`;
+
+export default function ExamStudentAttempt() {
+    const { examNo, attemptNo } = useParams();
 
     const navigate = useNavigate();
 
@@ -36,8 +44,8 @@ export default function ExamStudentAttempt(){
 
     //시험 데이터 조회
     const loadExam = useCallback(async () => {
-        try{
-            const[
+        try {
+            const [
                 examResponse,
                 questionResponse,
                 answerResponse
@@ -53,49 +61,50 @@ export default function ExamStudentAttempt(){
             setQuestionList(questionResponse.data);
             setAnswerList(answerResponse.data);
         }
-        catch(e){
+        catch (e) {
             console.error(e);
             toast.error(e.response?.data?.message ?? "시험 정보를 불러오지 못했습니다.");
         }
-        finally{
+        finally {
             setLoading(false);
         }
     }, [examNo, attemptNo]);
 
-    useEffect(()=>{
+    useEffect(() => {
         loadExam();
     }, [loadExam]);
+
     // 실제 종료시간 계산
     // 시험 전체 종료시간
     // VS
     // 응시 시작 + 제한시간
     // 둘 중 빠른 시간이 실제 종료
-    const deadline = useMemo(()=>{
-        if(!exam?.examEnd){
+    const deadline = useMemo(() => {
+        if (!exam?.examEnd) {
             return null;
         }
 
         const examEnd = new Date(exam.examEnd);
 
         //제한시간 없음
-        if(exam.examLimit == null || !exam.attemptStart){
+        if (exam.examLimit == null || !exam.attemptStart) {
             return examEnd;
         }
 
         const personalEnd = new Date(exam.attemptStart);
 
-        personalEnd.setMinutes(personalEnd.getMinutes()+Number(exam.examLimit));
+        personalEnd.setMinutes(personalEnd.getMinutes() + Number(exam.examLimit));
 
         return personalEnd < examEnd ? personalEnd : examEnd;
     }, [exam]);
 
     //타이머
-    useEffect(()=>{
-        if(!deadline){
+    useEffect(() => {
+        if (!deadline) {
             return;
         }
 
-        const calculateRemaining = () =>{
+        const calculateRemaining = () => {
             const diff =
                 Math.floor(
                     (
@@ -103,21 +112,21 @@ export default function ExamStudentAttempt(){
                     )
                     / 1000
                 );
-                setRemainingSeconds(Math.max(diff, 0));
+            setRemainingSeconds(Math.max(diff, 0));
         };
 
         calculateRemaining();
 
         const timer = setInterval(calculateRemaining, 1000);
 
-        return () =>{
+        return () => {
             clearInterval(timer);
         }
     }, [deadline]);
 
     //남은시간 표시
-    const remainingTimeText = useMemo(()=>{
-        if(remainingSeconds == null){
+    const remainingTimeText = useMemo(() => {
+        if (remainingSeconds == null) {
             return "--:--";
         }
 
@@ -125,8 +134,8 @@ export default function ExamStudentAttempt(){
         const minute = Math.floor((remainingSeconds % 3600) / 60);
         const second = remainingSeconds % 60;
 
-        if(hour > 0){
-            return[
+        if (hour > 0) {
+            return [
                 String(hour).padStart(2, "0"),
                 String(minute).padStart(2, "0"),
                 String(second).padStart(2, "0")
@@ -143,19 +152,19 @@ export default function ExamStudentAttempt(){
     const isTimeCritical = remainingSeconds != null && remainingSeconds <= 60;
 
     //특정 문제의 현재 선택 답안
-    const getSelectedOptionNo = useCallback((questionNo) =>{
+    const getSelectedOptionNo = useCallback((questionNo) => {
         const answer = answerList.find(item => item.questionNo === questionNo);
 
         return answer?.optionNo ?? null;
     }, [answerList]);
 
     //답안 선택
-    const selectAnswer = useCallback(async(
+    const selectAnswer = useCallback(async (
         questionNo,
         optionNo
-    )=>{
+    ) => {
         //시간 종료 후 변경 금지
-        if(remainingSeconds === 0){
+        if (remainingSeconds === 0) {
             toast.error("응시 시간이 종료되었습니다.");
 
             return;
@@ -165,26 +174,26 @@ export default function ExamStudentAttempt(){
             answerList.find(
                 item =>
                     item.questionNo === questionNo
-        );
+            );
 
         //이미 같은 보기가 선택된 경우 재요청 방지
-        if(existingAnswer?.optionNo === optionNo){
+        if (existingAnswer?.optionNo === optionNo) {
             return;
         }
 
         //동일 문제 저장 요청이 진행 중이면 무시 (중복 호출 방지)
-        if(savingQuestionNo === questionNo){
+        if (savingQuestionNo === questionNo) {
             return;
         }
 
-        try{
+        try {
             setSavingQuestionNo(questionNo);
 
             //이미 저장된 답안
             // -> 수정
-            if(existingAnswer){
+            if (existingAnswer) {
                 await apiClient.put(
-                    `/attempt-answer/attempt/${attemptNo}/question/${questionNo}`,{optionNo}
+                    `/attempt-answer/attempt/${attemptNo}/question/${questionNo}`, { optionNo }
                 );
 
                 setAnswerList(prev =>
@@ -201,54 +210,54 @@ export default function ExamStudentAttempt(){
 
             //최초 답안
             // -> 등록
-            else{
-                await apiClient.post("/attempt-answer", {
-                    attemptNo:Number(attemptNo),
-                    questionNo:Number(questionNo),
-                    optionNo:Number(optionNo)
+            else {
+                await apiClient.post("/attempt-answer/", {
+                    attemptNo: Number(attemptNo),
+                    questionNo: Number(questionNo),
+                    optionNo: Number(optionNo)
                 });
 
                 setAnswerList(prev => [
                     ...prev,
                     {
-                        attemptNo:Number(attemptNo),
-                        questionNo:Number(questionNo),
-                        optionNo:Number(optionNo),
+                        attemptNo: Number(attemptNo),
+                        questionNo: Number(questionNo),
+                        optionNo: Number(optionNo),
                         isCorrect: null
                     }
                 ]);
             }
         }
-        catch(e){
+        catch (e) {
             console.error(e);
             toast.error(e.response?.data?.message ?? "답안을 저장하지 못했습니다.");
         }
-        finally{
+        finally {
             setSavingQuestionNo(null);
         }
     }, [attemptNo, answerList, remainingSeconds, savingQuestionNo]);
 
     //선택 취소
-    const removeAnswer = useCallback(async(questionNo)=>{
+    const removeAnswer = useCallback(async (questionNo) => {
         const existing = answerList.find(item => item.questionNo === questionNo);
 
-        if(!existing){
+        if (!existing) {
             return;
         }
 
-        if(remainingSeconds === 0){
+        if (remainingSeconds === 0) {
             toast.error("응시 시간이 종료되었습니다.");
             return;
         }
 
-        if(savingQuestionNo === questionNo){
+        if (savingQuestionNo === questionNo) {
             return;
         }
 
-        try{
+        try {
             setSavingQuestionNo(questionNo);
 
-            await apiClient.delete( `/attempt-answer/attempt/${attemptNo}/question/${questionNo}`);
+            await apiClient.delete(`/attempt-answer/attempt/${attemptNo}/question/${questionNo}`);
 
             setAnswerList(prev =>
                 prev.filter(
@@ -257,11 +266,11 @@ export default function ExamStudentAttempt(){
                 )
             );
         }
-        catch(e){
+        catch (e) {
             console.error(e);
             toast.error("답안을 삭제하지 못했습니다.");
         }
-        finally{
+        finally {
             setSavingQuestionNo(null);
         }
     }, [attemptNo, answerList, remainingSeconds, savingQuestionNo]);
@@ -276,8 +285,8 @@ export default function ExamStudentAttempt(){
             const unansweredCount = questionList.length - answerList.length;
 
             const message = unansweredCount > 0
-                    ? `미응답 문항이 ${unansweredCount}개 있습니다.\n그래도 제출하시겠습니까?`
-                    : "시험을 최종 제출하시겠습니까?";
+                ? `미응답 문항이 ${unansweredCount}개 있습니다.\n그래도 제출하시겠습니까?`
+                : "시험을 최종 제출하시겠습니까?";
 
             if (!window.confirm(message)) {
                 return;
@@ -294,7 +303,7 @@ export default function ExamStudentAttempt(){
         }
         catch (e) {
             console.error(e);
-            toast.error( e.response?.data?.message ?? "시험 제출에 실패했습니다.");
+            toast.error(e.response?.data?.message ?? "시험 제출에 실패했습니다.");
         }
         finally {
             setSubmitting(false);
@@ -336,6 +345,117 @@ export default function ExamStudentAttempt(){
         setCurrentIndex(prev => Math.min(prev + 1, questionList.length - 1));
     }, [questionList.length]);
 
+
+    //새로고침 x버튼 눌렀을때 경고
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            //최종 제출 중에는 경고하지 않음
+            if (submitting) {
+                return;
+            }
+
+            e.preventDefault();
+
+            //chrome 등에서 경고창을 띄우기 위해 필요
+            e.returnValue = "";
+        };
+
+        window.addEventListener(
+            "beforeunload",
+            handleBeforeUnload
+        );
+
+        return () => {
+            window.removeEventListener(
+                "beforeunload",
+                handleBeforeUnload
+            );
+        };
+    }, [submitting]);
+
+    //시험 화면 이탈 여부
+    const screenLeftRef = useRef(false);
+
+    //다른탭/ 최소화/ 다른 프로그램으로 이동감지
+    useEffect(() => {
+        const handleVisivilityChange = () => {
+            //시험 화면을 벗어난 경우
+            if (document.visibilityState === "hidden") {
+                screenLeftRef.current = true;
+                return;
+            }
+
+            //시험화면으로 다시 돌아온 경우
+            if (
+                document.visibilityState === "visible" && screenLeftRef.current
+            ) {
+                screenLeftRef.current = false;
+
+                //이미 Swal이 떠있으면 중복 실행 방지
+                if (Swal.isVisible()) {
+                    return;
+                }
+
+                Swal.fire({
+                    title: "시험 화면 이탈이 감지되었습니다.",
+                    text: "시험 중에는 다른 화면으로 이동하지 마세요.",
+                    icon: "warning",
+                    confirmButtonText: "확인",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false
+                });
+            }
+        };
+
+        document.addEventListener(
+            "visibilitychange",
+            handleVisivilityChange
+        );
+
+        return () => {
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisivilityChange
+            );
+        };
+    }, []);
+
+    //마우스가 시험 화면 밖으로 이동한 경우
+    useEffect(() => {
+        const handleMouseLeave = (e) => {
+            //브라우저 화면 자체를 벗어난 경우만 처리
+            if (e.relatedTarget !== null) {
+                return;
+            }
+
+            //이미 Swql이 떠있으면 중복 실행 방지
+            if (Swal.isVisible()) {
+                return;
+            }
+
+            Swal.fire({
+                title: "시험 화면을 벗어났습니다.",
+                text: "시험 중에는 시험 화면을 유지해 주세요.",
+                icon: "warning",
+                confirmButtonText: "확인",
+                allowOutsideClick: false,
+                allowEscapeKey: false
+            });
+        };
+
+        document.documentElement.addEventListener(
+            "mouseleave",
+            handleMouseLeave
+        );
+
+        return()=>{
+            document.documentElement.removeEventListener(
+                "mouseleave",
+                handleMouseLeave
+            );
+        };
+    }, []);
+
     if (loading) {
         return (
             <div className="text-center py-5 text-muted">
@@ -353,196 +473,254 @@ export default function ExamStudentAttempt(){
     }
 
     return (<>
-        <Row className="g-3 mt-1">
+        {/* ===== 상단 헤더 : 시험 이름 + 남은 시간 ===== */}
+        <div
+            className="border-bottom bg-white position-sticky"
+            style={{ top: 0, zIndex: 1020 }}>
+            <div
+                className="d-flex justify-content-between align-items-center py-3 px-3 px-lg-0"
+                style={{ maxWidth: PAGE_MAX_WIDTH, margin: "0 auto" }}>
 
-            {/* ===== 좌측 : 문제 풀이 영역 ===== */}
-            <Col lg={8}>
-
-                {/* 1. 시험 정보 : 제목 + 남은 시간 */}
-                <div className="d-flex justify-content-between align-items-start mb-3">
-                    <h3 className="fw-bold mb-0">
+                {/* 시험 제목 + 강의 / 강사 */}
+                <div className="me-3 text-truncate">
+                    <h4 className="fw-bold mb-0 text-truncate">
                         {exam?.examTitle ?? "시험"}
-                    </h3>
-                    <div className="text-end">
-                        <div className="text-muted small">남은 시간</div>
-                        <div
-                            className={
-                                "fs-4 fw-bold font-monospace "
-                                + (isTimeCritical ? "text-danger" : "")
-                            }>
-                            {remainingTimeText}
+                    </h4>
+                    {(exam?.courseTitle || exam?.accountName) && (
+                        <div className="text-muted small text-truncate">
+                            {exam?.courseTitle}
+                            {exam?.accountName && (
+                                <span className="ms-2">· {exam.accountName}</span>
+                            )}
                         </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* 2. 문제 정보 */}
-                <Card>
-                    <Card.Body>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                            <span className="fw-bold fs-5">
-                                {currentIndex + 1}번
-                            </span>
-                            <Badge bg="light" text="dark">
-                                {currentQuestion.questionScore}점
-                            </Badge>
-                        </div>
+                {/* 남은 시간 */}
+                <div
+                    className={
+                        "text-center px-3 py-2 rounded-3 flex-shrink-0 "
+                        + (isTimeCritical ? "bg-danger-subtle" : "bg-light")
+                    }>
+                    <div className="text-muted small lh-1 mb-1">남은 시간</div>
+                    <div
+                        className={
+                            "fs-4 fw-bold font-monospace lh-1 "
+                            + (isTimeCritical ? "text-danger" : "")
+                        }>
+                        {remainingTimeText}
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <p className="fs-6 mb-3" style={{ whiteSpace: "pre-line" }}>
-                            {currentQuestion.questionContent}
-                        </p>
+        {/* ===== 본문 : 최대폭 제한 + 가운데 정렬 ===== */}
+        <div
+            className="px-3 px-lg-0 py-4"
+            style={{ maxWidth: PAGE_MAX_WIDTH, margin: "0 auto" }}>
+            <Row className="g-3">
 
-                        {/* 보기 목록 (라디오) */}
-                        <div className="d-flex flex-column gap-2">
-                            {currentQuestion.optionList?.map((option, optionIndex) => {
+                {/* ===== 좌측 : 문제 풀이 영역 ===== */}
+                <Col lg={8}>
 
-                                const checked = currentSelectedOptionNo === option.optionNo;
+                    {/* 2. 문제 정보 */}
+                    <Card>
+                        <Card.Body>
+                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                <span className="fw-bold fs-5">
+                                    {currentIndex + 1}번
+                                </span>
+                                <Badge bg="light" text="dark">
+                                    {currentQuestion.questionScore}점
+                                </Badge>
+                            </div>
+
+                            <p className="fs-6 mb-3" style={{ whiteSpace: "pre-line" }}>
+                                {currentQuestion.questionContent}
+                            </p>
+
+                            {/* 문제 첨부 이미지 */}
+                            {(() => {
+                                const attachList =
+                                    currentQuestion.fileList
+                                    ?? currentQuestion.attachList
+                                    ?? [];
+
+                                if (attachList.length === 0) {
+                                    return null;
+                                }
 
                                 return (
-                                    <label
-                                        key={option.optionNo}
-                                        htmlFor={`q${currentQuestion.questionNo}-o${option.optionNo}`}
-                                        className={
-                                            "border rounded px-3 py-2 d-flex align-items-center gap-2 mb-0 "
-                                            + (checked ? "border-primary bg-primary-subtle" : "")
-                                        }
-                                        style={{ cursor: "pointer" }}>
-                                        <Form.Check
-                                            type="radio"
-                                            id={`q${currentQuestion.questionNo}-o${option.optionNo}`}
-                                            name={`question-${currentQuestion.questionNo}`}
-                                            className="m-0"
-                                            checked={checked}
-                                            disabled={remainingSeconds === 0 || savingQuestionNo === currentQuestion.questionNo}
-                                            onChange={() =>
-                                                selectAnswer(
-                                                    currentQuestion.questionNo,
-                                                    option.optionNo
-                                                )
-                                            }
-                                        />
-                                        <span>
-                                            <span className="text-muted me-2">
-                                                {optionIndex + 1}.
-                                            </span>
-                                            {option.optionContent}
-                                        </span>
-                                    </label>
+                                    <div className="d-flex flex-wrap gap-3 mb-3">
+                                        {attachList.map(attach => (
+                                            <img
+                                                key={attach.attachNo}
+                                                src={buildAttachUrl(attach.attachNo)}
+                                                alt={attach.attachName ?? "문제 이미지"}
+                                                className="border rounded"
+                                                style={{
+                                                    maxHeight: "260px",
+                                                    maxWidth: "100%",
+                                                    objectFit: "contain"
+                                                }} />
+                                        ))}
+                                    </div>
                                 );
-                            })}
-                        </div>
+                            })()}
 
-                        {/* 선택 해제 */}
-                        {currentSelectedOptionNo != null && (
-                            <div className="mt-2 text-end">
+                            {/* 보기 목록 (라디오) */}
+                            <div className="d-flex flex-column gap-2">
+                                {currentQuestion.optionList?.map((option, optionIndex) => {
+
+                                    const checked = currentSelectedOptionNo === option.optionNo;
+
+                                    return (
+                                        <label
+                                            key={option.optionNo}
+                                            htmlFor={`q${currentQuestion.questionNo}-o${option.optionNo}`}
+                                            className={
+                                                "border rounded px-3 py-2 d-flex align-items-center gap-2 mb-0 "
+                                                + (checked ? "border-primary bg-primary-subtle" : "")
+                                            }
+                                            style={{ cursor: "pointer" }}>
+                                            <Form.Check
+                                                type="radio"
+                                                id={`q${currentQuestion.questionNo}-o${option.optionNo}`}
+                                                name={`question-${currentQuestion.questionNo}`}
+                                                className="m-0"
+                                                checked={checked}
+                                                disabled={remainingSeconds === 0 || savingQuestionNo === currentQuestion.questionNo}
+                                                onChange={() =>
+                                                    selectAnswer(
+                                                        currentQuestion.questionNo,
+                                                        option.optionNo
+                                                    )
+                                                }
+                                            />
+                                            <span>
+                                                <span className="text-muted me-2">
+                                                    {optionIndex + 1}.
+                                                </span>
+                                                {option.optionContent}
+                                            </span>
+                                        </label>
+                                    );
+                                })}
+                            </div>
+
+                            {/* 선택 해제 */}
+                            {currentSelectedOptionNo != null && (
+                                <div className="mt-2 text-end">
+                                    <Button
+                                        variant="link"
+                                        size="sm"
+                                        className="text-muted p-0"
+                                        onClick={() =>
+                                            removeAnswer(currentQuestion.questionNo)
+                                        }>
+                                        선택 해제
+                                    </Button>
+                                </div>
+                            )}
+                        </Card.Body>
+
+                        {/* 3·4. 이전 / 다음 */}
+                        <Card.Footer className="d-flex justify-content-between align-items-center bg-white">
+                            <span className="text-muted small">
+                                {currentIndex + 1} / {totalCount}
+                            </span>
+                            <div className="d-flex gap-2">
                                 <Button
-                                    variant="link"
+                                    variant="outline-secondary"
                                     size="sm"
-                                    className="text-muted p-0"
-                                    onClick={() =>
-                                        removeAnswer(currentQuestion.questionNo)
-                                    }>
-                                    선택 해제
+                                    onClick={goPrev}
+                                    disabled={currentIndex === 0}>
+                                    <FaChevronLeft className="me-1" />
+                                    이전
+                                </Button>
+                                <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    onClick={goNext}
+                                    disabled={currentIndex === totalCount - 1}>
+                                    다음
+                                    <FaChevronRight className="ms-1" />
                                 </Button>
                             </div>
-                        )}
-                    </Card.Body>
+                        </Card.Footer>
+                    </Card>
+                </Col>
 
-                    {/* 3·4. 이전 / 다음 */}
-                    <Card.Footer className="d-flex justify-content-between align-items-center bg-white">
-                        <span className="text-muted small">
-                            {currentIndex + 1} / {totalCount}
-                        </span>
-                        <div className="d-flex gap-2">
+                {/* ===== 우측 : 답안지 ===== */}
+                <Col lg={4}>
+                    <Card className="position-sticky" style={{ top: "1rem" }}>
+                        <Card.Body>
+                            {/* 5. 내가 푼 문제 정보 */}
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <span className="fw-bold">답안지</span>
+                                <span className="text-muted small">
+                                    {answeredCount} / {totalCount}
+                                </span>
+                            </div>
+
+                            <div
+                                className="d-grid gap-2"
+                                style={{
+                                    gridTemplateColumns: "repeat(4, 1fr)"
+                                }}>
+                                {questionList.map((question, index) => {
+
+                                    const selectedOptionNo = getSelectedOptionNo(question.questionNo);
+                                    const answered = selectedOptionNo != null;
+
+                                    const selectedOptionOrder = answered
+                                        ? (question.optionList?.findIndex(
+                                            option => option.optionNo === selectedOptionNo
+                                        ) + 1)
+                                        : null;
+
+                                    const isCurrent = index === currentIndex;
+
+                                    return (
+                                        <Button
+                                            key={question.questionNo}
+                                            size="sm"
+                                            variant={
+                                                answered
+                                                    ? "primary"
+                                                    : "outline-secondary"
+                                            }
+                                            className={
+                                                "d-flex flex-column align-items-center py-2 "
+                                                + (isCurrent ? "border border-3 border-dark" : "")
+                                            }
+                                            onClick={() => setCurrentIndex(index)}>
+                                            <span className="fw-bold">{index + 1}</span>
+                                            <span
+                                                className="small"
+                                                style={{ minHeight: "1em" }}>
+                                                {answered ? selectedOptionOrder : ""}
+                                            </span>
+                                        </Button>
+                                    );
+                                })}
+                            </div>
+                        </Card.Body>
+
+                        {/* 6. 답안 제출 */}
+                        <Card.Footer className="bg-white">
                             <Button
-                                variant="outline-secondary"
-                                size="sm"
-                                onClick={goPrev}
-                                disabled={currentIndex === 0}>
-                                <FaChevronLeft className="me-1" />
-                                이전
+                                variant="success"
+                                className="w-100"
+                                onClick={() => submitExam(false)}
+                                disabled={submitting}>
+                                <FaPaperPlane className="me-2" />
+                                {submitting ? "제출 중..." : "답안 제출"}
                             </Button>
-                            <Button
-                                variant="outline-secondary"
-                                size="sm"
-                                onClick={goNext}
-                                disabled={currentIndex === totalCount - 1}>
-                                다음
-                                <FaChevronRight className="ms-1" />
-                            </Button>
-                        </div>
-                    </Card.Footer>
-                </Card>
-            </Col>
-
-            {/* ===== 우측 : 답안지 ===== */}
-            <Col lg={4}>
-                <Card className="position-sticky" style={{ top: "1rem" }}>
-                    <Card.Body>
-                        {/* 5. 내가 푼 문제 정보 */}
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <span className="fw-bold">답안지</span>
-                            <span className="text-muted small">
-                                {answeredCount} / {totalCount}
-                            </span>
-                        </div>
-
-                        <div
-                            className="d-grid gap-2"
-                            style={{
-                                gridTemplateColumns: "repeat(4, 1fr)"
-                            }}>
-                            {questionList.map((question, index) => {
-
-                                const selectedOptionNo = getSelectedOptionNo(question.questionNo);
-                                const answered = selectedOptionNo != null;
-
-                                const selectedOptionOrder = answered
-                                    ? (question.optionList?.findIndex(
-                                        option => option.optionNo === selectedOptionNo
-                                    ) + 1)
-                                    : null;
-
-                                const isCurrent = index === currentIndex;
-
-                                return (
-                                    <Button
-                                        key={question.questionNo}
-                                        size="sm"
-                                        variant={
-                                            answered
-                                                ? "primary"
-                                                : "outline-secondary"
-                                        }
-                                        className={
-                                            "d-flex flex-column align-items-center py-2 "
-                                            + (isCurrent ? "border border-3 border-dark" : "")
-                                        }
-                                        onClick={() => setCurrentIndex(index)}>
-                                        <span className="fw-bold">{index + 1}</span>
-                                        <span
-                                            className="small"
-                                            style={{ minHeight: "1em" }}>
-                                            {answered ? selectedOptionOrder : ""}
-                                        </span>
-                                    </Button>
-                                );
-                            })}
-                        </div>
-                    </Card.Body>
-
-                    {/* 6. 답안 제출 */}
-                    <Card.Footer className="bg-white">
-                        <Button
-                            variant="success"
-                            className="w-100"
-                            onClick={() => submitExam(false)}
-                            disabled={submitting}>
-                            <FaPaperPlane className="me-2" />
-                            {submitting ? "제출 중..." : "답안 제출"}
-                        </Button>
-                    </Card.Footer>
-                </Card>
-            </Col>
-        </Row>
+                        </Card.Footer>
+                    </Card>
+                </Col>
+            </Row>
+        </div>
     </>);
 }
