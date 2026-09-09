@@ -314,7 +314,9 @@ export default function ContractEditBeforeSigned() {
                 <Col sm={9}>
                     <Form.Control type="number" min="0" name="writtenBreakMinutes"
                             value={contract.writtenBreakMinutes}
-                            onChange={changeStringValue}/>
+                            onChange={changeStringValue}
+                            placeholder="시간 단위로 입력 해 주세요"
+                            step={0.5}/>
                     <Form.Text className="text-muted">
                         4시간 이상 근무 시 30분 이상, 8시간 이상 근무 시 60분 이상
                     </Form.Text>
@@ -344,7 +346,8 @@ export default function ContractEditBeforeSigned() {
                 <Col sm={9}>
                     <Form.Control type="number" min="1" max="31" name="payday"
                             value={contract.payday}
-                            onChange={changeStringValue}/>
+                            onChange={changeStringValue}
+                            placeholder="1~31일 사이로 입력 해 주세요"/>
                 </Col>
             </Row>
 
