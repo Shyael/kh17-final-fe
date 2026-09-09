@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Button, Col, Form, Modal, Row } from "react-bootstrap";
+import { Button, Col, Form, InputGroup, Modal, Row } from "react-bootstrap";
 import {
     FaCalendarPlus,
     FaCheck,
@@ -10,10 +10,13 @@ import {
 } from "react-icons/fa6";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
-
-import Jumbotron from "@templates/Jumbotron";
 import { apiClient } from "@utils/reaxios";
 
+import { ko } from "date-fns/locale";
+import DatePicker from "react-datepicker";
+import dayjs from "dayjs";
+import "dayjs/locale/ko";
+dayjs.locale("ko"); //한국어로 설정
 
 // ============================================================
 // 색상
@@ -195,14 +198,14 @@ export default function CourseCreate() {
     }, [formData.subjectList]);
     // ========================================================
     // 일정 변경
-    // ========================================================
-    const changeScheduleValue = useCallback((index, e) => {
-
-        const { name, value } = e.target;
-
+    // =======================================================
+    const changeScheduleValue = useCallback((index, eOrName, directValue) => {
         setCourse(prev => {
-
             const schedules = [...prev.schedules];
+
+            // e.target(이벤트 객체) 또는 직접 넘긴 이름/값 처리
+            const name = eOrName?.target ? eOrName.target.name : eOrName;
+            const value = eOrName?.target ? eOrName.target.value : directValue;
 
             schedules[index] = {
                 ...schedules[index],
@@ -214,9 +217,29 @@ export default function CourseCreate() {
                 schedules
             };
         });
-
     }, []);
 
+    // 1:00 부터 12:30 까지 30분 간격 Date 객체 24개 생성 (DatePicker 목록 주입용)
+    const TWELVE_HOUR_TIMES = [];
+    for (let h = 1; h <= 12; h++) {
+        TWELVE_HOUR_TIMES.push(dayjs(`2000-01-01 ${String(h).padStart(2, "0")}:00`).toDate());
+        TWELVE_HOUR_TIMES.push(dayjs(`2000-01-01 ${String(h).padStart(2, "0")}:30`).toDate());
+    }
+
+    // 24시간제 문자열("14:30")을 받아서 오전/오후 반환
+    const getMeridiem = (timeStr) => {
+        if (!timeStr) return "AM";
+        const hour = parseInt(timeStr.split(":")[0], 10);
+        return hour >= 12 ? "PM" : "AM";
+    };
+
+    // 24시간제 문자열("14:30")을 12시간제 Date 객체로 변환 (14:30 -> 02:30 Date)
+    const get12HourDate = (timeStr) => {
+        if (!timeStr) return null;
+        let [h, m] = timeStr.split(":").map(Number);
+        const hour12 = h % 12 === 0 ? 12 : h % 12;
+        return dayjs(`2000-01-01 ${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")}`).toDate();
+    };
 
     // ========================================================
     // 일정 추가
@@ -775,11 +798,6 @@ export default function CourseCreate() {
             {/* =================================================
                 상단 제목
             ================================================= */}
-            <Jumbotron
-                title="강좌 등록"
-                content="새로운 강좌와 수업 일정을 등록합니다."
-            />
-
 
             <div
                 style={{
@@ -1584,12 +1602,7 @@ export default function CourseCreate() {
 
                                             {/* 시작일 */}
                                             <Col md={3}>
-
-                                                <Form.Label>
-                                                    시작일
-                                                </Form.Label>
-
-
+                                                <Form.Label>시작일</Form.Label>
                                                 <Form.Control
                                                     type="date"
                                                     name="scheduleOpen"
@@ -1603,111 +1616,99 @@ export default function CourseCreate() {
                                                         )
                                                     }
                                                 />
-
                                             </Col>
-
 
                                             {/* 종료일 */}
                                             <Col md={3}>
-
-                                                <Form.Label>
-                                                    종료일
-                                                </Form.Label>
-
-
+                                                <Form.Label> 종료일</Form.Label>
                                                 <Form.Control
                                                     type="date"
                                                     name="scheduleClose"
-                                                    value={
-                                                        schedule.scheduleClose
-                                                    }
+                                                    value={schedule.scheduleClose}
                                                     onChange={e =>
-                                                        changeScheduleValue(
-                                                            index,
-                                                            e
-                                                        )
+                                                        changeScheduleValue(index, e)
                                                     }
                                                 />
-
                                             </Col>
-
 
                                             {/* 요일 */}
                                             <Col md={2}>
-
-                                                <Form.Label>
-                                                    요일
-                                                </Form.Label>
-
-
+                                                <Form.Label>요일</Form.Label>
                                                 <Form.Select
                                                     name="scheduleWeek"
-                                                    value={
-                                                        schedule.scheduleWeek
-                                                    }
+                                                    value={schedule.scheduleWeek}
                                                     onChange={e =>
-                                                        changeScheduleValue(
-                                                            index,
-                                                            e
-                                                        )
+                                                        changeScheduleValue(index, e)
                                                     }
                                                 >
-
-                                                    <option value="">
-                                                        선택
-                                                    </option>
-
-                                                    <option value="월">
-                                                        월요일
-                                                    </option>
-
-                                                    <option value="화">
-                                                        화요일
-                                                    </option>
-
-                                                    <option value="수">
-                                                        수요일
-                                                    </option>
-
-                                                    <option value="목">
-                                                        목요일
-                                                    </option>
-
-                                                    <option value="금">
-                                                        금요일
-                                                    </option>
-
-                                                    <option value="토">
-                                                        토요일
-                                                    </option>
-
+                                                    <option value="">선택</option>
+                                                    <option value="월">월요일</option>
+                                                    <option value="화">화요일</option>
+                                                    <option value="수">수요일</option>
+                                                    <option value="목">목요일</option>
+                                                    <option value="금">금요일</option>
+                                                    <option value="토">토요일</option>
+                                                    <option value="일">일요일</option>
                                                 </Form.Select>
-
                                             </Col>
 
-
                                             {/* 시작시간 */}
-                                            <Col md={2}>
+                                            <Col md={3}>
+                                                <Form.Label>시작</Form.Label>
+                                                <div className="d-flex gap-1">
+                                                    {/* 1. 오전/오후 선택 */}
+                                                    <Form.Select
+                                                        style={{ width: "80px", flexShrink: 0 }}
+                                                        value={getMeridiem(schedule.scheduleStart)}
+                                                        onChange={(e) => {
+                                                            const nextMeridiem = e.target.value;
+                                                            if (!schedule.scheduleStart) return;
 
-                                                <Form.Label>
-                                                    시작
-                                                </Form.Label>
+                                                            // 오전/오후 변경 시 24시간제로 환산
+                                                            let [h, m] = schedule.scheduleStart.split(":").map(Number);
+                                                            if (nextMeridiem === "PM" && h < 12) h += 12;
+                                                            if (nextMeridiem === "AM" && h >= 12) h -= 12;
 
+                                                            const nextTime = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+                                                            changeScheduleValue(index, "scheduleStart", nextTime);
+                                                        }}
+                                                    >
+                                                        <option value="AM">오전</option>
+                                                        <option value="PM">오후</option>
+                                                    </Form.Select>
 
-                                                <Form.Control
-                                                    type="time"
-                                                    name="scheduleStart"
-                                                    value={
-                                                        schedule.scheduleStart
-                                                    }
-                                                    onChange={e =>
-                                                        changeScheduleValue(
-                                                            index,
-                                                            e
-                                                        )
-                                                    }
-                                                />
+                                                    {/* 2. 12시간제 전용 DatePicker */}
+                                                    <DatePicker
+                                                        name="scheduleStart"
+                                                        selected={get12HourDate(schedule.scheduleStart)}
+                                                        onChange={(date) => {
+                                                            if (!date) {
+                                                                changeScheduleValue(index, "scheduleStart", "");
+                                                                return;
+                                                            }
+                                                            // 선택된 시(1~12), 분 추출
+                                                            let h = date.getHours();
+                                                            const m = String(date.getMinutes()).padStart(2, "0");
 
+                                                            // 현재 선택된 오전/오후 상태에 맞춰 24시간제로 계산
+                                                            const isPM = getMeridiem(schedule.scheduleStart) === "PM";
+                                                            if (isPM && h < 12) h += 12;
+                                                            if (!isPM && h === 12) h = 0; // 오전 12시는 00시
+
+                                                            const finalTime = `${String(h).padStart(2, "0")}:${m}`;
+                                                            changeScheduleValue(index, "scheduleStart", finalTime);
+                                                        }}
+                                                        showTimeSelect
+                                                        showTimeSelectOnly
+                                                        includeTimes={TWELVE_HOUR_TIMES} // 1:00 ~ 12:30 외의 다른 시간은 아예 숨김
+                                                        timeFormat="h:mm"                // 드롭다운 내부 텍스트에서 AM/PM 제거
+                                                        dateFormat="h:mm"                // Input에 표시될 때도 숫자만 (예: 2:30)
+                                                        timeCaption="시간"
+                                                        placeholderText="시간 선택"
+                                                        customInput={<Form.Control />}
+                                                        wrapperClassName="w-100"
+                                                    />
+                                                </div>
                                             </Col>
 
 
@@ -1744,10 +1745,7 @@ export default function CourseCreate() {
                                                 </Form.Label>
 
 
-                                                <div
-                                                    className="d-flex gap-2"
-                                                >
-
+                                                <div className="d-flex gap-2">
                                                     <Form.Control
                                                         readOnly
                                                         value={
@@ -1757,19 +1755,15 @@ export default function CourseCreate() {
                                                         }
                                                         placeholder="강의실을 선택해주세요."
                                                     />
-
-
-                                                    <Button
-                                                        variant="outline-secondary"
+                                                    <Button variant="outline-secondary"
+                                                        style={{ flexShrink: 0, whiteSpace: "nowrap" }}
                                                         onClick={() =>
                                                             openClassroomModal(
                                                                 index
-                                                            )
-                                                        }
+                                                            )}
                                                     >
                                                         선택
                                                     </Button>
-
                                                 </div>
 
                                             </Col>

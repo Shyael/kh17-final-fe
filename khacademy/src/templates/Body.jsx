@@ -71,6 +71,7 @@ import ContractExtend from "@components/contract/ContractExtend";
 import ContractChangeCondition from "@components/contract/ContractChangeCondition";
 
 import CourseCreate from "@components/course/CourseCreate";
+import CourseList from "@components/course/CourseList";
 
 export default function Body() {
 
@@ -120,8 +121,6 @@ export default function Body() {
             <Route path="/member/join" element={<MemberJoin />} />
             <Route path="/member/joinSuccess" element={<MemberJoinSuccess />} />
             <Route path="/member/joinFail" element={<MemberJoinFail />} />
-            {/* 상담 */}
-            <Route path="/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />
 
             {/* 학생 */}
             <Route path="/student/list" element={<Employee><StudentList/></Employee>} />
@@ -184,7 +183,8 @@ export default function Body() {
             
             {/* 강좌관련 */}
             <Route path="/employee/course/create" element={<CourseCreate/>}/>
-
+            <Route path="/employee/course/list" element={<CourseList/>}/>
+               
             {/* 근태관련 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
             {/* 관리자 전용 근태 */}

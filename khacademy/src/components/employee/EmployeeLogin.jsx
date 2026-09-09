@@ -1,11 +1,9 @@
 import Jumbotron from "@templates/Jumbotron";
-import axios from "axios";
 import { useAtom, useSetAtom } from "jotai";
 import { useCallback, useState } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
 import { FaRightToBracket } from "react-icons/fa6";
 import Swal from "sweetalert2";
-import { loginUserState } from "@utils/storage";
 import { useNavigate } from "react-router-dom";
 import { loginActionState } from "@utils/storage";
 import { authClient } from "@utils/reaxios";
@@ -34,6 +32,7 @@ export default function AccountLogin() {
             [name]: value
         }));
     }, []);
+    
     //로그인
     const sendLogin = useCallback(async () => {
         //미입력 시 차단
