@@ -72,6 +72,7 @@ import ContractChangeCondition from "@components/contract/admin/ContractChangeCo
 import ContractList from "@components/contract/admin/ContractList";
 import EmployeeContractDetail from "@components/contract/EmployeeContractDetail";
 
+
 import AdminPayrollList from "@components/payroll/admin/AdminPayrollList";
 import AdminPayrollMain from "@components/payroll/admin/AdminPayrollMain";
 import AdminPayrollDetail from "@components/payroll/admin/AdminPayrollDetail";
@@ -80,6 +81,17 @@ import AdminPayrollCalculate from "@components/payroll/admin/AdminPayrollCalcula
 import EmployeePayrollList from "@components/payroll/EmployeePayrollList";
 import EmployeePayrollDetail from "@components/payroll/EmployeePayrollDetail";
 import AdminPayrollMonthly from "@components/payroll/admin/AdminPayrollMonthly";
+
+import ExamManageList from "@components/employee/exam/ExamManageList";
+import ExamManage from "@components/employee/exam/ExamManage";
+import ExamResult from "@components/employee/exam/ExamResult";
+
+import ExamStudentList from "@components/student/exam/ExamStudentList";
+import ExamStudentDetail from "@components/student/exam/ExamStudentDetail";
+import ExamStudentAttempt from "@components/student/exam/ExamStudentAttempt";
+import ExamStudentResult from "@components/student/exam/ExamStudentResult";
+
+
 export default function Body() {
 
     const isLogin = useAtomValue(isLoginState);
@@ -176,6 +188,19 @@ export default function Body() {
 
             {/* 학부모 : 자녀 과제 상세 */}
             <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />} />
+
+            {/* 시험(관리) */}
+            <Route path="/employee/exam" element={<ExamManageList />}/>
+            <Route path="/employee/exam/add" element={<ExamManage />}/>
+            <Route path="/employee/exam/:examNo" element={<ExamManage />}/>
+            <Route path="/employee/exam/:examNo/result" element={<ExamResult />}/>
+            <Route path="/employee/exam/:examNo/result/:attemptNo" element={<ExamStudentResult />}/>
+
+            {/* 학생 시험 */}
+            <Route path="/student/exam" element={<ExamStudentList />}/>
+            <Route path="/student/exam/:examNo" element={<ExamStudentDetail />}/>
+            <Route path="/student/exam/:examNo/attempt/:attemptNo" element={<ExamStudentAttempt />}/>
+            <Route path="/student/exam/result/:attemptNo" element={<ExamStudentResult />}/>
 
             {/* fallback route */}
 

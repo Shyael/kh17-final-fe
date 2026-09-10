@@ -1,36 +1,20 @@
-import { useAtom, useAtomValue, useSetAtom } from "jotai";
-import { loginUserState } from "@utils/storage";
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
-import NavDropdown from 'react-bootstrap/NavDropdown';
-import { Link } from "react-router-dom";
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { RESET } from "jotai/utils";
+import { useAtomValue } from "jotai";
 import { isLoginState, isEmployeeState } from "@utils/storage";
-import { childrenState, selectedChildNoState, selectedChildState } from "@utils/storage";
-import { logoutActionState } from "@utils/storage";
-import axios from "axios";
-import { loginActionState } from "@utils/storage";
-import { authClient } from "@utils/reaxios";
-import { FaCartShopping } from "react-icons/fa6";
-import { Button } from "react-bootstrap";
-import AttendanceButton from "@templates/AttendanceButton";
+import TopMenu from "@templates/menu/TopMenu";
 
-import AcademyConsultReservation from "@components/academy/AcademyConsultReservation";
-
+/**
+ * 메뉴 디스패처
+ * - 비로그인 / 학생 / 학부모 : 상단 메뉴바(TopMenu)
+ * - 직원 : App.jsx 의 EmployeeLayout(좌측 사이드바)에서 처리하므로 여기서는 렌더링하지 않음
+ */
 export default function Menu() {
-    //메뉴에서는 로그인 상태 데이터가 필요하다
-    const [loginUser, setLoginUser] = useAtom(loginUserState);
-
-    console.log(loginUserState);
-    //읽기전용 atom을 불러오는법
-    //const [isLogin] = useAtom(isLoginState);
     const isLogin = useAtomValue(isLoginState);
     const isEmployee = useAtomValue(isEmployeeState);
 
-    const loginAction = useSetAtom(loginActionState);
-    const logoutAction = useSetAtom(logoutActionState);
+    if (isLogin && isEmployee) {
+        return null;
+    }
+
 
     //자녀 목록 및 선택된 자녀
     const children = useAtomValue(childrenState);
@@ -259,3 +243,7 @@ export default function Menu() {
         </Navbar>
     </>)
 }
+
+    return <TopMenu />;
+
+

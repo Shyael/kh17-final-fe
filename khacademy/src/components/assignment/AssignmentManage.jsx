@@ -443,7 +443,11 @@ export default function AssignmentManage() {
             <Col className="text-end">
                 <Button
                     as={Link}
-                    to={`/employee/assignment/${assignmentNo}`}
+                    to={
+                        isEdit
+                            ? `/employee/assignment/${assignmentNo}`
+                            : `/employee/assignment`
+                    }
                     variant="danger"
                     className="ms-2">
                     <FaXmark className="me-2" />
