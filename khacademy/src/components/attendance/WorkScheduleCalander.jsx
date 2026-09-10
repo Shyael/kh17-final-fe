@@ -81,7 +81,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
             setLoading(true);
 
             const response = await apiClient.get(
-                "/workSchedule/mySearch",
+                "/employee/workSchedule/mySearch",
                 {
                     params: {
                         startDate,

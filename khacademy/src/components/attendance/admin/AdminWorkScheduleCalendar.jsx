@@ -153,7 +153,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
             const response =
                 await apiClient.get(
-                    "/admin/attendance/search",
+                    "/employee/attendance/search",
                     {
                         params: {
                             employeeNo,
@@ -575,7 +575,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
             await apiClient.post(
-                "/admin/attendance/add",
+                "/employee/attendance/add",
                 request
             );
 
@@ -675,7 +675,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
             await apiClient.patch(
-                "/admin/attendance/edit",
+                "/employee/attendance/edit",
                 request
             );
 
@@ -846,7 +846,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         try {
 
             await apiClient.patch(
-                "/admin/attendance/normalToNormal",
+                "/employee/attendance/normalToNormal",
                 {
                     empAttendanceNo:
                         selectedSchedule
@@ -909,7 +909,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             try {
 
                 await apiClient.patch(
-                    "/admin/attendance/normalToAbsent",
+                    "/employee/attendance/normalToAbsent",
                     {
                         empAttendanceNo:
                             selectedSchedule
@@ -965,7 +965,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             try {
 
                 await apiClient.patch(
-                    "/admin/attendance/absentToAbsent",
+                    "/employee/attendance/absentToAbsent",
                     {
                         empAttendanceNo:
                             selectedSchedule
@@ -1046,7 +1046,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         try {
 
             await apiClient.patch(
-                "/admin/attendance/absentToNormal",
+                "/employee/attendance/absentToNormal",
                 {
                     empAttendanceNo:
                         selectedSchedule

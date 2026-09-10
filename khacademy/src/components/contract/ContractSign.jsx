@@ -7,7 +7,7 @@ import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
-import ContractDocument from "./ContractDocument";
+import ContractDocument from "@components/contract/admin/ContractDocument";
 
 export default function ContractSign() {
     //parameter
@@ -135,7 +135,7 @@ export default function ContractSign() {
             setSending(true);
 
             await apiClient.patch(
-                `/employee/contract/${contractNo}/employerSign`,
+                `/employee/admin/contract/${contractNo}/employerSign`,
                 {
                     contractNo,
                     employerSignature
@@ -146,7 +146,7 @@ export default function ContractSign() {
             setEmployerSignature("");
             setSignatureInfo(null);
             await loadData();
-            navigate(`/employee/contract/detail/${contractNo}`);
+            navigate(`/admin/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);

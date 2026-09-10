@@ -34,7 +34,7 @@ export default function ContractExtend() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/contract/detail/${contractNo}`
+                `/employee/admin/contract/detail/${contractNo}`
             );
 
             setContract(data);
@@ -102,12 +102,12 @@ export default function ContractExtend() {
 
             //Controller에서 path의 contractNo를 RequestVO에 설정하므로 종료일만 전달
             await apiClient.patch(
-                `/employee/contract/${contractNo}/extend`,
+                `/employee/admin/contract/${contractNo}/extend`,
                 { contractEnd }
             );
 
             toast.success("근로계약 기간이 연장되었습니다");
-            navigate(`/employee/contract/detail/${contractNo}`);
+            navigate(`/admin/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);
@@ -176,7 +176,7 @@ export default function ContractExtend() {
             <Row className="mt-5 mb-5">
                 <Col className="text-end">
                     <Button variant="secondary" size="lg"
-                            onClick={()=>navigate(`/employee/contract/detail/${contractNo}`)}
+                            onClick={()=>navigate(`/admin/contract/detail/${contractNo}`)}
                             disabled={sending === true}>
                         <FaXmark/>
                         <span className="ms-2">취소</span>

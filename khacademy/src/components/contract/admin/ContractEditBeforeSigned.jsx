@@ -10,7 +10,7 @@ import Swal from "sweetalert2";
 
 import ContractDocument from "./ContractDocument.jsx";
 
-export default function ContractChangeCondition() {
+export default function ContractEditBeforeSigned() {
     //parameter
     const { contractNo } = useParams();
 
@@ -18,7 +18,6 @@ export default function ContractChangeCondition() {
     const navigate = useNavigate();
 
     //state
-    const [currentContract, setCurrentContract] = useState(null);
     const [loading, setLoading] = useState(true);
     const [sending, setSending] = useState(false);
 
@@ -34,7 +33,8 @@ export default function ContractChangeCondition() {
         contractStart : "",
         contractEnd : "",
         payday : "",
-        contractContent : ""
+        contractContent : "",
+        contractStatus : ""
     });
 
     //날짜 input 형식으로 변경
@@ -43,18 +43,15 @@ export default function ContractChangeCondition() {
         return value.substring(0, 10);
     }, []);
 
-    //현재 계약 조회
+    //계약 조회
     const loadData = useCallback(async ()=>{
         try {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/contract/detail/${contractNo}`
+                `/employee/admin/contract/detail/${contractNo}`
             );
 
-            setCurrentContract(data);
-
-            //현재 조건을 새 계약의 기본값으로 사용
             setContract({
                 contractNo : data.contractNo,
                 employeeNo : data.employeeNo,
@@ -64,17 +61,18 @@ export default function ContractChangeCondition() {
                 weeklyWorkHours : data.weeklyWorkHours ?? "",
                 weeklyHolidayDay : data.weeklyHolidayDay ?? "",
                 writtenBreakMinutes : data.writtenBreakMinutes ?? "",
-                contractStart : "",
+                contractStart : toDateInput(data.contractStart),
                 contractEnd : toDateInput(data.contractEnd),
                 payday : data.payday ?? "",
-                contractContent : data.contractContent ?? ""
+                contractContent : data.contractContent ?? "",
+                contractStatus : data.contractStatus ?? ""
             });
         }
         catch(e) {
             console.error(e);
             toast.error(
                 e?.response?.data?.message
-                ?? "현재 근로계약을 불러오지 못했습니다"
+                ?? "근로계약 정보를 불러오지 못했습니다"
             );
             navigate(-1);
         }
@@ -98,8 +96,8 @@ export default function ContractChangeCondition() {
 
     //입력값 검사
     const checkContract = useCallback(()=>{
-        if(currentContract?.contractStatus !== "active") {
-            toast.warning("진행 중인 계약만 근로조건을 변경할 수 있습니다");
+        if(contract.contractStatus !== "pending") {
+            toast.warning("서명 대기 상태의 계약만 수정할 수 있습니다");
             return false;
         }
 
@@ -141,12 +139,12 @@ export default function ContractChangeCondition() {
         }
 
         if(contract.contractStart === "") {
-            toast.warning("새 계약 시작일을 입력해주세요");
+            toast.warning("계약 시작일을 입력해주세요");
             return false;
         }
 
         if(contract.contractEnd !== "" && contract.contractStart > contract.contractEnd) {
-            toast.warning("새 계약 종료일은 시작일보다 빠를 수 없습니다");
+            toast.warning("계약 종료일은 시작일보다 빠를 수 없습니다");
             return false;
         }
 
@@ -163,19 +161,19 @@ export default function ContractChangeCondition() {
         }
 
         return true;
-    }, [currentContract, contract]);
+    }, [contract]);
 
-    //근로조건 변경
+    //서명 전 수정
     const sendData = useCallback(async ()=>{
         if(checkContract() === false) return;
         if(sending === true) return;
 
         const result = await Swal.fire({
-            title:"근로조건을 변경하시겠습니까?",
-            text:"기존 계약은 보존하고 변경된 조건으로 새 계약을 작성합니다",
-            icon:"warning",
+            title:"근로계약을 수정하시겠습니까?",
+            text:"수정된 내용을 확인한 뒤 다시 서명을 진행해주세요",
+            icon:"question",
             showCancelButton:true,
-            confirmButtonText:"새 계약 작성",
+            confirmButtonText:"수정",
             cancelButtonText:"취소"
         });
         if(result.isConfirmed === false) return;
@@ -197,19 +195,19 @@ export default function ContractChangeCondition() {
         try {
             setSending(true);
 
-            const { data } = await apiClient.post(
-                `/employee/contract/${contractNo}/changeWorkCondition`,
+            await apiClient.patch(
+                `/employee/admin/contract/editBefore/${contractNo}`,
                 request
             );
 
-            toast.success("변경된 근로조건으로 새 계약이 작성되었습니다");
-            navigate(`/employee/contract/sign/${data.contractNo}`);
+            toast.success("근로계약이 수정되었습니다");
+            navigate(`/admin/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);
             toast.error(
                 e?.response?.data?.message
-                ?? "근로조건 변경에 실패했습니다"
+                ?? "근로계약 수정에 실패했습니다"
             );
         }
         finally {
@@ -217,47 +215,38 @@ export default function ContractChangeCondition() {
         }
     }, [contract, contractNo, sending, checkContract, navigate]);
 
-    if(loading === true || currentContract === null) {
+    if(loading === true) {
         return <h1>로딩중...</h1>
     }
 
     return (<>
-        <Jumbotron title="근로조건 변경"
-                content="현재 계약을 보존하고 변경된 조건으로 새 근로계약을 작성합니다"/>
+        <Jumbotron title="서명 전 근로계약 수정"
+                content="양측 서명이 완료되기 전의 계약내용을 수정합니다"/>
 
         <Row className="mt-5">
-            <Col sm={3} className="fw-bold text-info">현재 계약번호</Col>
-            <Col sm={9} className="text-secondary">{currentContract.contractNo}</Col>
+            <Col sm={3} className="fw-bold text-info">계약번호</Col>
+            <Col sm={9} className="text-secondary">{contract.contractNo}</Col>
         </Row>
 
         <Row className="mt-4">
             <Col sm={3} className="fw-bold text-info">직원번호</Col>
-            <Col sm={9} className="text-secondary">{currentContract.employeeNo}</Col>
+            <Col sm={9} className="text-secondary">{contract.employeeNo}</Col>
         </Row>
 
         <Row className="mt-4">
-            <Col sm={3} className="fw-bold text-info">현재 계약상태</Col>
-            <Col sm={9} className="text-secondary">{currentContract.contractStatus}</Col>
+            <Col sm={3} className="fw-bold text-info">계약상태</Col>
+            <Col sm={9} className="text-secondary">{contract.contractStatus}</Col>
         </Row>
 
-        {currentContract.contractStatus !== "active" && (
+        {contract.contractStatus !== "pending" && (
         <Row className="mt-4">
             <Col>
                 <Alert variant="warning">
-                    진행 중인 계약만 근로조건을 변경할 수 있습니다.
+                    서명 대기 상태의 계약만 수정할 수 있습니다.
                 </Alert>
             </Col>
         </Row>
         )}
-
-        <Row className="mt-5">
-            <Col>
-                <Alert variant="info">
-                    새 계약 시작일을 기준으로 기존 계약이 종료되고,
-                    새 계약은 다시 양측 서명을 진행합니다.
-                </Alert>
-            </Col>
-        </Row>
 
         <Form>
             <Row className="mt-5">
@@ -335,7 +324,7 @@ export default function ContractChangeCondition() {
             </Row>
 
             <Row className="mt-4">
-                <Form.Label column sm={3}>새 계약 시작일</Form.Label>
+                <Form.Label column sm={3}>계약 시작일</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="date" name="contractStart"
                             value={contract.contractStart}
@@ -344,14 +333,11 @@ export default function ContractChangeCondition() {
             </Row>
 
             <Row className="mt-4">
-                <Form.Label column sm={3}>새 계약 종료일</Form.Label>
+                <Form.Label column sm={3}>계약 종료일</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="date" name="contractEnd"
                             value={contract.contractEnd}
                             onChange={changeStringValue}/>
-                    <Form.Text className="text-muted">
-                        기간의 정함이 없는 계약은 비워두세요
-                    </Form.Text>
                 </Col>
             </Row>
 
@@ -375,13 +361,13 @@ export default function ContractChangeCondition() {
             </Row>
         </Form>
 
-        {/* 변경될 새 계약 미리보기 */}
+        {/* 수정내용 미리보기 */}
         <ContractDocument contract={contract}/>
 
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary" size="lg"
-                        onClick={()=>navigate(`/employee/contract/detail/${contractNo}`)}
+                        onClick={()=>navigate(`/admin/contract/detail/${contractNo}`)}
                         disabled={sending === true}>
                     <FaXmark/>
                     <span className="ms-2">취소</span>
@@ -389,10 +375,10 @@ export default function ContractChangeCondition() {
 
                 <Button variant="warning" size="lg" className="ms-2"
                         onClick={sendData}
-                        disabled={sending === true || currentContract.contractStatus !== "active"}>
+                        disabled={sending === true || contract.contractStatus !== "pending"}>
                     <FaCheck/>
                     <span className="ms-2">
-                        {sending === true ? "작성중..." : "새 계약 작성"}
+                        {sending === true ? "수정중..." : "수정 완료"}
                     </span>
                 </Button>
             </Col>

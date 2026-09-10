@@ -61,7 +61,7 @@ export default function ContractAdd() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/contract/${employeeType}/${employeeNo}`
+                `/employee/admin/contract/${employeeType}/${employeeNo}`
             );
 
             setEmployee(data);
@@ -195,12 +195,12 @@ export default function ContractAdd() {
             setSending(true);
 
             const { data } = await apiClient.post(
-                "/employee/contract/add",
+                "/employee/admin/contract/add",
                 request
             );
 
             toast.success("근로계약이 작성되었습니다");
-            navigate(`/employee/contract/sign/${data.contractNo}`);
+            navigate(`/contract/sign/${data.contractNo}`);
         }
         catch(e) {
             console.error(e);

@@ -126,7 +126,7 @@ const AdminPayrollDetail = () => {
 
             const response =
                 await apiClient.get(
-                    `/payroll/detail/${employeeNo}/${payrollYear}/${payrollMonth}`
+                    `/employee/admin/payroll/detail/${employeeNo}/${payrollYear}/${payrollMonth}`
                 );
 
             setPayroll(
@@ -169,7 +169,7 @@ const AdminPayrollDetail = () => {
             setLoading(true);
 
             await apiClient.post(
-                "/payroll/calculate",
+                "/employee/admin/payroll/calculate",
                 {
                     employeeNo: employeeNo,
                     payrollYear: payrollYear,
@@ -212,7 +212,7 @@ const AdminPayrollDetail = () => {
             setLoading(true);
 
             await apiClient.patch(
-                "/payroll/recalculate",
+                "/employee/admin/payroll/recalculate",
                 {
                     employeeNo: employeeNo,
                     payrollYear: payrollYear,
@@ -255,7 +255,7 @@ const AdminPayrollDetail = () => {
             setLoading(true);
 
             await apiClient.patch(
-                "/payroll/confirm",
+                "/employee/admin/payroll/confirm",
                 {
                     employeeNo: employeeNo,
                     payrollYear: payrollYear,
@@ -309,7 +309,7 @@ const AdminPayrollDetail = () => {
             setLoading(true);
 
             await apiClient.post(
-                "/payroll/pay",
+                "/employee/admin/payroll/pay",
                 {
                     employeeNo: employeeNo,
                     payrollYear: payrollYear,
@@ -383,7 +383,7 @@ const AdminPayrollDetail = () => {
             setLoading(true);
 
             await apiClient.post(
-                "/payroll/cancel-payment",
+                "/employee/admin/payroll/cancel-payment",
                 {
                     employeeNo: employeeNo,
                     payrollYear: payrollYear,
