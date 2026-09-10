@@ -33,6 +33,31 @@ export default function CourseList() {
         next: false
     });
 
+    //학년 그룹
+    const gradeGroups = {
+        초등학교: [
+            { gradeNo: 1, label: "초1" },
+            { gradeNo: 2, label: "초2" },
+            { gradeNo: 3, label: "초3" },
+            { gradeNo: 4, label: "초4" },
+            { gradeNo: 5, label: "초5" },
+            { gradeNo: 6, label: "초6" }
+        ],
+        중학교: [
+            { gradeNo: 7, label: "중1" },
+            { gradeNo: 8, label: "중2" },
+            { gradeNo: 9, label: "중3" },
+        ],
+        고등학교: [
+            { gradeNo: 10, label: "고1" },
+            { gradeNo: 11, label: "고2" },
+            { gradeNo: 12, label: "고3" }
+        ],
+        일반: [{ gradeNo: 13, label: "일반" }]
+    }
+    const [selectedGradeGroup, setSelectedGradeGroup] = useState("");
+
+
     // 검색 조건 입력
     const changeSearchValue = useCallback((e) => {
         const { name, value } = e.target;
@@ -124,7 +149,7 @@ export default function CourseList() {
             <div className="border rounded p-4 mt-4">
                 <Row className="mb-3">
                     {/* 강좌명 */}
-                    <Col md={4}>
+                    <Col md={5}>
                         <Form.Label>강좌명</Form.Label>
                         <Form.Control
                             type="text"
@@ -158,26 +183,8 @@ export default function CourseList() {
                         </Form.Select>
                     </Col>
 
-                    {/* 학년 */}
-                    <Col md={2}>
-                        <Form.Label>학년</Form.Label>
-                        <Form.Select
-                            name="gradeNo"
-                            value={search.gradeNo}
-                            onChange={changeSearchValue}
-                        >
-                            <option value="">전체</option>
-                            <option value="1">1학년</option>
-                            <option value="2">2학년</option>
-                            <option value="3">3학년</option>
-                            <option value="4">4학년</option>
-                            <option value="5">5학년</option>
-                            <option value="6">6학년</option>
-                        </Form.Select>
-                    </Col>
-
                     {/* 상태 */}
-                    <Col md={3}>
+                    <Col md={4}>
                         <Form.Label>상태</Form.Label>
                         <Form.Select
                             name="courseStatus"
@@ -191,6 +198,84 @@ export default function CourseList() {
                             <option value="마감">마감</option>
                             <option value="종료">종료</option>
                         </Form.Select>
+                    </Col>
+                </Row>
+
+                {/* 학년 - 별도 줄 */}
+                <Row className="mb-3">
+                    <Col>
+                        <Form.Label>학년</Form.Label>
+
+                        {/* 1차 학년 분류 */}
+                        <div className="d-flex flex-wrap gap-2">
+                            <Button
+                                size="sm"
+                                variant={
+                                    selectedGradeGroup === ""
+                                        ? "primary"
+                                        : "outline-primary"
+                                }
+                                className="text-nowrap"
+                                onClick={() => {
+                                    setSelectedGradeGroup("");
+                                    setSearch(prev => ({
+                                        ...prev,
+                                        gradeNo: ""
+                                    }));
+                                }}
+                            >
+                                전체
+                            </Button>
+
+                            {Object.keys(gradeGroups).map(group => (
+                                <Button
+                                    key={group}
+                                    size="sm"
+                                    variant={
+                                        selectedGradeGroup === group
+                                            ? "primary"
+                                            : "outline-primary"
+                                    }
+                                    className="text-nowrap"
+                                    onClick={() => {
+                                        setSelectedGradeGroup(group);
+                                        setSearch(prev => ({
+                                            ...prev,
+                                            gradeNo: ""
+                                        }));
+                                    }}
+                                >
+                                    {group}
+                                </Button>
+                            ))}
+                        </div>
+
+                        {/* 2차 세부 학년 */}
+                        {selectedGradeGroup !== "" && (
+                            <div className="d-flex flex-wrap gap-2 mt-2">
+                                {gradeGroups[selectedGradeGroup].map(grade => (
+                                    <Button
+                                        key={grade.gradeNo}
+                                        size="sm"
+                                        className="text-nowrap"
+                                        variant={
+                                            String(search.gradeNo) ===
+                                                String(grade.gradeNo)
+                                                ? "primary"
+                                                : "outline-secondary"
+                                        }
+                                        onClick={() =>
+                                            setSearch(prev => ({
+                                                ...prev,
+                                                gradeNo: String(grade.gradeNo)
+                                            }))
+                                        }
+                                    >
+                                        {grade.label}
+                                    </Button>
+                                ))}
+                            </div>
+                        )}
                     </Col>
                 </Row>
 
@@ -267,9 +352,9 @@ export default function CourseList() {
                             </td>
                         </tr>
                     ) : (
-                        pageData.list.map(course => (
+                        pageData.list.map((course, index) => (
                             <tr key={course.courseNo}>
-                                <td>{course.courseNo}</td>
+                                <td>{pageData.totalCount - ((pageData.page - 1) * pageData.size) - index}</td>
                                 {/* courseTitle -> courseTitle 수정 */}
                                 <td className="text-start">{course.courseTitle}</td>
                                 <td>{course.courseSubject}</td>
@@ -287,15 +372,19 @@ export default function CourseList() {
             {/* 페이지네이션 버튼 */}
             {pageData.totalPages > 0 && (
                 <div className="d-flex justify-content-center mt-4">
-                    <Button
-                        variant="outline-secondary"
-                        className="me-1"
-                        disabled={!pageData.prev}
-                        onClick={() => changePage(pageData.startBlock - 1)}
-                    >
-                        이전
-                    </Button>
+                    {/* 이전 버튼 */}
+                    {pageData.prev && (
+                        <Button
+                            variant="outline-secondary"
+                            className="me-1"
+                            disabled={!pageData.prev}
+                            onClick={() => changePage(pageData.startBlock - 1)}
+                        >
+                            이전
+                        </Button>
+                    )}
 
+                    {/* 페이지 번호 */}
                     {Array.from(
                         { length: pageData.endBlock - pageData.startBlock + 1 },
                         (_, index) => {
@@ -313,13 +402,16 @@ export default function CourseList() {
                         }
                     )}
 
-                    <Button
-                        variant="outline-secondary"
-                        disabled={!pageData.next}
-                        onClick={() => changePage(pageData.endBlock + 1)}
-                    >
-                        다음
-                    </Button>
+                    {/* 다음 버튼 */}
+                    {pageData.next && (
+                        <Button
+                            variant="outline-secondary"
+                            disabled={!pageData.next}
+                            onClick={() => changePage(pageData.endBlock + 1)}
+                        >
+                            다음
+                        </Button>
+                    )}
                 </div>
             )}
         </>
