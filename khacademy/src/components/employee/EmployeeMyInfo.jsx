@@ -187,9 +187,7 @@ export default function EmployeeMyInfo() {
         e.preventDefault();
 
         try {
-
             const { data } = await apiClient.put("/employee/worker/", {
-
                 accountName: employee.accountName,
                 accountPhone: employee.accountPhone,
                 accountBirth: employee.accountBirth

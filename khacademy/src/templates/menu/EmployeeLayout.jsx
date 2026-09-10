@@ -31,6 +31,17 @@ const MENU = [
         ],
     },
     {
+        type: "group", icon: "📄", label: "계약관리", children : [
+            { label: "계약 목록", to: "/admin/contract/list"},
+        ]
+    },
+    {
+        type: "group", icon: "💰", label: "급여관리", children : [
+            { label: "급여 관리", to:"/admin/payroll"},
+            { label: "월 별 급여 현황", to:"/admin/payroll/monthly/:payrollYear/:payrollMonth"},
+        ]
+    },
+    {
         type: "group", icon: "🏫", label: "외부정보관리", children: [
             { label: "학원정보관리", to: "/employee/academy" },
             { label: "강사정보리스트", to: "/employee/tutor" },

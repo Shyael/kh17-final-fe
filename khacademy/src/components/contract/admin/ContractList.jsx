@@ -1,8 +1,8 @@
 import Jumbotron from "@templates/Jumbotron";
+
 import {
     useCallback,
     useEffect,
-    useMemo,
     useState
 } from "react";
 
@@ -11,7 +11,6 @@ import {
     Button,
     Col,
     Form,
-    Pagination,
     Row,
     Table
 } from "react-bootstrap";
@@ -22,22 +21,30 @@ import {
 } from "react-icons/fa6";
 
 import { useNavigate } from "react-router-dom";
+
 import { apiClient } from "@utils/reaxios";
+
 import { toast } from "react-toastify";
+
+import PaginationBar
+    from "@templates/PaginationBar";
 
 
 const PAGE_SIZE = 10;
 
 
 const initialCondition = {
+
     accountName: "",
     contractStart: "",
     contractEnd: "",
     employeeStatus: ""
+
 };
 
 
 export default function ContractList() {
+
 
     const navigate =
             useNavigate();
@@ -88,14 +95,22 @@ export default function ContractList() {
 
     const [pageInfo, setPageInfo] =
             useState({
+
                 totalCount: 0,
                 totalPages: 0,
+
                 startBlock: 0,
                 endBlock: 0,
+
                 prev: false,
                 next: false
+
             });
 
+
+    // =========================
+    // 로딩
+    // =========================
 
     const [loading, setLoading] =
             useState(false);
@@ -108,6 +123,7 @@ export default function ContractList() {
     const changeCondition =
             useCallback(e => {
 
+
         const {
             name,
             value
@@ -115,9 +131,13 @@ export default function ContractList() {
 
 
         setCondition(prev => ({
+
             ...prev,
+
             [name]: value
+
         }));
+
 
     }, []);
 
@@ -129,23 +149,31 @@ export default function ContractList() {
     const loadData =
             useCallback(async () => {
 
+
         try {
+
 
             setLoading(true);
 
 
             const params = {
+
                 page: page,
+
                 size: PAGE_SIZE
+
             };
 
 
+            // =========================
             // 빈 검색조건은 전송하지 않음
+            // =========================
 
             if (searchCondition.accountName !== "") {
 
                 params.accountName =
                         searchCondition.accountName;
+
             }
 
 
@@ -153,6 +181,7 @@ export default function ContractList() {
 
                 params.contractStart =
                         searchCondition.contractStart;
+
             }
 
 
@@ -160,6 +189,7 @@ export default function ContractList() {
 
                 params.contractEnd =
                         searchCondition.contractEnd;
+
             }
 
 
@@ -167,24 +197,37 @@ export default function ContractList() {
 
                 params.employeeStatus =
                         searchCondition.employeeStatus;
+
             }
 
 
             const { data } =
                     await apiClient.get(
+
                         "/employee/admin/contract/contractList",
+
                         {
                             params
                         }
+
                     );
 
+
+            // =========================
+            // 목록
+            // =========================
 
             setContractList(
                     data.list ?? []
             );
 
 
+            // =========================
+            // 페이지 정보
+            // =========================
+
             setPageInfo({
+
                 totalCount:
                         data.totalCount ?? 0,
 
@@ -202,51 +245,83 @@ export default function ContractList() {
 
                 next:
                         data.next ?? false
+
             });
 
 
-            // 서버가 보정한 페이지가 있다면 반영
-            if (data.page !== undefined
-                    && data.page !== null
-                    && data.page !== page) {
+            // =========================
+            // 서버가 페이지를 보정했다면 반영
+            // =========================
+
+            if (
+                data.page !== undefined
+                &&
+                data.page !== null
+                &&
+                data.page !== page
+            ) {
+
 
                 setPage(
                         data.page
                 );
+
+
             }
+
 
         }
         catch(e) {
+
 
             console.error(e);
 
 
             toast.error(
+
                 e?.response?.data?.message
-                ?? "근로계약 목록을 불러오지 못했습니다"
+                ??
+                "근로계약 목록을 불러오지 못했습니다"
+
             );
 
 
             setContractList([]);
 
+
             setPageInfo({
+
                 totalCount: 0,
+
                 totalPages: 0,
+
                 startBlock: 0,
+
                 endBlock: 0,
+
                 prev: false,
+
                 next: false
+
             });
+
 
         }
         finally {
 
+
             setLoading(false);
+
+
         }
 
+
     }, [
+
         page,
+
         searchCondition
+
     ]);
 
 
@@ -256,7 +331,9 @@ export default function ContractList() {
 
     useEffect(() => {
 
+
         loadData();
+
 
     }, [loadData]);
 
@@ -268,6 +345,7 @@ export default function ContractList() {
     const sendSearch =
             useCallback(e => {
 
+
         e.preventDefault();
 
 
@@ -276,8 +354,11 @@ export default function ContractList() {
 
 
         setSearchCondition({
+
             ...condition
+
         });
+
 
     }, [condition]);
 
@@ -289,8 +370,11 @@ export default function ContractList() {
     const resetSearch =
             useCallback(() => {
 
+
         setCondition({
+
             ...initialCondition
+
         });
 
 
@@ -298,8 +382,11 @@ export default function ContractList() {
 
 
         setSearchCondition({
+
             ...initialCondition
+
         });
+
 
     }, []);
 
@@ -311,24 +398,37 @@ export default function ContractList() {
     const statusText =
             useCallback(status => {
 
+
         if (status === "pending") {
+
             return "서명 대기";
+
         }
+
 
         if (status === "scheduled") {
+
             return "시작 예정";
+
         }
+
 
         if (status === "active") {
+
             return "진행 중";
+
         }
 
+
         if (status === "ended") {
+
             return "종료";
+
         }
 
 
         return status;
+
 
     }, []);
 
@@ -340,24 +440,37 @@ export default function ContractList() {
     const statusColor =
             useCallback(status => {
 
+
         if (status === "pending") {
+
             return "warning";
+
         }
+
 
         if (status === "scheduled") {
+
             return "info";
+
         }
+
 
         if (status === "active") {
+
             return "success";
+
         }
 
+
         if (status === "ended") {
+
             return "secondary";
+
         }
 
 
         return "dark";
+
 
     }, []);
 
@@ -369,20 +482,30 @@ export default function ContractList() {
     const wageTypeText =
             useCallback(wageType => {
 
+
         if (wageType === "monthly") {
+
             return "월급";
+
         }
+
 
         if (wageType === "hourly") {
+
             return "시급";
+
         }
 
+
         if (wageType === "daily") {
+
             return "일급";
+
         }
 
 
         return wageType;
+
 
     }, []);
 
@@ -394,43 +517,69 @@ export default function ContractList() {
     const weeklyHolidayDayText =
             useCallback(day => {
 
-        if (day === null
-                || day === undefined) {
+
+        if (
+            day === null
+            ||
+            day === undefined
+        ) {
 
             return "-";
+
         }
 
 
         if (day === "MONDAY") {
+
             return "월";
+
         }
+
 
         if (day === "TUESDAY") {
+
             return "화";
+
         }
+
 
         if (day === "WEDNESDAY") {
+
             return "수";
+
         }
+
 
         if (day === "THURSDAY") {
+
             return "목";
+
         }
+
 
         if (day === "FRIDAY") {
+
             return "금";
+
         }
+
 
         if (day === "SATURDAY") {
+
             return "토";
+
         }
 
+
         if (day === "SUNDAY") {
+
             return "일";
+
         }
 
 
         return day;
+
 
     }, []);
 
@@ -442,11 +591,17 @@ export default function ContractList() {
     const toDate =
             useCallback(value => {
 
-        if (value === null
-                || value === undefined
-                || value === "") {
+
+        if (
+            value === null
+            ||
+            value === undefined
+            ||
+            value === ""
+        ) {
 
             return "-";
+
         }
 
 
@@ -454,6 +609,7 @@ export default function ContractList() {
                 0,
                 10
         );
+
 
     }, []);
 
@@ -465,11 +621,17 @@ export default function ContractList() {
     const contractEndText =
             useCallback(value => {
 
-        if (value === null
-                || value === undefined
-                || value === "") {
+
+        if (
+            value === null
+            ||
+            value === undefined
+            ||
+            value === ""
+        ) {
 
             return "기간의 정함 없음";
+
         }
 
 
@@ -477,6 +639,7 @@ export default function ContractList() {
                 0,
                 10
         );
+
 
     }, []);
 
@@ -488,10 +651,15 @@ export default function ContractList() {
     const formatMoney =
             useCallback(value => {
 
-        if (value === null
-                || value === undefined) {
+
+        if (
+            value === null
+            ||
+            value === undefined
+        ) {
 
             return "-";
+
         }
 
 
@@ -502,545 +670,576 @@ export default function ContractList() {
         if (Number.isNaN(money)) {
 
             return value;
+
         }
 
 
         return money.toLocaleString();
 
+
     }, []);
 
 
-    // =========================
-    // 페이지 번호 목록
-    // =========================
+    return (
+        <>
 
-    const pageNumbers =
-            useMemo(() => {
+            <Jumbotron
+                title="근로계약 목록"
+                content="직원 및 계약기간을 기준으로 근로계약을 조회합니다"
+            />
 
-        if (pageInfo.startBlock <= 0
-                || pageInfo.endBlock <= 0) {
 
-            return [];
-        }
+            {/* =========================
+                검색조건
+            ========================= */}
 
+            <Form
+                onSubmit={sendSearch}
+                className="mt-5"
+            >
 
-        const result = [];
 
+                <Row className="g-3">
 
-        for (
-            let i = pageInfo.startBlock;
-            i <= pageInfo.endBlock;
-            i++
-        ) {
 
-            result.push(i);
-        }
+                    {/* 이름 */}
 
+                    <Col md={3}>
 
-        return result;
+                        <Form.Label>
+                            직원 이름
+                        </Form.Label>
 
-    }, [
-        pageInfo.startBlock,
-        pageInfo.endBlock
-    ]);
+                        <Form.Control
+                            type="text"
+                            name="accountName"
+                            value={condition.accountName}
+                            onChange={changeCondition}
+                            placeholder="이름 입력"
+                        />
 
+                    </Col>
 
-    return (<>
 
-        <Jumbotron
-            title="근로계약 목록"
-            content="직원 및 계약기간을 기준으로 근로계약을 조회합니다"
-        />
+                    {/* 계약 시작일 */}
 
+                    <Col md={3}>
 
-        {/* =========================
-            검색조건
-        ========================= */}
+                        <Form.Label>
+                            계약 시작일
+                        </Form.Label>
 
-        <Form
-            onSubmit={sendSearch}
-            className="mt-5"
-        >
+                        <Form.Control
+                            type="date"
+                            name="contractStart"
+                            value={condition.contractStart}
+                            onChange={changeCondition}
+                        />
 
-            <Row className="g-3">
+                    </Col>
 
 
-                {/* 이름 */}
-                <Col md={3}>
+                    {/* 계약 종료일 */}
 
-                    <Form.Label>
-                        직원 이름
-                    </Form.Label>
+                    <Col md={3}>
 
-                    <Form.Control
-                        type="text"
-                        name="accountName"
-                        value={condition.accountName}
-                        onChange={changeCondition}
-                        placeholder="이름 입력"
-                    />
+                        <Form.Label>
+                            계약 종료일
+                        </Form.Label>
 
-                </Col>
+                        <Form.Control
+                            type="date"
+                            name="contractEnd"
+                            value={condition.contractEnd}
+                            onChange={changeCondition}
+                        />
 
+                    </Col>
 
-                {/* 계약 시작일 */}
-                <Col md={3}>
 
-                    <Form.Label>
-                        계약 시작일
-                    </Form.Label>
+                    {/* 직원 상태 */}
 
-                    <Form.Control
-                        type="date"
-                        name="contractStart"
-                        value={condition.contractStart}
-                        onChange={changeCondition}
-                    />
+                    <Col md={3}>
 
-                </Col>
+                        <Form.Label>
+                            직원 상태
+                        </Form.Label>
 
+                        <Form.Select
+                            name="employeeStatus"
+                            value={condition.employeeStatus}
+                            onChange={changeCondition}
+                        >
 
-                {/* 계약 종료일 */}
-                <Col md={3}>
+                            <option value="">
+                                전체
+                            </option>
 
-                    <Form.Label>
-                        계약 종료일
-                    </Form.Label>
+                            <option value="대기">
+                                대기
+                            </option>
 
-                    <Form.Control
-                        type="date"
-                        name="contractEnd"
-                        value={condition.contractEnd}
-                        onChange={changeCondition}
-                    />
+                            <option value="재직">
+                                재직
+                            </option>
 
-                </Col>
+                            <option value="퇴사">
+                                퇴사
+                            </option>
 
+                        </Form.Select>
 
-                {/* 직원 상태 */}
-                <Col md={3}>
+                    </Col>
 
-                    <Form.Label>
-                        직원 상태
-                    </Form.Label>
 
-                    <Form.Select
-                        name="employeeStatus"
-                        value={condition.employeeStatus}
-                        onChange={changeCondition}
-                    >
+                </Row>
 
-                        <option value="">
-                            전체
-                        </option>
 
-                        <option value="대기">
-                            대기
-                        </option>
+                {/* 검색 버튼 */}
 
-                        <option value="재직">
-                            재직
-                        </option>
+                <Row className="mt-4">
 
-                        <option value="퇴사">
-                            퇴사
-                        </option>
 
-                    </Form.Select>
+                    <Col className="text-end">
 
-                </Col>
 
-            </Row>
+                        <Button
+                            type="button"
+                            variant="outline-secondary"
+                            onClick={resetSearch}
+                            disabled={loading}
+                        >
 
+                            <FaEraser/>
 
-            {/* 검색 버튼 */}
-            <Row className="mt-4">
+                            <span className="ms-2">
+                                초기화
+                            </span>
 
-                <Col className="text-end">
+                        </Button>
 
-                    <Button
-                        type="button"
-                        variant="outline-secondary"
-                        onClick={resetSearch}
-                        disabled={loading}
-                    >
 
-                        <FaEraser/>
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            className="ms-2"
+                            disabled={loading}
+                        >
 
-                        <span className="ms-2">
-                            초기화
-                        </span>
+                            <FaMagnifyingGlass/>
 
-                    </Button>
+                            <span className="ms-2">
+                                검색
+                            </span>
 
+                        </Button>
 
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        className="ms-2"
-                        disabled={loading}
-                    >
 
-                        <FaMagnifyingGlass/>
+                    </Col>
 
-                        <span className="ms-2">
-                            검색
-                        </span>
 
-                    </Button>
+                </Row>
 
-                </Col>
 
-            </Row>
+            </Form>
 
-        </Form>
 
+            {/* =========================
+                검색결과 정보
+            ========================= */}
 
-        {/* =========================
-            검색결과 정보
-        ========================= */}
+            <Row className="mt-5">
 
-        <Row className="mt-5">
-
-            <Col>
-
-                <h4 className="fw-bold">
-                    근로계약 조회 결과
-                </h4>
-
-            </Col>
-
-
-            <Col className="text-end text-secondary">
-
-                총{" "}
-                <span className="fw-bold text-dark">
-                    {pageInfo.totalCount}
-                </span>
-                건
-
-            </Col>
-
-        </Row>
-
-
-        {/* =========================
-            계약 목록
-        ========================= */}
-
-        <Row className="mt-3">
-
-            <Col>
-
-                <div className="table-responsive">
-
-                    <Table
-                        hover
-                        bordered
-                        className="align-middle text-center"
-                    >
-
-                        <thead className="table-light">
-
-                            <tr>
-
-                                <th>
-                                    계약번호
-                                </th>
-
-                                <th>
-                                    직원번호
-                                </th>
-
-                                <th>
-                                    직원명
-                                </th>
-
-                                <th>
-                                    임금형태
-                                </th>
-
-                                <th>
-                                    기본임금
-                                </th>
-
-                                <th>
-                                    계약 시작일
-                                </th>
-
-                                <th>
-                                    계약 종료일
-                                </th>
-
-                                <th>
-                                    주휴일
-                                </th>
-
-                                <th>
-                                    계약상태
-                                </th>
-
-                                <th>
-                                    체결일
-                                </th>
-
-                                <th>
-                                    관리
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-
-                        <tbody>
-
-
-                            {/* 로딩 */}
-                            {loading === true && (
-
-                                <tr>
-
-                                    <td
-                                        colSpan={11}
-                                        className="py-5 text-secondary"
-                                    >
-
-                                        근로계약 목록을
-                                        불러오는 중입니다
-
-                                    </td>
-
-                                </tr>
-
-                            )}
-
-
-                            {/* 검색 결과 없음 */}
-                            {loading === false
-                                    && contractList.length === 0 && (
-
-                                <tr>
-
-                                    <td
-                                        colSpan={10}
-                                        className="py-5 text-secondary"
-                                    >
-
-                                        검색 조건에 해당하는
-                                        근로계약이 없습니다
-
-                                    </td>
-
-                                </tr>
-
-                            )}
-
-
-                            {/* 계약 목록 */}
-                            {loading === false
-                                    && contractList.map(
-                                        contract => (
-
-                                <tr
-                                    key={contract.contractNo}
-                                >
-
-                                    <td>
-                                        {contract.contractNo}
-                                    </td>
-
-
-                                    <td>
-                                        {contract.employeeNo}
-                                    </td>
-                                    
-
-                                    <td>
-                                        {contract.accountName ?? "-"}
-                                    </td>
-
-                                    <td>
-
-                                        {wageTypeText(
-                                            contract.wageType
-                                        )}
-
-                                    </td>
-
-
-                                    <td className="text-end">
-
-                                        {formatMoney(
-                                            contract.baseWage
-                                        )}원
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {toDate(
-                                            contract.contractStart
-                                        )}
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {contractEndText(
-                                            contract.contractEnd
-                                        )}
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {weeklyHolidayDayText(
-                                            contract.weeklyHolidayDay
-                                        )}
-
-                                    </td>
-
-
-                                    <td>
-
-                                        <Badge
-                                            bg={statusColor(
-                                                contract.contractStatus
-                                            )}
-                                        >
-
-                                            {statusText(
-                                                contract.contractStatus
-                                            )}
-
-                                        </Badge>
-
-                                    </td>
-
-
-                                    <td>
-
-                                        {
-                                            contract.signedTime
-                                            ? toDate(
-                                                contract.signedTime
-                                            )
-                                            : "미체결"
-                                        }
-
-                                    </td>
-
-
-                                    <td>
-
-                                        <Button
-                                            size="sm"
-                                            variant="outline-primary"
-                                            onClick={() =>
-                                                navigate(
-                                                    `/admin/contract/detail/${contract.contractNo}`
-                                                )
-                                            }
-                                        >
-
-                                            상세보기
-
-                                        </Button>
-
-                                    </td>
-
-                                </tr>
-
-                            ))}
-
-                        </tbody>
-
-                    </Table>
-
-                </div>
-
-            </Col>
-
-        </Row>
-
-
-        {/* =========================
-            페이지네이션
-        ========================= */}
-
-        {pageInfo.totalPages > 0 && (
-
-            <Row className="mt-4 mb-5">
 
                 <Col>
 
-                    <Pagination
-                        className="
-                            justify-content-center
-                            mb-0
-                        "
-                    >
 
+                    <h4 className="fw-bold">
 
-                        {/* 이전 블록 */}
-                        <Pagination.Prev
-                            disabled={
-                                pageInfo.prev === false
-                            }
-                            onClick={() =>
-                                setPage(
-                                    pageInfo.startBlock - 1
-                                )
-                            }
-                        />
+                        근로계약 조회 결과
 
+                    </h4>
 
-                        {/* 페이지 번호 */}
-                        {pageNumbers.map(
-                            pageNumber => (
-
-                            <Pagination.Item
-                                key={pageNumber}
-                                active={
-                                    page === pageNumber
-                                }
-                                onClick={() =>
-                                    setPage(
-                                        pageNumber
-                                    )
-                                }
-                            >
-
-                                {pageNumber}
-
-                            </Pagination.Item>
-
-                        ))}
-
-
-                        {/* 다음 블록 */}
-                        <Pagination.Next
-                            disabled={
-                                pageInfo.next === false
-                            }
-                            onClick={() =>
-                                setPage(
-                                    pageInfo.endBlock + 1
-                                )
-                            }
-                        />
-
-                    </Pagination>
 
                 </Col>
 
+
+                <Col className="text-end text-secondary">
+
+
+                    총{" "}
+
+                    <span className="fw-bold text-dark">
+
+                        {pageInfo.totalCount}
+
+                    </span>
+
+                    건
+
+
+                </Col>
+
+
             </Row>
 
-        )}
 
-    </>);
+            {/* =========================
+                계약 목록
+            ========================= */}
+
+            <Row className="mt-3">
+
+
+                <Col>
+
+
+                    <div className="table-responsive">
+
+
+                        <Table
+                            hover
+                            bordered
+                            className="align-middle text-center"
+                        >
+
+
+                            <thead className="table-light">
+
+
+                                <tr>
+
+
+                                    <th>
+                                        계약번호
+                                    </th>
+
+
+                                    <th>
+                                        직원번호
+                                    </th>
+
+
+                                    <th>
+                                        직원명
+                                    </th>
+
+
+                                    <th>
+                                        임금형태
+                                    </th>
+
+
+                                    <th>
+                                        기본임금
+                                    </th>
+
+
+                                    <th>
+                                        계약 시작일
+                                    </th>
+
+
+                                    <th>
+                                        계약 종료일
+                                    </th>
+
+
+                                    <th>
+                                        주휴일
+                                    </th>
+
+
+                                    <th>
+                                        계약상태
+                                    </th>
+
+
+                                    <th>
+                                        체결일
+                                    </th>
+
+
+                                    <th>
+                                        관리
+                                    </th>
+
+
+                                </tr>
+
+
+                            </thead>
+
+
+                            <tbody>
+
+
+                                {/* =========================
+                                    로딩
+                                ========================= */}
+
+                                {loading === true && (
+
+
+                                    <tr>
+
+
+                                        <td
+                                            colSpan={11}
+                                            className="py-5 text-secondary"
+                                        >
+
+                                            근로계약 목록을
+                                            불러오는 중입니다
+
+                                        </td>
+
+
+                                    </tr>
+
+
+                                )}
+
+
+                                {/* =========================
+                                    검색 결과 없음
+                                ========================= */}
+
+                                {
+                                    loading === false
+                                    &&
+                                    contractList.length === 0
+                                    &&
+                                    (
+
+
+                                        <tr>
+
+
+                                            <td
+                                                colSpan={11}
+                                                className="py-5 text-secondary"
+                                            >
+
+                                                검색 조건에 해당하는
+                                                근로계약이 없습니다
+
+                                            </td>
+
+
+                                        </tr>
+
+
+                                    )
+                                }
+
+
+                                {/* =========================
+                                    계약 목록
+                                ========================= */}
+
+                                {
+                                    loading === false
+                                    &&
+                                    contractList.map(
+                                        contract => (
+
+
+                                            <tr
+                                                key={contract.contractNo}
+                                            >
+
+
+                                                <td>
+
+                                                    {contract.contractNo}
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    {contract.employeeNo}
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    {
+                                                        contract.accountName
+                                                        ??
+                                                        "-"
+                                                    }
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    {
+                                                        wageTypeText(
+                                                            contract.wageType
+                                                        )
+                                                    }
+
+                                                </td>
+
+
+                                                <td className="text-end">
+
+                                                    {
+                                                        formatMoney(
+                                                            contract.baseWage
+                                                        )
+                                                    }원
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    {
+                                                        toDate(
+                                                            contract.contractStart
+                                                        )
+                                                    }
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    {
+                                                        contractEndText(
+                                                            contract.contractEnd
+                                                        )
+                                                    }
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    {
+                                                        weeklyHolidayDayText(
+                                                            contract.weeklyHolidayDay
+                                                        )
+                                                    }
+
+                                                </td>
+
+
+                                                <td>
+
+
+                                                    <Badge
+                                                        bg={
+                                                            statusColor(
+                                                                contract.contractStatus
+                                                            )
+                                                        }
+                                                    >
+
+                                                        {
+                                                            statusText(
+                                                                contract.contractStatus
+                                                            )
+                                                        }
+
+                                                    </Badge>
+
+
+                                                </td>
+
+
+                                                <td>
+
+                                                    {
+                                                        contract.signedTime
+                                                        ?
+                                                        toDate(
+                                                            contract.signedTime
+                                                        )
+                                                        :
+                                                        "미체결"
+                                                    }
+
+                                                </td>
+
+
+                                                <td>
+
+
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline-primary"
+                                                        onClick={() =>
+                                                            navigate(
+                                                                `/admin/contract/detail/${contract.contractNo}`
+                                                            )
+                                                        }
+                                                    >
+
+                                                        상세보기
+
+                                                    </Button>
+
+
+                                                </td>
+
+
+                                            </tr>
+
+
+                                        )
+                                    )
+                                }
+
+
+                            </tbody>
+
+
+                        </Table>
+
+
+                    </div>
+
+
+                </Col>
+
+
+            </Row>
+
+
+            {/* =========================
+                공용 페이지네이션
+            ========================= */}
+
+            <Row className="mb-5">
+
+
+                <Col>
+
+
+                    <PaginationBar
+                        page={page}
+                        totalPages={pageInfo.totalPages}
+                        startBlock={pageInfo.startBlock}
+                        endBlock={pageInfo.endBlock}
+                        prev={pageInfo.prev}
+                        next={pageInfo.next}
+                        onChange={setPage}
+                    />
+
+
+                </Col>
+
+
+            </Row>
+
+
+        </>
+    );
+
 }
