@@ -1,31 +1,110 @@
 import Jumbotron from "@templates/Jumbotron";
+import PaginationBar from "@templates/PaginationBar";
 import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
-import { Badge, Button, Col, Row, Table } from "react-bootstrap";
-import { FaPlus } from "react-icons/fa6";
+import { Badge, Button, Col, Form, InputGroup, Row, Table } from "react-bootstrap";
+import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
+
+const PAGE_SIZE = 10;
+
+// 시험 상태 필터 (서버 examStatus 파라미터)
+const STATUS_FILTERS = ["작성중", "공개", "마감"];
 
 export default function ExamManageList() {
     const navigate = useNavigate();
 
-    //시험 목록
-    const [examList, setExamList] = useState([]);
+    // 시험명 입력값(draft)
+    const [examTitle, setExamTitle] = useState("");
+
+    // 실제 조회에 사용하는 파라미터 (검색/필터/페이지 이동 시에만 변경)
+    const [params, setParams] = useState({
+        page: 1,
+        examTitle: "",
+        examStatus: "",
+        courseNo: null,
+    });
+
+    // 강의 필터 목록
+    const [courseList, setCourseList] = useState([]);
+
+    // 백엔드 PageResponseVO 응답
+    const [pageResponse, setPageResponse] = useState({
+        list: [],
+        totalCount: 0,
+        page: 1,
+        size: PAGE_SIZE,
+        totalPages: 0,
+        startBlock: 1,
+        endBlock: 0,
+        prev: false,
+        next: false,
+    });
 
     //시험 목록 조회
     const loadExamList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/exam/manage");
-            setExamList(response.data);
+            const response = await apiClient.get("/exam/manage", {
+                params: {
+                    page: params.page,
+                    size: PAGE_SIZE,
+                    examTitle: params.examTitle || undefined,
+                    examStatus: params.examStatus || undefined,
+                    courseNo: params.courseNo ?? undefined,
+                },
+            });
+            setPageResponse(response.data);
         }
         catch (e) {
             console.error(e);
+            setPageResponse((prev) => ({ ...prev, list: [], totalCount: 0, totalPages: 0 }));
+        }
+    }, [params]);
+
+    //강의 필터 목록 조회
+    const loadCourseList = useCallback(async () => {
+        try {
+            const response = await apiClient.get("/employee/course/manage");
+            setCourseList(response.data ?? []);
+        }
+        catch (e) {
+            console.error("강의 목록 조회 실패", e);
+            setCourseList([]);
         }
     }, []);
 
-    //최초 1회 조회
     useEffect(() => {
         loadExamList();
     }, [loadExamList]);
+
+    useEffect(() => {
+        loadCourseList();
+    }, [loadCourseList]);
+
+    //검색 실행 (1페이지로 리셋)
+    const handleSearch = useCallback((e) => {
+        e?.preventDefault();
+        setParams((prev) => ({ ...prev, page: 1, examTitle: examTitle.trim() }));
+    }, [examTitle]);
+
+    //시험 상태 필터 (1페이지로 리셋)
+    const handleStatusFilter = useCallback((examStatus) => {
+        setParams((prev) => ({ ...prev, page: 1, examStatus }));
+    }, []);
+
+    //강의 필터 (1페이지로 리셋)
+    const handleCourseFilter = useCallback((value) => {
+        setParams((prev) => ({
+            ...prev,
+            page: 1,
+            courseNo: value ? Number(value) : null,
+        }));
+    }, []);
+
+    //페이지 이동
+    const handlePageChange = useCallback((page) => {
+        setParams((prev) => ({ ...prev, page }));
+    }, []);
 
     // 공개 상태에서 현재시간 기준 세부 단계 계산
     // 현재 < examStart              → "응시 예정"
@@ -148,6 +227,8 @@ export default function ExamManageList() {
         </>
     );
 
+    const examList = pageResponse.list ?? [];
+
     return (<>
         <Jumbotron title="시험정보 리스트" />
 
@@ -160,7 +241,62 @@ export default function ExamManageList() {
             </Col>
         </Row>
 
-        <Row className="mt-4">
+        <Row className="mt-4 g-2">
+            <Col xs={12} md={4} lg={3}>
+                <Form.Select
+                    value={params.courseNo ?? ""}
+                    onChange={(e) => handleCourseFilter(e.target.value)}>
+                    <option value="">전체 강의</option>
+                    {courseList.map((course) => (
+                        <option key={course.courseNo} value={course.courseNo}>
+                            {course.courseTitle}
+                        </option>
+                    ))}
+                </Form.Select>
+            </Col>
+
+            <Col xs={12} md={5} lg={4}>
+                <Form onSubmit={handleSearch}>
+                    <InputGroup>
+                        <Form.Control
+                            placeholder="시험명 검색"
+                            value={examTitle}
+                            onChange={(e) => setExamTitle(e.target.value)}
+                        />
+                        <Button type="submit" variant="primary">
+                            <FaMagnifyingGlass className="me-1" />
+                            <span>검색</span>
+                        </Button>
+                    </InputGroup>
+                </Form>
+            </Col>
+        </Row>
+
+        <div className="mt-3">
+            <Button
+                size="sm"
+                className="me-2 mb-2"
+                variant={params.examStatus === "" ? "primary" : "outline-secondary"}
+                onClick={() => handleStatusFilter("")}>
+                전체
+            </Button>
+            {STATUS_FILTERS.map((status) => (
+                <Button
+                    key={status}
+                    size="sm"
+                    className="me-2 mb-2"
+                    variant={params.examStatus === status ? "primary" : "outline-secondary"}
+                    onClick={() => handleStatusFilter(status)}>
+                    {status}
+                </Button>
+            ))}
+        </div>
+
+        <div className="text-muted mb-2">
+            총 {pageResponse.totalCount}개의 시험
+        </div>
+
+        <Row>
             <Col>
                 <Table responsive striped hover className="text-nowrap">
                     <thead>
@@ -175,21 +311,39 @@ export default function ExamManageList() {
                         </tr>
                     </thead>
                     <tbody>
-                        {examList.map(exam => (
-                            <tr key={exam.examNo}>
-                                <td className="d-none d-md-table-cell">{exam.examNo}</td>
-                                <td>{exam.courseTitle}</td>
-                                <td className="text-start">{exam.examTitle}</td>
-                                <td>{formatDateRange(exam.examStart, exam.examEnd)}</td>
-                                <td className="d-none d-md-table-cell">
-                                    {exam.examLimit ? `${exam.examLimit}분` : "제한 없음"}
+                        {examList.length === 0 ? (
+                            <tr>
+                                <td colSpan={7} className="text-center text-muted py-4">
+                                    조회된 시험이 없습니다.
                                 </td>
-                                <td>{getStatusBadge(exam)}</td>
-                                <td>{renderManageButton(exam)}</td>
                             </tr>
-                        ))}
+                        ) : (
+                            examList.map(exam => (
+                                <tr key={exam.examNo}>
+                                    <td className="d-none d-md-table-cell">{exam.examNo}</td>
+                                    <td>{exam.courseTitle}</td>
+                                    <td className="text-start">{exam.examTitle}</td>
+                                    <td>{formatDateRange(exam.examStart, exam.examEnd)}</td>
+                                    <td className="d-none d-md-table-cell">
+                                        {exam.examLimit ? `${exam.examLimit}분` : "제한 없음"}
+                                    </td>
+                                    <td>{getStatusBadge(exam)}</td>
+                                    <td>{renderManageButton(exam)}</td>
+                                </tr>
+                            ))
+                        )}
                     </tbody>
                 </Table>
+
+                <PaginationBar
+                    page={pageResponse.page}
+                    totalPages={pageResponse.totalPages}
+                    startBlock={pageResponse.startBlock}
+                    endBlock={pageResponse.endBlock}
+                    prev={pageResponse.prev}
+                    next={pageResponse.next}
+                    onChange={handlePageChange}
+                />
             </Col>
         </Row>
 

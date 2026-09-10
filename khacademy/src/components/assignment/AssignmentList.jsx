@@ -57,11 +57,12 @@ export default function AssignmentList() {
     // 강의 필터 목록 조회
     const loadCourseList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/course/employee");
+            const response = await apiClient.get("/employee/course/manage");
             setCourseList(response.data ?? []);
         }
         catch (err) {
-            console.error(err);
+            console.error("강의 목록 조회 실패", err);
+            setCourseList([]);
         }
     }, []);
 
