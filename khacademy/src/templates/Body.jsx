@@ -72,6 +72,7 @@ import ContractChangeCondition from "@components/contract/ContractChangeConditio
 
 import CourseCreate from "@components/course/CourseCreate";
 import CourseList from "@components/course/CourseList";
+import CourseDetail from "@components/course/CourseDetail";
 
 export default function Body() {
 
@@ -184,6 +185,7 @@ export default function Body() {
             {/* 강좌관련 */}
             <Route path="/employee/course/create" element={<CourseCreate/>}/>
             <Route path="/employee/course/list" element={<CourseList/>}/>
+            <Route path="/employee/course/detail/:courseNo" element={<CourseDetail/>}/>
                
             {/* 근태관련 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
