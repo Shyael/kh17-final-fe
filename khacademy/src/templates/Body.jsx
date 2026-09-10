@@ -12,6 +12,7 @@ import EmployeeRegisterSuccess from "@components/employee/EmployeeRegisterSucces
 import EmployeeRegisterFail from "@components/employee/EmployeeRegisterFail";
 import EmployeePassword from "@components/employee/EmployeePassword";
 import EmployeeMyInfo from "@components/employee/EmployeeMyInfo";
+import EmployeeList from "@components/employee/EmployeeList";
 
 import MemberLogin from "@components/member/MemberLogin";
 import MemberJoin from "@components/member/MemberJoin";
@@ -168,6 +169,7 @@ export default function Body() {
             <Route path="/employee/tutor" element={<TutorList />} />
             <Route path="/employee/tutor/add" element={<TutorManage />} />
             <Route path="/employee/tutor/:tutorNo" element={<TutorManage />} />
+            <Route path="/employee/list" element={<EmployeeList/>}/>
 
             {/* 과제(관리) */}
             <Route path="/employee/assignment" element={<AssignmentList />} />

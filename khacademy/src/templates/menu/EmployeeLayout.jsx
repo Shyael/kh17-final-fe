@@ -28,6 +28,7 @@ const MENU = [
     {
         type: "group", icon: "🧑‍🏫", label: "직원관리", children: [
             { label: "직원 등록", to: "/employee/register" },
+            { label: "직원 목록", to: "/employee/list"},
         ],
     },
     {
@@ -61,6 +62,9 @@ export default function EmployeeLayout({ children }) {
     const logout = useLogout();
     const loginUser = useAtomValue(loginUserState);
     const academyName = useAcademyName();
+
+    const isAdmin =
+    loginUser?.roleNames?.includes("ADMIN") ?? false;
 
     const userName = loginUser?.accountName ?? loginUser?.name ?? "직원";
     const userDept = loginUser?.department ?? loginUser?.deptName ?? "";
@@ -142,7 +146,9 @@ export default function EmployeeLayout({ children }) {
             <div className="kh-gw-main">
                 <header className="kh-gw-topbar">
                     <div className="kh-gw-topbar-right">
-                        <AttendanceButton />
+                        {!isAdmin && (
+                             <AttendanceButton />
+                            )}
                         <div className="kh-gw-user">
                             {/* <div className="kh-gw-avatar">{avatarText}</div> */}
                             <div>
