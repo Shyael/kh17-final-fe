@@ -1,36 +1,111 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
-import { Badge, Button, Table } from "react-bootstrap";
-import { FaPlus } from "react-icons/fa6";
+import { Badge, Button, Col, Form, InputGroup, Row, Table } from "react-bootstrap";
+import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
+import PaginationBar from "@templates/PaginationBar";
+
+const PAGE_SIZE = 10;
+const STATUS_FILTERS = ["게시", "마감"];
 
 export default function AssignmentList() {
     const navigate = useNavigate();
-    
-    const [assignmentList, setAssignmentList] = useState([]);
+
+    // 과제 제목 입력값(draft)
+    const [assignmentTitle, setAssignmentTitle] = useState("");
+    // 실제 조회에 사용하는 파라미터 (검색/필터/페이지 이동 시에만 변경)
+    const [params, setParams] = useState({
+        page: 1,
+        assignmentTitle: "",
+        assignmentStatus: "",
+        courseNo: null,
+    });
+    // 강의 필터 목록
+    const [courseList, setCourseList] = useState([]);
+    // 백엔드 PageResponseVO 응답
+    const [pageResponse, setPageResponse] = useState({
+        list: [],
+        totalCount: 0,
+        page: 1,
+        size: PAGE_SIZE,
+        totalPages: 0,
+        startBlock: 1,
+        endBlock: 0,
+        prev: false,
+        next: false,
+    });
 
     // 내가 등록한 과제 목록 조회
     const loadAssignmentList = useCallback(async () => {
-
         try {
-            const response = await apiClient.get("/assignment/manage");
-
-            setAssignmentList(response.data);
+            const response = await apiClient.get("/assignment/manage", {
+                params: {
+                    page: params.page,
+                    size: PAGE_SIZE,
+                    assignmentTitle: params.assignmentTitle || undefined,
+                    assignmentStatus: params.assignmentStatus || undefined,
+                    courseNo: params.courseNo ?? undefined,
+                },
+            });
+            setPageResponse(response.data);
         }
         catch (err) {
             console.error(err);
         }
+    }, [params]);
 
+    // 강의 필터 목록 조회
+    const loadCourseList = useCallback(async () => {
+        try {
+            const response = await apiClient.get("/course/employee");
+            setCourseList(response.data ?? []);
+        }
+        catch (err) {
+            console.error(err);
+        }
     }, []);
 
     useEffect(() => {
         loadAssignmentList();
     }, [loadAssignmentList]);
 
+    useEffect(() => {
+        loadCourseList();
+    }, [loadCourseList]);
+
+    // 검색 실행 (1페이지로 리셋)
+    const handleSearch = useCallback((e) => {
+        e?.preventDefault();
+        setParams((prev) => ({
+            ...prev,
+            page: 1,
+            assignmentTitle: assignmentTitle.trim(),
+        }));
+    }, [assignmentTitle]);
+
+    // 상태 필터 (1페이지로 리셋)
+    const handleStatusFilter = useCallback((assignmentStatus) => {
+        setParams((prev) => ({ ...prev, page: 1, assignmentStatus }));
+    }, []);
+
+    // 강의 필터 (1페이지로 리셋)
+    const handleCourseFilter = useCallback((value) => {
+        setParams((prev) => ({
+            ...prev,
+            page: 1,
+            courseNo: value ? Number(value) : null,
+        }));
+    }, []);
+
+    // 페이지 이동
+    const handlePageChange = useCallback((page) => {
+        setParams((prev) => ({ ...prev, page }));
+    }, []);
+
+    const assignmentList = pageResponse.list ?? [];
 
     // 상태 배지
     const statusBadge = (status) => {
-
         switch (status) {
             case "게시":
                 return <Badge bg="success">게시</Badge>;
@@ -41,7 +116,6 @@ export default function AssignmentList() {
             default:
                 return <Badge bg="secondary">{status}</Badge>;
         }
-
     };
 
     return (
@@ -61,6 +135,60 @@ export default function AssignmentList() {
                 </Button>
             </div>
 
+            <Row className="g-2 mb-3">
+                <Col xs={12} md={4} lg={3}>
+                    <Form.Select
+                        value={params.courseNo ?? ""}
+                        onChange={(e) => handleCourseFilter(e.target.value)}>
+                        <option value="">전체 강의</option>
+                        {courseList.map((course) => (
+                            <option key={course.courseNo} value={course.courseNo}>
+                                {course.courseTitle}
+                            </option>
+                        ))}
+                    </Form.Select>
+                </Col>
+
+                <Col xs={12} md={5} lg={4}>
+                    <Form onSubmit={handleSearch}>
+                        <InputGroup>
+                            <Form.Control
+                                placeholder="과제명 검색"
+                                value={assignmentTitle}
+                                onChange={(e) => setAssignmentTitle(e.target.value)}
+                            />
+                            <Button type="submit" variant="primary">
+                                <FaMagnifyingGlass className="me-1" />
+                                <span>검색</span>
+                            </Button>
+                        </InputGroup>
+                    </Form>
+                </Col>
+            </Row>
+
+            <div className="mb-3">
+                <Button
+                    size="sm"
+                    className="me-2 mb-2"
+                    variant={params.assignmentStatus === "" ? "primary" : "outline-secondary"}
+                    onClick={() => handleStatusFilter("")}>
+                    전체
+                </Button>
+                {STATUS_FILTERS.map((status) => (
+                    <Button
+                        key={status}
+                        size="sm"
+                        className="me-2 mb-2"
+                        variant={params.assignmentStatus === status ? "primary" : "outline-secondary"}
+                        onClick={() => handleStatusFilter(status)}>
+                        {status}
+                    </Button>
+                ))}
+            </div>
+
+            <div className="text-muted mb-2">
+                총 {pageResponse.totalCount}개의 과제
+            </div>
 
             <Table
                 bordered
@@ -85,8 +213,8 @@ export default function AssignmentList() {
 
                     {assignmentList.length === 0 && (
                         <tr>
-                            <td colSpan={7}>
-                                등록된 과제가 없습니다.
+                            <td colSpan={7} className="text-muted py-4">
+                                조회된 과제가 없습니다.
                             </td>
                         </tr>
                     )}
@@ -145,6 +273,16 @@ export default function AssignmentList() {
                     ))}
                 </tbody>
             </Table>
+
+            <PaginationBar
+                page={pageResponse.page}
+                totalPages={pageResponse.totalPages}
+                startBlock={pageResponse.startBlock}
+                endBlock={pageResponse.endBlock}
+                prev={pageResponse.prev}
+                next={pageResponse.next}
+                onChange={handlePageChange}
+            />
         </>
     );
 }

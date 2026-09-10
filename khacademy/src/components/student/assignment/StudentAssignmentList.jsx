@@ -1,21 +1,18 @@
 import Jumbotron from "@templates/Jumbotron";
+import PaginationBar from "@templates/PaginationBar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiClient } from "@utils/reaxios";
-import { Badge, Button, ButtonGroup, Card, Col, Form, Row } from "react-bootstrap";
+import { Badge, Button, ButtonGroup, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
 
-// 한 번에 보여줄 과제 수
-const PAGE_SIZE = 3;
+// 한 페이지에 보여줄 과제 수
+const PAGE_SIZE = 10;
 
-// 상태 필터 목록
-const FILTERS = [
-    { key: "전체", label: "전체" },
-    { key: "미제출", label: "미제출 보기" },
-    { key: "제출완료", label: "제출완료 보기" },
-    { key: "채점완료", label: "채점완료 보기" },
-];
+// 제출 상태 필터 (서버 submitStatus 파라미터)
+const SUBMIT_FILTERS = ["미제출", "제출완료", "채점완료"];
 
 export default function StudentAssignmentList() {
 
@@ -26,51 +23,146 @@ export default function StudentAssignmentList() {
     const selectedChild = useAtomValue(selectedChildState);
     const selectedChildNo = useAtomValue(selectedChildNoState);
 
-    // 내 과제 목록
-    const [assignmentList, setAssignmentList] = useState([]);
+    // 과제 제목 입력값(draft)
+    const [assignmentTitle, setAssignmentTitle] = useState("");
 
-    // 선택된 상태 필터
-    const [filter, setFilter] = useState("전체");
+    // 실제 조회에 사용하는 파라미터 (검색/필터/페이지 이동 시에만 변경)
+    const [params, setParams] = useState({
+        page: 1,
+        assignmentTitle: "",
+        submitStatus: "",
+        courseNo: null,
+    });
 
-    // 선택된 강의 필터 (courseNo, "전체"면 전체)
-    const [courseFilter, setCourseFilter] = useState("전체");
+    // 강의 필터 목록 (학생 본인 수강 강의)
+    const [courseList, setCourseList] = useState([]);
 
-    // 더보기로 노출된 개수
-    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    // 백엔드 PageResponseVO 응답
+    const [pageResponse, setPageResponse] = useState({
+        list: [],
+        totalCount: 0,
+        page: 1,
+        size: PAGE_SIZE,
+        totalPages: 0,
+        startBlock: 1,
+        endBlock: 0,
+        prev: false,
+        next: false,
+    });
 
     //내 과제 목록 조회 (학생 본인 / 학부모는 선택한 자녀 기준)
     const loadAssignmentList = useCallback(async () => {
         try {
+            const query = {
+                params: {
+                    page: params.page,
+                    size: PAGE_SIZE,
+                    assignmentTitle: params.assignmentTitle || undefined,
+                    submitStatus: params.submitStatus || undefined,
+                    courseNo: params.courseNo ?? undefined,
+                },
+            };
+
             let response;
 
             if (isParent) {
                 // 자녀 선택 전이면 목록 비우고 대기
                 if (selectedChildNo == null) {
-                    setAssignmentList([]);
+                    setPageResponse((prev) => ({ ...prev, list: [], totalCount: 0, totalPages: 0 }));
                     return;
                 }
 
                 response = await apiClient.get(
-                    `/assignment/parent/student/${selectedChildNo}`
+                    `/assignment/parent/student/${selectedChildNo}`,
+                    query
                 );
             }
             else {
-                response = await apiClient.get("/assignment/student");
+                response = await apiClient.get("/assignment/student", query);
             }
 
-            setAssignmentList(response.data);
+            setPageResponse(response.data);
         }
         catch (err) {
             console.error("과제 목록 조회 실패", err);
-            setAssignmentList([]);
+            setPageResponse((prev) => ({ ...prev, list: [], totalCount: 0, totalPages: 0 }));
+        }
+    }, [isParent, selectedChildNo, params]);
+
+    // 강의 필터 목록 조회 (학생: 본인 수강 / 학부모: 선택한 자녀 수강)
+    const loadCourseList = useCallback(async () => {
+        try {
+            let response;
+
+            if (isParent) {
+                if (selectedChildNo == null) {
+                    setCourseList([]);
+                    return;
+                }
+                response = await apiClient.get(
+                    `/academy/student/parent/${selectedChildNo}/course`
+                );
+            }
+            else {
+                response = await apiClient.get("/academy/student/course");
+            }
+
+            setCourseList(response.data ?? []);
+        }
+        catch (err) {
+            console.error("수강 강의 목록 조회 실패", err);
+            setCourseList([]);
         }
     }, [isParent, selectedChildNo]);
 
-    // 화면 진입 시 / 자녀 변경 시 조회
+    // 화면 진입 시 / 자녀 변경 시 / 파라미터 변경 시 조회
     useEffect(() => {
         loadAssignmentList();
-        setVisibleCount(PAGE_SIZE);
     }, [loadAssignmentList]);
+
+    useEffect(() => {
+        loadCourseList();
+    }, [loadCourseList]);
+
+    // 자녀가 바뀌면 검색조건 초기화
+    useEffect(() => {
+        setAssignmentTitle("");
+        setParams({
+            page: 1,
+            assignmentTitle: "",
+            submitStatus: "",
+            courseNo: null,
+        });
+    }, [selectedChildNo]);
+
+    // 검색 실행 (1페이지로 리셋)
+    const handleSearch = useCallback((e) => {
+        e?.preventDefault();
+        setParams((prev) => ({
+            ...prev,
+            page: 1,
+            assignmentTitle: assignmentTitle.trim(),
+        }));
+    }, [assignmentTitle]);
+
+    // 제출 상태 필터 (1페이지로 리셋)
+    const handleSubmitFilter = useCallback((submitStatus) => {
+        setParams((prev) => ({ ...prev, page: 1, submitStatus }));
+    }, []);
+
+    // 강의 필터 (1페이지로 리셋)
+    const handleCourseFilter = useCallback((value) => {
+        setParams((prev) => ({
+            ...prev,
+            page: 1,
+            courseNo: value ? Number(value) : null,
+        }));
+    }, []);
+
+    // 페이지 이동
+    const handlePageChange = useCallback((page) => {
+        setParams((prev) => ({ ...prev, page }));
+    }, []);
 
     // 제출 상태 확인
     const getSubmitStatus = (assignment) => {
@@ -159,6 +251,11 @@ export default function StudentAssignmentList() {
         return `${date.getMonth() + 1}/${date.getDate()} 까지`;
     };
 
+    const assignmentList = useMemo(
+        () => pageResponse.list ?? [],
+        [pageResponse.list]
+    );
+
     // 최근 생성순 정렬 (새로 만든 과제가 위로)
     const sortedList = useMemo(() => {
         return [...assignmentList].sort(
@@ -166,48 +263,13 @@ export default function StudentAssignmentList() {
         );
     }, [assignmentList]);
 
-    // 강의 목록 (중복 제거)
+    // 강의 필터 옵션 (학생: 본인 수강 / 학부모: 자녀 수강)
     const courseOptions = useMemo(() => {
-        const map = new Map();
-        assignmentList.forEach((assignment) => {
-            const key = assignment.courseNo ?? assignment.courseTitle;
-            if (key != null && !map.has(key)) {
-                map.set(key, assignment.courseTitle);
-            }
-        });
-        return Array.from(map, ([value, label]) => ({ value, label }));
-    }, [assignmentList]);
-
-    // 필터 적용된 목록 (강의 + 상태)
-    const filteredList = useMemo(() => {
-        return sortedList.filter((assignment) => {
-            if (courseFilter !== "전체") {
-                const key = assignment.courseNo ?? assignment.courseTitle;
-                if (String(key) !== String(courseFilter)) {
-                    return false;
-                }
-            }
-            if (filter !== "전체" && getSubmitStatus(assignment) !== filter) {
-                return false;
-            }
-            return true;
-        });
-    }, [sortedList, filter, courseFilter]);
-
-    // 실제 화면에 노출되는 목록
-    const visibleList = filteredList.slice(0, visibleCount);
-
-    // 필터 변경 시 더보기 초기화
-    const changeFilter = (key) => {
-        setFilter(key);
-        setVisibleCount(PAGE_SIZE);
-    };
-
-    // 강의 필터 변경 시 더보기 초기화
-    const changeCourse = (e) => {
-        setCourseFilter(e.target.value);
-        setVisibleCount(PAGE_SIZE);
-    };
+        return courseList.map((course) => ({
+            value: course.courseNo,
+            label: course.courseTitle,
+        }));
+    }, [courseList]);
 
     return (<>
         <Jumbotron title={isParent ? "자녀 과제" : "내 과제"} />
@@ -228,48 +290,73 @@ export default function StudentAssignmentList() {
             </div>
         )}
 
-        {/* 1. 강의 선택 + 과제 상태 버튼 */}
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <Form.Select
-                size="sm"
-                style={{ width: "auto" }}
-                value={courseFilter}
-                onChange={changeCourse}>
-                <option value="전체">전체 강의</option>
-                {courseOptions.map((course) => (
-                    <option key={course.value} value={course.value}>
-                        {course.label}
-                    </option>
-                ))}
-            </Form.Select>
+        {/* 1. 강의 선택 + 과제명 검색 */}
+        <Row className="g-2 mb-3">
+            <Col xs={12} md={4} lg={3}>
+                <Form.Select
+                    value={params.courseNo ?? ""}
+                    onChange={(e) => handleCourseFilter(e.target.value)}>
+                    <option value="">전체 강의</option>
+                    {courseOptions.map((course) => (
+                        <option key={course.value} value={course.value}>
+                            {course.label}
+                        </option>
+                    ))}
+                </Form.Select>
+            </Col>
 
+            <Col xs={12} md={5} lg={4}>
+                <Form onSubmit={handleSearch}>
+                    <InputGroup>
+                        <Form.Control
+                            placeholder="과제명 검색"
+                            value={assignmentTitle}
+                            onChange={(e) => setAssignmentTitle(e.target.value)}
+                        />
+                        <Button type="submit" variant="primary">
+                            <FaMagnifyingGlass className="me-1" />
+                            <span>검색</span>
+                        </Button>
+                    </InputGroup>
+                </Form>
+            </Col>
+        </Row>
+
+        {/* 2. 제출 상태 필터 (서버) */}
+        <div className="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3">
             <ButtonGroup>
-                {FILTERS.map((item) => (
+                <Button
+                    variant={params.submitStatus === "" ? "primary" : "outline-primary"}
+                    size="sm"
+                    onClick={() => handleSubmitFilter("")}>
+                    전체
+                </Button>
+                {SUBMIT_FILTERS.map((status) => (
                     <Button
-                        key={item.key}
-                        variant={
-                            filter === item.key
-                                ? "primary"
-                                : "outline-primary"
-                        }
+                        key={status}
+                        variant={params.submitStatus === status ? "primary" : "outline-primary"}
                         size="sm"
-                        onClick={() => changeFilter(item.key)}>
-                        {item.label}
+                        onClick={() => handleSubmitFilter(status)}>
+                        {status}
                     </Button>
                 ))}
             </ButtonGroup>
         </div>
 
-        {/* 2. 과제 목록 */}
+        <div className="text-muted mb-2">
+            총 {pageResponse.totalCount}개의 과제
+        </div>
+
+        {/* 3. 과제 목록 */}
         <Row className="g-3">
-            {visibleList.length === 0 ? (
+            {sortedList.length === 0 ? (
                 <Col xs={12}>
                     <p className="text-center text-muted py-4">
-                        등록된 과제가 없습니다.
+                        조회된 과제가 없습니다.
                     </p>
                 </Col>
             ) : (
-                visibleList.map((assignment) => {
+                sortedList.map((assignment) => {
                     const status = getSubmitStatus(assignment);
                     return (
                         <Col xs={12} key={assignment.assignmentNo}>
@@ -301,15 +388,15 @@ export default function StudentAssignmentList() {
             )}
         </Row>
 
-        {/* 6. 더보기 버튼 */}
-        {visibleCount < filteredList.length && (
-            <div className="text-center mt-4">
-                <Button
-                    variant="light"
-                    onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}>
-                    더보기 ∨
-                </Button>
-            </div>
-        )}
+        {/* 4. 페이지네이션 */}
+        <PaginationBar
+            page={pageResponse.page}
+            totalPages={pageResponse.totalPages}
+            startBlock={pageResponse.startBlock}
+            endBlock={pageResponse.endBlock}
+            prev={pageResponse.prev}
+            next={pageResponse.next}
+            onChange={handlePageChange}
+        />
     </>)
 }

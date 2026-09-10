@@ -54,10 +54,12 @@ export default function AcademyInfo() {
         setAcademy(response.data);
     }, []);
 
-    //강사정보
+    //강사정보 (미리보기용 3명만 조회)
     const loadTutor = useCallback(async () => {
-        const response = await apiClient.get("/tutor/");
-        setTutorList(response.data);
+        const response = await apiClient.get("/tutor", {
+            params: { page: 1, size: 3 },
+        });
+        setTutorList(response.data?.list ?? []);
     }, []);
 
     useEffect(() => {
