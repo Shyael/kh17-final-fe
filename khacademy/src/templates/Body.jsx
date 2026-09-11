@@ -61,6 +61,7 @@ import PaymentDetail from '@components/payment/PaymentDetail';
 
 import EmployeeAttendance from "@components/employeeAttendance/EmployeeAttendance";
 import AdminAttendance from "@components/attendance/admin/AdminAttendance";
+import KioskAttendance from "@components/attendance/admin/KioskAttendance";
 
 import ContractAdd from "@components/contract/ContractAdd";
 import ContractEditBeforeSigned from "@components/contract/ContractEditBeforeSigned";
@@ -191,6 +192,7 @@ export default function Body() {
             <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
             {/* 관리자 전용 근태 */}
             <Route path="/admin/attendance/" element={<AdminAttendance/>}/>
+            <Route path="/employee/kiosk/" element={<KioskAttendance/>}/>
             
         </Routes>   
 
