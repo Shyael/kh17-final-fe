@@ -1,4 +1,7 @@
+
 import { useSetAtom } from "jotai";
+
+
 import { useCallback, useState } from "react";
 import { Button, Form } from "react-bootstrap";
 import { FaRightToBracket } from "react-icons/fa6";
@@ -29,6 +32,7 @@ export default function AccountLogin() {
             [name]: value
         }));
     }, []);
+    
     //로그인
     const sendLogin = useCallback(async () => {
         //미입력 시 차단
