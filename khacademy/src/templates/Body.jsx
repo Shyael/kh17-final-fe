@@ -207,6 +207,9 @@ export default function Body() {
             <Route path="/student/exam/:examNo/attempt/:attemptNo" element={<ExamStudentAttempt />}/>
             <Route path="/student/exam/result/:attemptNo" element={<ExamStudentResult />}/>
 
+            {/* 학부모 : 자녀 시험 결과 */}
+            <Route path="/parent/exam/result/:attemptNo" element={<ExamStudentResult />}/>
+
             {/* fallback route */}
 
             <Route path="*" element={<NotFound />} />

@@ -1,54 +1,160 @@
 import Jumbotron from "@templates/Jumbotron";
+import PaginationBar from "@templates/PaginationBar";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
-import { Badge, Button, ButtonGroup, Card, Col, Form, Row } from "react-bootstrap";
+import { Badge, Button, ButtonGroup, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import { useAtomValue } from "jotai";
+import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
 
-// 한 번에 보여줄 시험 수
-const PAGE_SIZE = 3;
+// 한 페이지에 보여줄 시험 수
+const PAGE_SIZE = 10;
 
-// 상태 필터 목록
-const FILTERS = [
-    { key: "전체", label: "전체" },
-    { key: "미응시", label: "미응시 보기" },
-    { key: "응시중", label: "응시중 보기" },
-    { key: "제출완료", label: "제출완료 보기" },
-];
+// 응시 상태 필터 (서버 attemptStatus 파라미터)
+const ATTEMPT_FILTERS = ["미응시", "응시중", "제출완료"];
 
 export default function ExamStudentList() {
 
     const navigate = useNavigate();
 
-    // 학생 시험 목록
-    const [examList, setExamList] = useState([]);
+    // 학부모 여부 / 선택된 자녀
+    const isParent = useAtomValue(isParentState);
+    const selectedChild = useAtomValue(selectedChildState);
+    const selectedChildNo = useAtomValue(selectedChildNoState);
 
-    // 선택된 상태 필터
-    const [filter, setFilter] = useState("전체");
+    // 시험 제목 입력값(draft)
+    const [examTitle, setExamTitle] = useState("");
 
-    // 선택된 강의 필터 (courseNo, "전체"면 전체)
-    const [courseFilter, setCourseFilter] = useState("전체");
+    // 실제 조회에 사용하는 파라미터 (검색/필터/페이지 이동 시에만 변경)
+    const [params, setParams] = useState({
+        page: 1,
+        examTitle: "",
+        attemptStatus: "",
+        courseNo: null,
+    });
 
-    // 더보기로 노출된 개수
-    const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+    // 강의 필터 목록 (학생: 본인 수강 / 학부모: 자녀 수강)
+    const [courseList, setCourseList] = useState([]);
 
-    // 시험 목록 조회
+    // 백엔드 PageResponseVO 응답
+    const [pageResponse, setPageResponse] = useState({
+        list: [],
+        totalCount: 0,
+        page: 1,
+        size: PAGE_SIZE,
+        totalPages: 0,
+        startBlock: 1,
+        endBlock: 0,
+        prev: false,
+        next: false,
+    });
+
+    // 시험 목록 조회 (학생 본인 / 학부모는 선택한 자녀 기준)
     const loadExamList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/exam/student");
-            setExamList(response.data);
+            const query = {
+                params: {
+                    page: params.page,
+                    size: PAGE_SIZE,
+                    examTitle: params.examTitle || undefined,
+                    attemptStatus: params.attemptStatus || undefined,
+                    courseNo: params.courseNo ?? undefined,
+                },
+            };
+
+            let response;
+
+            if (isParent) {
+                // 자녀 선택 전이면 목록 비우고 대기
+                if (selectedChildNo == null) {
+                    setPageResponse((prev) => ({ ...prev, list: [], totalCount: 0, totalPages: 0 }));
+                    return;
+                }
+
+                response = await apiClient.get(
+                    `/exam/parent/student/${selectedChildNo}`,
+                    query
+                );
+            }
+            else {
+                response = await apiClient.get("/exam/student", query);
+            }
+
+            setPageResponse(response.data);
         }
         catch (e) {
             console.error(e);
             toast.error("시험 목록을 불러오지 못했습니다.");
+            setPageResponse((prev) => ({ ...prev, list: [], totalCount: 0, totalPages: 0 }));
         }
-    }, []);
+    }, [isParent, selectedChildNo, params]);
 
-    // 최초 1회 조회
+    // 강의 필터 목록 조회
+    const loadCourseList = useCallback(async () => {
+        try {
+            let response;
+
+            if (isParent) {
+                if (selectedChildNo == null) {
+                    setCourseList([]);
+                    return;
+                }
+                response = await apiClient.get(
+                    `/academy/student/parent/${selectedChildNo}/course`
+                );
+            }
+            else {
+                response = await apiClient.get("/academy/student/course");
+            }
+
+            setCourseList(response.data ?? []);
+        }
+        catch (e) {
+            console.error("수강 강의 목록 조회 실패", e);
+            setCourseList([]);
+        }
+    }, [isParent, selectedChildNo]);
+
     useEffect(() => {
         loadExamList();
-        setVisibleCount(PAGE_SIZE);
     }, [loadExamList]);
+
+    useEffect(() => {
+        loadCourseList();
+    }, [loadCourseList]);
+
+    // 자녀가 바뀌면 검색조건 초기화
+    useEffect(() => {
+        setExamTitle("");
+        setParams({ page: 1, examTitle: "", attemptStatus: "", courseNo: null });
+    }, [selectedChildNo]);
+
+    // 검색 실행 (1페이지로 리셋)
+    const handleSearch = useCallback((e) => {
+        e?.preventDefault();
+        setParams((prev) => ({ ...prev, page: 1, examTitle: examTitle.trim() }));
+    }, [examTitle]);
+
+    // 응시 상태 필터 (1페이지로 리셋)
+    const handleAttemptFilter = useCallback((attemptStatus) => {
+        setParams((prev) => ({ ...prev, page: 1, attemptStatus }));
+    }, []);
+
+    // 강의 필터 (1페이지로 리셋)
+    const handleCourseFilter = useCallback((value) => {
+        setParams((prev) => ({
+            ...prev,
+            page: 1,
+            courseNo: value ? Number(value) : null,
+        }));
+    }, []);
+
+    // 페이지 이동
+    const handlePageChange = useCallback((page) => {
+        setParams((prev) => ({ ...prev, page }));
+    }, []);
 
     // 날짜 출력
     const formatDate = (date) => {
@@ -78,29 +184,7 @@ export default function ExamStudentList() {
         </>
     );
 
-    // 시험 현재 상태 (시간 기준)
-    const getExamPhase = useCallback((exam) => {
-        const now = new Date();
-        const start = exam.examStart ? new Date(exam.examStart) : null;
-        const end = exam.examEnd ? new Date(exam.examEnd) : null;
-
-        // 마감 처리된 시험
-        if (exam.examStatus === "마감") {
-            return "종료";
-        }
-
-        if (start && now < start) {
-            return "예정";
-        }
-
-        if (end && now >= end) {
-            return "종료";
-        }
-
-        return "응시가능";
-    }, []);
-
-    // 응시 상태 라벨 (필터 매칭용)
+    // 응시 상태 라벨 (배지/버튼용) - 시험 단계는 백엔드 examPhase(예정/응시가능/종료) 사용
     const getAttemptLabel = useCallback((exam) => {
         if (exam.attemptStatus === "제출완료") {
             return "제출완료";
@@ -109,16 +193,14 @@ export default function ExamStudentList() {
             return "응시중";
         }
 
-        const phase = getExamPhase(exam);
-
-        if (phase === "예정") {
+        if (exam.examPhase === "예정") {
             return "응시예정";
         }
-        if (phase === "종료") {
+        if (exam.examPhase === "종료") {
             return "종료";
         }
         return "미응시";
-    }, [getExamPhase]);
+    }, []);
 
     // 응시 상태 배지
     const submitStatusBadge = (exam) => {
@@ -140,6 +222,19 @@ export default function ExamStudentList() {
 
     // 상태별 액션 버튼
     const actionButton = (exam) => {
+
+        // 학부모는 응시 불가 → 자녀 시험 상세만 조회
+        if (isParent) {
+            return (
+                <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => navigate(`/student/exam/${exam.examNo}`)}>
+                    시험 상세
+                </Button>
+            );
+        }
+
         const label = getAttemptLabel(exam);
         const detail = `/student/exam/${exam.examNo}`;
 
@@ -186,6 +281,11 @@ export default function ExamStudentList() {
         }
     };
 
+    const examList = useMemo(
+        () => pageResponse.list ?? [],
+        [pageResponse.list]
+    );
+
     // 최근 생성순 정렬 (새로 만든 시험이 위로)
     const sortedList = useMemo(() => {
         return [...examList].sort(
@@ -193,94 +293,100 @@ export default function ExamStudentList() {
         );
     }, [examList]);
 
-    // 강의 목록 (중복 제거)
+    // 강의 필터 옵션
     const courseOptions = useMemo(() => {
-        const map = new Map();
-        examList.forEach((exam) => {
-            const key = exam.courseNo ?? exam.courseTitle;
-            if (key != null && !map.has(key)) {
-                map.set(key, exam.courseTitle);
-            }
-        });
-        return Array.from(map, ([value, label]) => ({ value, label }));
-    }, [examList]);
-
-    // 필터 적용된 목록 (강의 + 상태)
-    const filteredList = useMemo(() => {
-        return sortedList.filter((exam) => {
-            if (courseFilter !== "전체") {
-                const key = exam.courseNo ?? exam.courseTitle;
-                if (String(key) !== String(courseFilter)) {
-                    return false;
-                }
-            }
-            if (filter !== "전체" && getAttemptLabel(exam) !== filter) {
-                return false;
-            }
-            return true;
-        });
-    }, [sortedList, filter, courseFilter, getAttemptLabel]);
-
-    // 실제 화면에 노출되는 목록
-    const visibleList = filteredList.slice(0, visibleCount);
-
-    // 필터 변경 시 더보기 초기화
-    const changeFilter = (key) => {
-        setFilter(key);
-        setVisibleCount(PAGE_SIZE);
-    };
-
-    // 강의 필터 변경 시 더보기 초기화
-    const changeCourse = (e) => {
-        setCourseFilter(e.target.value);
-        setVisibleCount(PAGE_SIZE);
-    };
+        return courseList.map((course) => ({
+            value: course.courseNo,
+            label: course.courseTitle,
+        }));
+    }, [courseList]);
 
     return (<>
-        <Jumbotron title="내 시험" />
+        <Jumbotron title={isParent ? "자녀 시험" : "내 시험"} />
 
-        {/* 1. 강의 선택 + 시험 상태 버튼 */}
-        <div className="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-            <Form.Select
-                size="sm"
-                style={{ width: "auto" }}
-                value={courseFilter}
-                onChange={changeCourse}>
-                <option value="전체">전체 강의</option>
-                {courseOptions.map((course) => (
-                    <option key={course.value} value={course.value}>
-                        {course.label}
-                    </option>
-                ))}
-            </Form.Select>
+        {/* 학부모: 현재 조회중인 자녀 표시 */}
+        {isParent && (
+            <div className="mb-3">
+                {selectedChild ? (
+                    <span className="text-muted">
+                        <strong>{selectedChild.studentName}</strong> 학생의 시험을 보고 있습니다.
+                        <span className="ms-1">(메뉴에서 자녀 변경)</span>
+                    </span>
+                ) : (
+                    <span className="text-danger">
+                        조회할 자녀가 없습니다.
+                    </span>
+                )}
+            </div>
+        )}
 
+        {/* 1. 강의 선택 + 시험명 검색 */}
+        <Row className="g-2 mb-3">
+            <Col xs={12} md={4} lg={3}>
+                <Form.Select
+                    value={params.courseNo ?? ""}
+                    onChange={(e) => handleCourseFilter(e.target.value)}>
+                    <option value="">전체 강의</option>
+                    {courseOptions.map((course) => (
+                        <option key={course.value} value={course.value}>
+                            {course.label}
+                        </option>
+                    ))}
+                </Form.Select>
+            </Col>
+
+            <Col xs={12} md={5} lg={4}>
+                <Form onSubmit={handleSearch}>
+                    <InputGroup>
+                        <Form.Control
+                            placeholder="시험명 검색"
+                            value={examTitle}
+                            onChange={(e) => setExamTitle(e.target.value)}
+                        />
+                        <Button type="submit" variant="primary">
+                            <FaMagnifyingGlass className="me-1" />
+                            <span>검색</span>
+                        </Button>
+                    </InputGroup>
+                </Form>
+            </Col>
+        </Row>
+
+        {/* 2. 응시 상태 필터 (서버) */}
+        <div className="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3">
             <ButtonGroup>
-                {FILTERS.map((item) => (
+                <Button
+                    variant={params.attemptStatus === "" ? "primary" : "outline-primary"}
+                    size="sm"
+                    onClick={() => handleAttemptFilter("")}>
+                    전체
+                </Button>
+                {ATTEMPT_FILTERS.map((status) => (
                     <Button
-                        key={item.key}
-                        variant={
-                            filter === item.key
-                                ? "primary"
-                                : "outline-primary"
-                        }
+                        key={status}
+                        variant={params.attemptStatus === status ? "primary" : "outline-primary"}
                         size="sm"
-                        onClick={() => changeFilter(item.key)}>
-                        {item.label}
+                        onClick={() => handleAttemptFilter(status)}>
+                        {status}
                     </Button>
                 ))}
             </ButtonGroup>
         </div>
 
-        {/* 2. 시험 목록 */}
+        <div className="text-muted mb-2">
+            총 {pageResponse.totalCount}개의 시험
+        </div>
+
+        {/* 3. 시험 목록 */}
         <Row className="g-3">
-            {visibleList.length === 0 ? (
+            {sortedList.length === 0 ? (
                 <Col xs={12}>
                     <p className="text-center text-muted py-4">
-                        등록된 시험이 없습니다.
+                        조회된 시험이 없습니다.
                     </p>
                 </Col>
             ) : (
-                visibleList.map((exam) => (
+                sortedList.map((exam) => (
                     <Col xs={12} key={exam.examNo}>
                         <Card>
                             <Card.Body className="d-flex justify-content-between align-items-center">
@@ -312,15 +418,15 @@ export default function ExamStudentList() {
             )}
         </Row>
 
-        {/* 3. 더보기 버튼 */}
-        {visibleCount < filteredList.length && (
-            <div className="text-center mt-4">
-                <Button
-                    variant="light"
-                    onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}>
-                    더보기 ∨
-                </Button>
-            </div>
-        )}
+        {/* 4. 페이지네이션 */}
+        <PaginationBar
+            page={pageResponse.page}
+            totalPages={pageResponse.totalPages}
+            startBlock={pageResponse.startBlock}
+            endBlock={pageResponse.endBlock}
+            prev={pageResponse.prev}
+            next={pageResponse.next}
+            onChange={handlePageChange}
+        />
     </>)
 }

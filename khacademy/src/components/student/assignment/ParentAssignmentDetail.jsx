@@ -26,6 +26,7 @@ export default function ParentAssignmentDetail() {
         assignmentTitle: "",
         assignmentContent: "",
         assignmentStatus: "",
+        assignmentPhase: "",
         assignmentDueDate: null,
         assignmentWtime: null,
         fileList: []
@@ -113,7 +114,7 @@ export default function ParentAssignmentDetail() {
         </ListGroup>
     );
 
-    const isClosed = assignment.assignmentStatus === "마감";
+    const isClosed = assignment.assignmentPhase === "마감";
 
     // 제출 상태
     const hasSubmit = submit != null;
@@ -143,12 +144,12 @@ export default function ParentAssignmentDetail() {
                                 <span>{assignment.accountName} 강사</span>
                                 <span className="mx-2">·</span>
                                 <span>
-                                    {formatDateTime(assignment.assignmentDueDate)} 마감
+                                    {formatDateTime(assignment.assignmentDueDate)} 까지
                                 </span>
                                 <span className="ms-2">
                                     {isClosed
-                                        ? <Badge bg="secondary">마감</Badge>
-                                        : <Badge bg="success">게시</Badge>}
+                                        ? <Badge bg="dark">마감</Badge>
+                                        : <Badge bg="info">제출가능</Badge>}
                                 </span>
                             </div>
 

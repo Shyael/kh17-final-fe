@@ -121,7 +121,7 @@ export default function AssignmentManage() {
     //강의 목록 불러오기
     const loadCourseList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/course/employee");
+            const response = await apiClient.get("/employee/course/manage");
 
             setCourseList(response.data);
         }

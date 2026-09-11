@@ -4,6 +4,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import { Badge, Button, ButtonGroup, Card, Col, Row, Table } from "react-bootstrap";
+import { FaLock } from "react-icons/fa6";
+import Swal from "sweetalert2";
 
 //정답률이 이 값 미만이면 "낮은 문항"으로 표시
 const LOW_CORRECT_RATE = 30;
@@ -98,26 +100,54 @@ export default function ExamResult() {
         });
     };
 
-    // 공개 상태에서 현재시간 기준 세부 단계
-    const phase = useMemo(() => {
+    // 시험 마감 (수동 조기 마감)
+    const closeExam = useCallback(async () => {
 
-        if (!exam || exam.examStatus !== "공개") return null;
+        const result = await Swal.fire({
+            title: "정말 마감하시겠습니까?",
+            text: "마감 후에는 복구할 수 없습니다.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "마감",
+            cancelButtonText: "취소"
+        });
 
-        const now = new Date();
+        if (!result.isConfirmed) {
+            return;
+        }
 
-        if (exam.examStart && now < new Date(exam.examStart)) return "응시 예정";
-        if (exam.examEnd && now < new Date(exam.examEnd)) return "진행중";
-        return "시험 종료";
-    }, [exam]);
+        try {
+            await apiClient.put(`/exam/${examNo}/close`);
 
-    // 종료 이후(또는 마감)면 결과, 그 전이면 진행 현황
-    const isResultView = phase === "시험 종료" || exam?.examStatus === "마감";
+            await Swal.fire({
+                title: "마감 완료",
+                text: "시험이 마감되었습니다.",
+                icon: "success",
+                confirmButtonText: "확인"
+            });
+
+            loadResult();
+        }
+        catch (e) {
+            console.error("시험 마감 실패", e);
+
+            Swal.fire({
+                title: "마감 실패",
+                text: "시험 마감 중 오류가 발생했습니다.",
+                icon: "error",
+                confirmButtonText: "확인"
+            });
+        }
+    }, [examNo, loadResult]);
+
+    // examPhase(예정/응시가능/종료) 기준 - 종료면 결과, 그 전이면 진행 현황
+    const isResultView = exam?.examPhase === "종료";
 
     // 화면 우측 상단에 표시할 상태 라벨
-    const statusLabel = phase ?? exam?.examStatus ?? "-";
-    const statusBg = statusLabel === "진행중"
+    const statusLabel = exam?.examPhase ?? exam?.examStatus ?? "-";
+    const statusBg = statusLabel === "응시가능"
         ? "success"
-        : statusLabel === "응시 예정"
+        : statusLabel === "예정"
             ? "info"
             : "secondary";
 
@@ -174,7 +204,17 @@ export default function ExamResult() {
                         </div>
                         <div className="d-flex justify-content-between align-items-center">
                             <h4 className="mb-0">{exam?.examTitle ?? "-"}</h4>
-                            <Badge bg={statusBg} className="fs-6">{statusLabel}</Badge>
+                            <div className="d-flex align-items-center gap-2">
+                                <Badge bg={statusBg} className="fs-6">{statusLabel}</Badge>
+                                <Button
+                                    variant="outline-secondary"
+                                    size="sm"
+                                    disabled={isResultView}
+                                    onClick={closeExam}>
+                                    <FaLock className="me-1" />
+                                    <span>마감</span>
+                                </Button>
+                            </div>
                         </div>
                     </Card.Body>
                 </Card>

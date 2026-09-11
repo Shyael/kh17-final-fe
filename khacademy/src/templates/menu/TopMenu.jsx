@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAtom, useAtomValue } from "jotai";
 import { Link } from "react-router-dom";
-import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
@@ -68,7 +67,7 @@ export default function TopMenu() {
         >
             {/* 비로그인 */}
             {!isLogin && (
-                <Container fluid>
+                <>
                     <Navbar.Brand as={Link} to="/academy">
                         {academyName}
                     </Navbar.Brand>
@@ -101,12 +100,12 @@ export default function TopMenu() {
                             handleClose={() => setShowModal(false)}
                         />
                     </Navbar.Collapse>
-                </Container>
+                </>
             )}
 
             {/* 학생 / 학부모 */}
             {isLogin && !isEmployee && (
-                <Container fluid>
+                <>
                     <Navbar.Brand as={Link} to="/">
                         {academyName}
                     </Navbar.Brand>
@@ -155,7 +154,7 @@ export default function TopMenu() {
                             </Nav.Link>
                         </Nav>
                     </Navbar.Collapse>
-                </Container>
+                </>
             )}
         </Navbar>
     );

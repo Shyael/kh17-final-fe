@@ -8,7 +8,11 @@
   --kh-bg: #F5F7F6;
   --kh-surface: #FFFFFF;
   --kh-primary: #527D8A;
+  --kh-primary-rgb: 82, 125, 138;
+  --kh-primary-hover: #466A75;
+  --kh-primary-active: #3E5E68;
   --kh-primary-dark: #263746;
+  --kh-primary-dark-rgb: 38, 55, 70;
   --kh-primary-light: #E8F0F2;
   --kh-accent: #6B9B83;
   --kh-text: #29343A;
@@ -21,12 +25,19 @@
 /* ============ 공용 상단바 (비로그인 / 학생 / 학부모) ============ */
 /* 페이지 배경과 어울리는 밝은 헤더 (KH AX 사이트 톤) */
 .kh-topnav.navbar {
-  background-color: var(--kh-surface) !important;
+  background-color: var(--kh-bg) !important;
+  border-top: 3px solid var(--kh-primary);
   border-bottom: 1px solid var(--kh-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   min-height: 56px;
   padding-top: 0.25rem;
   padding-bottom: 0.25rem;
+  /* 상위 Container fluid 의 좌우 padding 을 상쇄해 배경을 화면 끝까지 채우고,
+     내부 콘텐츠(로고/로그인 등)는 같은 값만큼 padding 으로 되돌려 위치 유지 */
+  margin-left: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+  margin-right: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+  padding-left: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
+  padding-right: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 /* 스크롤이 맨 위일 때는 구분선/그림자 숨김 */
@@ -105,20 +116,60 @@
   background: var(--kh-bg);
 }
 
-/* --- 좌측 사이드바 --- */
+/* --- 좌측 사이드바 ---
+   화면 크기와 무관하게 항상 좌측 고정(오버레이) + 클릭으로 열고 닫기.
+   작은 화면에서는 본문을 가려도 되므로 push 하지 않고 그 위를 덮는다. */
 .kh-gw-sidebar {
   width: var(--kh-sidebar-w);
-  flex: 0 0 var(--kh-sidebar-w);
-  align-self: stretch;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
   height: 100vh;
   background: var(--kh-primary-dark);
   color: #fff;
   display: flex;
   flex-direction: column;
   border-right: 1px solid var(--kh-border);
-  z-index: 1020;
+  z-index: 1040;
+  transform: translateX(-100%);
+  transition: transform 0.2s ease;
+}
+.kh-gw-sidebar.open {
+  transform: translateX(0);
+}
+
+/* 사이드바 열렸을 때 작은 화면에서 뒤 화면을 덮는 반투명 백드롭 (클릭 시 닫힘) */
+.kh-gw-backdrop {
+  display: none;
+}
+@media (max-width: 767.98px) {
+  .kh-gw-layout.sidebar-open .kh-gw-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1030;
+  }
+}
+
+/* 사이드바 열고 닫는 토글 버튼 (상단바에 위치) */
+.kh-gw-sidebar-toggle {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--kh-border);
+  border-radius: 6px;
+  background: var(--kh-surface);
+  color: var(--kh-text);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.kh-gw-sidebar-toggle:hover {
+  background: var(--kh-primary-light);
 }
 .kh-gw-sidebar-head {
   min-height: var(--kh-topbar-h);
@@ -196,13 +247,23 @@
   font-size: 13px;
 }
 
-/* --- 우측 메인 영역 --- */
+/* --- 우측 메인 영역 ---
+   사이드바가 fixed 오버레이가 되었으므로 기본은 여백 없이 전체 폭 사용.
+   화면이 넓을 때(md 이상)만 사이드바가 열려 있으면 그만큼 밀어준다. */
 .kh-gw-main {
   flex: 1 1 auto;
   min-width: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  margin-left: 0;
+  transition: margin-left 0.2s ease;
+}
+@media (min-width: 768px) {
+  .kh-gw-layout.sidebar-open .kh-gw-main {
+    margin-left: var(--kh-sidebar-w);
+  }
 }
 .kh-gw-topbar {
   min-height: var(--kh-topbar-h);
@@ -264,7 +325,7 @@
 
 /* ============ 푸터 (상단 헤더와 같은 밝은 톤) ============ */
 .kh-footer {
-  background: var(--kh-surface);
+  background: var(--kh-bg);
   border-top: 1px solid var(--kh-border);
   color: var(--kh-muted);
   font-size: 13px;
@@ -393,28 +454,9 @@
   }
 }
 
-/* 모바일: 사이드바를 상단 가로 스크롤 바로 축소 */
+/* 모바일에서도 사이드바는 좌측 고정 오버레이 형태를 그대로 유지한다
+   (kh-gw-sidebar / kh-gw-backdrop / kh-gw-main 규칙 참고) */
 @media (max-width: 767.98px) {
-  .kh-gw-layout {
-    flex-direction: column;
-  }
-  .kh-gw-sidebar {
-    width: 100%;
-    flex-basis: auto;
-    position: static;
-    height: auto;
-  }
-  .kh-gw-menu {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-  }
-  .kh-gw-submenu {
-    display: none;
-  }
-  .kh-gw-menu .grp-btn .chev {
-    display: none;
-  }
   .kh-gw-search {
     max-width: 55vw;
   }

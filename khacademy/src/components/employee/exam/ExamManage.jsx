@@ -156,7 +156,7 @@ export default function ExamManage() {
     //강의 목록 조회
     const loadCourseList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/employee/course/tutor");
+            const response = await apiClient.get("/employee/course/manage");
             setCourseList(response.data);
         }
         catch (e) {
