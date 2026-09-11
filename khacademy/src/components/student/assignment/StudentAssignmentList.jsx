@@ -14,6 +14,9 @@ const PAGE_SIZE = 10;
 // 제출 상태 필터 (서버 submitStatus 파라미터)
 const SUBMIT_FILTERS = ["미제출", "제출완료", "채점완료"];
 
+// 마감 여부 필터 (서버 assignmentPhase 파라미터)
+const PHASE_FILTERS = ["제출가능", "마감"];
+
 export default function StudentAssignmentList() {
 
     const navigate = useNavigate();
@@ -31,6 +34,7 @@ export default function StudentAssignmentList() {
         page: 1,
         assignmentTitle: "",
         submitStatus: "",
+        assignmentPhase: "",
         courseNo: null,
     });
 
@@ -59,6 +63,7 @@ export default function StudentAssignmentList() {
                     size: PAGE_SIZE,
                     assignmentTitle: params.assignmentTitle || undefined,
                     submitStatus: params.submitStatus || undefined,
+                    assignmentPhase: params.assignmentPhase || undefined,
                     courseNo: params.courseNo ?? undefined,
                 },
             };
@@ -131,6 +136,7 @@ export default function StudentAssignmentList() {
             page: 1,
             assignmentTitle: "",
             submitStatus: "",
+            assignmentPhase: "",
             courseNo: null,
         });
     }, [selectedChildNo]);
@@ -148,6 +154,11 @@ export default function StudentAssignmentList() {
     // 제출 상태 필터 (1페이지로 리셋)
     const handleSubmitFilter = useCallback((submitStatus) => {
         setParams((prev) => ({ ...prev, page: 1, submitStatus }));
+    }, []);
+
+    // 마감 여부 필터 (1페이지로 리셋)
+    const handlePhaseFilter = useCallback((assignmentPhase) => {
+        setParams((prev) => ({ ...prev, page: 1, assignmentPhase }));
     }, []);
 
     // 강의 필터 (1페이지로 리셋)
@@ -187,10 +198,19 @@ export default function StudentAssignmentList() {
         }
     };
 
+    // 마감 여부 뱃지 (assignmentPhase 기준)
+    const phaseBadge = (assignmentPhase) => {
+        if (assignmentPhase === "마감") {
+            return <Badge bg="dark">마감</Badge>;
+        }
+        return <Badge bg="info">제출가능</Badge>;
+    };
+
     // 상태별 액션 버튼
     const actionButton = (assignment, status) => {
         const to = `/student/assignment/${assignment.assignmentNo}/submit`;
         const detail = `/student/assignment/${assignment.assignmentNo}/submit/${assignment.submitNo}`;
+        const canSubmit = assignment.assignmentPhase === "제출가능";
 
         // 학부모는 제출/수정 불가 → 자녀 과제 상세만 조회
         if (isParent) {
@@ -232,8 +252,9 @@ export default function StudentAssignmentList() {
                     <Button
                         variant="outline-primary"
                         size="sm"
+                        disabled={!canSubmit}
                         onClick={() => navigate(to)}>
-                        제출하기
+                        {canSubmit ? "제출하기" : "마감됨"}
                     </Button>
                 );
         }
@@ -322,7 +343,7 @@ export default function StudentAssignmentList() {
             </Col>
         </Row>
 
-        {/* 2. 제출 상태 필터 (서버) */}
+        {/* 2. 제출 상태 / 마감 여부 필터 (서버) */}
         <div className="d-flex justify-content-end align-items-center flex-wrap gap-2 mb-3">
             <ButtonGroup>
                 <Button
@@ -338,6 +359,24 @@ export default function StudentAssignmentList() {
                         size="sm"
                         onClick={() => handleSubmitFilter(status)}>
                         {status}
+                    </Button>
+                ))}
+            </ButtonGroup>
+
+            <ButtonGroup>
+                <Button
+                    variant={params.assignmentPhase === "" ? "secondary" : "outline-secondary"}
+                    size="sm"
+                    onClick={() => handlePhaseFilter("")}>
+                    전체
+                </Button>
+                {PHASE_FILTERS.map((phase) => (
+                    <Button
+                        key={phase}
+                        variant={params.assignmentPhase === phase ? "secondary" : "outline-secondary"}
+                        size="sm"
+                        onClick={() => handlePhaseFilter(phase)}>
+                        {phase}
                     </Button>
                 ))}
             </ButtonGroup>
@@ -376,7 +415,10 @@ export default function StudentAssignmentList() {
                                         </div>
                                     </div>
                                     <div className="d-flex flex-column align-items-end gap-2">
-                                        {submitStatusBadge(status)}
+                                        <div className="d-flex gap-1">
+                                            {submitStatusBadge(status)}
+                                            {phaseBadge(assignment.assignmentPhase)}
+                                        </div>
                                         {actionButton(assignment, status)}
                                     </div>
 

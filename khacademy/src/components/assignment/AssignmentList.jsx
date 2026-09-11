@@ -6,7 +6,7 @@ import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
 import PaginationBar from "@templates/PaginationBar";
 
 const PAGE_SIZE = 10;
-const STATUS_FILTERS = ["게시", "마감"];
+const PHASE_FILTERS = ["제출가능", "마감"];
 
 export default function AssignmentList() {
     const navigate = useNavigate();
@@ -17,7 +17,7 @@ export default function AssignmentList() {
     const [params, setParams] = useState({
         page: 1,
         assignmentTitle: "",
-        assignmentStatus: "",
+        assignmentPhase: "",
         courseNo: null,
     });
     // 강의 필터 목록
@@ -43,7 +43,7 @@ export default function AssignmentList() {
                     page: params.page,
                     size: PAGE_SIZE,
                     assignmentTitle: params.assignmentTitle || undefined,
-                    assignmentStatus: params.assignmentStatus || undefined,
+                    assignmentPhase: params.assignmentPhase || undefined,
                     courseNo: params.courseNo ?? undefined,
                 },
             });
@@ -85,8 +85,8 @@ export default function AssignmentList() {
     }, [assignmentTitle]);
 
     // 상태 필터 (1페이지로 리셋)
-    const handleStatusFilter = useCallback((assignmentStatus) => {
-        setParams((prev) => ({ ...prev, page: 1, assignmentStatus }));
+    const handlePhaseFilter = useCallback((assignmentPhase) => {
+        setParams((prev) => ({ ...prev, page: 1, assignmentPhase }));
     }, []);
 
     // 강의 필터 (1페이지로 리셋)
@@ -105,17 +105,17 @@ export default function AssignmentList() {
 
     const assignmentList = pageResponse.list ?? [];
 
-    // 상태 배지
-    const statusBadge = (status) => {
-        switch (status) {
-            case "게시":
-                return <Badge bg="success">게시</Badge>;
+    // 마감 여부 배지 (assignmentPhase 기준)
+    const phaseBadge = (phase) => {
+        switch (phase) {
+            case "제출가능":
+                return <Badge bg="info">제출가능</Badge>;
 
             case "마감":
-                return <Badge bg="secondary">마감</Badge>;
+                return <Badge bg="dark">마감</Badge>;
 
             default:
-                return <Badge bg="secondary">{status}</Badge>;
+                return <Badge bg="secondary">{phase}</Badge>;
         }
     };
 
@@ -171,18 +171,18 @@ export default function AssignmentList() {
                 <Button
                     size="sm"
                     className="me-2 mb-2"
-                    variant={params.assignmentStatus === "" ? "primary" : "outline-secondary"}
-                    onClick={() => handleStatusFilter("")}>
+                    variant={params.assignmentPhase === "" ? "primary" : "outline-secondary"}
+                    onClick={() => handlePhaseFilter("")}>
                     전체
                 </Button>
-                {STATUS_FILTERS.map((status) => (
+                {PHASE_FILTERS.map((phase) => (
                     <Button
-                        key={status}
+                        key={phase}
                         size="sm"
                         className="me-2 mb-2"
-                        variant={params.assignmentStatus === status ? "primary" : "outline-secondary"}
-                        onClick={() => handleStatusFilter(status)}>
-                        {status}
+                        variant={params.assignmentPhase === phase ? "primary" : "outline-secondary"}
+                        onClick={() => handlePhaseFilter(phase)}>
+                        {phase}
                     </Button>
                 ))}
             </div>
@@ -236,7 +236,7 @@ export default function AssignmentList() {
                             </td>
 
                             <td>
-                                {statusBadge(assignment.assignmentStatus)}
+                                {phaseBadge(assignment.assignmentPhase)}
                             </td>
 
                             <td className="text-nowrap">

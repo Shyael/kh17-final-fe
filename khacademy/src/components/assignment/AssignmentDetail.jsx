@@ -1,7 +1,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row, Table } from "react-bootstrap";
-import { FaCheck, FaPen, FaTrash, FaLock, FaPaperclip, FaDownload } from "react-icons/fa6";
+import { FaCheck, FaPen, FaTrash, FaLock, FaPaperclip, FaDownload, FaListUl } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
@@ -22,6 +22,7 @@ export default function AssignmentDetail() {
         assignmentTitle: "",
         assignmentContent: "",
         assignmentStatus: "",
+        assignmentPhase: "",
         assignmentDueDate: null,
         assignmentWtime: null,
         fileList: []
@@ -203,13 +204,7 @@ export default function AssignmentDetail() {
 
         try {
             await apiClient.put(
-                `/assignment/${assignmentNo}`,
-                {
-                    assignmentTitle: assignment.assignmentTitle,
-                    assignmentContent: assignment.assignmentContent,
-                    assignmentStatus: "마감",
-                    assignmentDueDate: assignment.assignmentDueDate || null
-                }
+                `/assignment/${assignmentNo}/close`
             );
 
             await Swal.fire({
@@ -313,7 +308,7 @@ export default function AssignmentDetail() {
         return value ? new Date(value).toLocaleString() : "-";
     };
 
-    const isClosed = assignment.assignmentStatus === "마감";
+    const isClosed = assignment.assignmentPhase === "마감";
 
     return (
         <>
@@ -335,12 +330,12 @@ export default function AssignmentDetail() {
                                         <span>{assignment.accountName} 강사</span>
                                         <span className="mx-2">·</span>
                                         <span>
-                                            {formatDateTime(assignment.assignmentDueDate)} 마감
+                                            {formatDateTime(assignment.assignmentDueDate)} 까지
                                         </span>
                                         <span className="ms-2">
                                             {isClosed
-                                                ? <Badge bg="secondary">마감</Badge>
-                                                : <Badge bg="success">게시</Badge>}
+                                                ? <Badge bg="dark">마감</Badge>
+                                                : <Badge bg="info">제출가능</Badge>}
                                         </span>
                                     </div>
                                 </div>
@@ -599,6 +594,18 @@ export default function AssignmentDetail() {
                             })}
                         </tbody>
                     </Table>
+                </Col>
+            </Row>
+
+            {/* 목록으로 */}
+            <Row className="mt-4 mb-4">
+                <Col className="text-end">
+                    <Button
+                        variant="outline-secondary"
+                        onClick={() => navigate("/employee/assignment")}>
+                        <FaListUl className="me-2" />
+                        목록으로
+                    </Button>
                 </Col>
             </Row>
         </>

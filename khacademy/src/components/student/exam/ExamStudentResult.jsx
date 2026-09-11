@@ -4,6 +4,8 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Card } from "react-bootstrap";
 import { toast } from "react-toastify";
+import { useAtomValue } from "jotai";
+import { selectedChildNoState } from "@utils/storage";
 
 // 응시 결과 화면 최대 폭 (가운데 정렬) - 응시 화면과 동일 규칙
 const PAGE_MAX_WIDTH = 1280;
@@ -20,6 +22,10 @@ export default function ExamStudentResult() {
     //강사 화면 여부
     const isManage = location.pathname.startsWith("/employee/");
 
+    //학부모 화면 여부 (자녀 시험 결과 조회)
+    const isParent = location.pathname.startsWith("/parent/");
+    const selectedChildNo = useAtomValue(selectedChildNoState);
+
     //시험 결과
     const [result, setResult] = useState(null);
 
@@ -32,9 +38,16 @@ export default function ExamStudentResult() {
     //시험 결과 조회
     const loadResult = useCallback(async () => {
         try {
-            const url = isManage
-                ? `/attempt/${attemptNo}/result/manage`
-                : `/attempt/${attemptNo}/result`;
+            let url;
+            if (isManage) {
+                url = `/attempt/${attemptNo}/result/manage`;
+            }
+            else if (isParent) {
+                url = `/exam/parent/student/${selectedChildNo}/attempt/${attemptNo}/result`;
+            }
+            else {
+                url = `/attempt/${attemptNo}/result`;
+            }
 
             const response = await apiClient.get(url);
             setResult(response.data);
@@ -42,7 +55,7 @@ export default function ExamStudentResult() {
         catch (e) {
             console.log(e);
             toast.error(e.response?.data?.message ?? "시험 결과를 불러오지 못했습니다.");
-            //강사 / 학생 각각 다른 목록으로
+            //강사 / 학생·학부모 각각 다른 목록으로
             if (isManage) {
                 navigate(`/employee/exam/${examNo}/result`, {
                     replace: true
@@ -57,7 +70,7 @@ export default function ExamStudentResult() {
         finally {
             setLoading(false);
         }
-    }, [attemptNo, examNo, isManage, navigate]);
+    }, [attemptNo, examNo, isManage, isParent, selectedChildNo, navigate]);
 
     useEffect(() => {
         loadResult();

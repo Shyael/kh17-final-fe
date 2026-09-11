@@ -1,5 +1,5 @@
 import Jumbotron from "@templates/Jumbotron";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstrap";
@@ -26,6 +26,7 @@ export default function StudentAssignmentDetail() {
         assignmentTitle: "",
         assignmentContent: "",
         assignmentStatus: "",
+        assignmentPhase: "",
         assignmentDueDate: null,
         assignmentWtime: null,
         fileList: []
@@ -158,13 +159,8 @@ export default function StudentAssignmentDetail() {
     // 제출 상태 (피드백 있으면 채점완료)
     const submitStatus = hasComment ? "채점완료" : "제출완료";
 
-    // 마감 지남 여부 (지나면 수정하기 숨김)
-    const isDueOver = useMemo(() => {
-        if (!assignment.assignmentDueDate) {
-            return false;
-        }
-        return new Date(assignment.assignmentDueDate) < new Date();
-    }, [assignment.assignmentDueDate]);
+    // 마감 지남 여부 (지나면 수정하기 숨김) - assignmentPhase 기준
+    const isDueOver = assignment.assignmentPhase === "마감";
 
     return (<>
         <Jumbotron title="과제 제출 상세" />

@@ -6,6 +6,8 @@ import { apiClient } from "@utils/reaxios";
 import { Badge, Button, ButtonGroup, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { toast } from "react-toastify";
+import { useAtomValue } from "jotai";
+import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
 
 // 한 페이지에 보여줄 시험 수
 const PAGE_SIZE = 10;
@@ -16,6 +18,11 @@ const ATTEMPT_FILTERS = ["미응시", "응시중", "제출완료"];
 export default function ExamStudentList() {
 
     const navigate = useNavigate();
+
+    // 학부모 여부 / 선택된 자녀
+    const isParent = useAtomValue(isParentState);
+    const selectedChild = useAtomValue(selectedChildState);
+    const selectedChildNo = useAtomValue(selectedChildNoState);
 
     // 시험 제목 입력값(draft)
     const [examTitle, setExamTitle] = useState("");
@@ -28,7 +35,7 @@ export default function ExamStudentList() {
         courseNo: null,
     });
 
-    // 강의 필터 목록 (본인 수강 강의)
+    // 강의 필터 목록 (학생: 본인 수강 / 학부모: 자녀 수강)
     const [courseList, setCourseList] = useState([]);
 
     // 백엔드 PageResponseVO 응답
@@ -44,10 +51,10 @@ export default function ExamStudentList() {
         next: false,
     });
 
-    // 시험 목록 조회
+    // 시험 목록 조회 (학생 본인 / 학부모는 선택한 자녀 기준)
     const loadExamList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/exam/student", {
+            const query = {
                 params: {
                     page: params.page,
                     size: PAGE_SIZE,
@@ -55,7 +62,26 @@ export default function ExamStudentList() {
                     attemptStatus: params.attemptStatus || undefined,
                     courseNo: params.courseNo ?? undefined,
                 },
-            });
+            };
+
+            let response;
+
+            if (isParent) {
+                // 자녀 선택 전이면 목록 비우고 대기
+                if (selectedChildNo == null) {
+                    setPageResponse((prev) => ({ ...prev, list: [], totalCount: 0, totalPages: 0 }));
+                    return;
+                }
+
+                response = await apiClient.get(
+                    `/exam/parent/student/${selectedChildNo}`,
+                    query
+                );
+            }
+            else {
+                response = await apiClient.get("/exam/student", query);
+            }
+
             setPageResponse(response.data);
         }
         catch (e) {
@@ -63,19 +89,33 @@ export default function ExamStudentList() {
             toast.error("시험 목록을 불러오지 못했습니다.");
             setPageResponse((prev) => ({ ...prev, list: [], totalCount: 0, totalPages: 0 }));
         }
-    }, [params]);
+    }, [isParent, selectedChildNo, params]);
 
     // 강의 필터 목록 조회
     const loadCourseList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/academy/student/course");
+            let response;
+
+            if (isParent) {
+                if (selectedChildNo == null) {
+                    setCourseList([]);
+                    return;
+                }
+                response = await apiClient.get(
+                    `/academy/student/parent/${selectedChildNo}/course`
+                );
+            }
+            else {
+                response = await apiClient.get("/academy/student/course");
+            }
+
             setCourseList(response.data ?? []);
         }
         catch (e) {
             console.error("수강 강의 목록 조회 실패", e);
             setCourseList([]);
         }
-    }, []);
+    }, [isParent, selectedChildNo]);
 
     useEffect(() => {
         loadExamList();
@@ -84,6 +124,12 @@ export default function ExamStudentList() {
     useEffect(() => {
         loadCourseList();
     }, [loadCourseList]);
+
+    // 자녀가 바뀌면 검색조건 초기화
+    useEffect(() => {
+        setExamTitle("");
+        setParams({ page: 1, examTitle: "", attemptStatus: "", courseNo: null });
+    }, [selectedChildNo]);
 
     // 검색 실행 (1페이지로 리셋)
     const handleSearch = useCallback((e) => {
@@ -138,29 +184,7 @@ export default function ExamStudentList() {
         </>
     );
 
-    // 시험 현재 상태 (시간 기준)
-    const getExamPhase = useCallback((exam) => {
-        const now = new Date();
-        const start = exam.examStart ? new Date(exam.examStart) : null;
-        const end = exam.examEnd ? new Date(exam.examEnd) : null;
-
-        // 마감 처리된 시험
-        if (exam.examStatus === "마감") {
-            return "종료";
-        }
-
-        if (start && now < start) {
-            return "예정";
-        }
-
-        if (end && now >= end) {
-            return "종료";
-        }
-
-        return "응시가능";
-    }, []);
-
-    // 응시 상태 라벨 (배지/버튼용)
+    // 응시 상태 라벨 (배지/버튼용) - 시험 단계는 백엔드 examPhase(예정/응시가능/종료) 사용
     const getAttemptLabel = useCallback((exam) => {
         if (exam.attemptStatus === "제출완료") {
             return "제출완료";
@@ -169,16 +193,14 @@ export default function ExamStudentList() {
             return "응시중";
         }
 
-        const phase = getExamPhase(exam);
-
-        if (phase === "예정") {
+        if (exam.examPhase === "예정") {
             return "응시예정";
         }
-        if (phase === "종료") {
+        if (exam.examPhase === "종료") {
             return "종료";
         }
         return "미응시";
-    }, [getExamPhase]);
+    }, []);
 
     // 응시 상태 배지
     const submitStatusBadge = (exam) => {
@@ -200,6 +222,19 @@ export default function ExamStudentList() {
 
     // 상태별 액션 버튼
     const actionButton = (exam) => {
+
+        // 학부모는 응시 불가 → 자녀 시험 상세만 조회
+        if (isParent) {
+            return (
+                <Button
+                    variant="outline-primary"
+                    size="sm"
+                    onClick={() => navigate(`/student/exam/${exam.examNo}`)}>
+                    시험 상세
+                </Button>
+            );
+        }
+
         const label = getAttemptLabel(exam);
         const detail = `/student/exam/${exam.examNo}`;
 
@@ -267,7 +302,23 @@ export default function ExamStudentList() {
     }, [courseList]);
 
     return (<>
-        <Jumbotron title="내 시험" />
+        <Jumbotron title={isParent ? "자녀 시험" : "내 시험"} />
+
+        {/* 학부모: 현재 조회중인 자녀 표시 */}
+        {isParent && (
+            <div className="mb-3">
+                {selectedChild ? (
+                    <span className="text-muted">
+                        <strong>{selectedChild.studentName}</strong> 학생의 시험을 보고 있습니다.
+                        <span className="ms-1">(메뉴에서 자녀 변경)</span>
+                    </span>
+                ) : (
+                    <span className="text-danger">
+                        조회할 자녀가 없습니다.
+                    </span>
+                )}
+            </div>
+        )}
 
         {/* 1. 강의 선택 + 시험명 검색 */}
         <Row className="g-2 mb-3">
