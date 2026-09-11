@@ -4,34 +4,45 @@ import { FaSearch, FaUserPlus, FaUserShield, FaExclamationTriangle } from "react
 import { apiClient } from "@utils/reaxios";
 import { Link } from "react-router-dom";
 
+// 🌟 수정 1: eexport -> export 로 오타 수정 완료!
 export default function StudentList() {
-    const [students, setStudents] = useState([]);
-    const [selectedStudent, setSelectedStudent] = useState(null); 
+    const [searchKeyword, setSearchKeyword] = useState("");
     const [filter, setFilter] = useState("전체");
     
-    // 추가되었던 요약 데이터 state 유지
+    const [students, setStudents] = useState([]);
+    const [selectedStudent, setSelectedStudent] = useState(null); 
     const [summary, setSummary] = useState({ total: 0, riskCount: 0 });
 
     const fetchStudents = useCallback(async () => {
         try {
-            const response = await apiClient.get("/employee/student/list");
+            const response = await apiClient.get("/employee/student/list", {
+                params: {
+                    filter: filter,
+                    searchKeyword: searchKeyword
+                }
+            });
+            
             const data = response.data;
             setStudents(data); 
 
-            // 요약 데이터 계산 로직 유지
             const total = data.length;
             const riskCount = data.filter(s => s.riskLevel === '위험' || s.riskLevel === '주의').length;
             setSummary({ total, riskCount });
         } catch (error) {
             console.error("학생 목록 로딩 실패:", error);
         }
-    }, []);
+    }, [filter, searchKeyword]); 
 
+    // 실시간 검색 발동기
     useEffect(() => {
         fetchStudents();
     }, [fetchStudents]);
 
-    // 원래 있던 기본 부트스트랩 뱃지 색상 함수로 복구
+    // 🌟 수정 2: UI에서 에러가 나지 않도록 검색 버튼용 함수를 다시 살려두었습니다!
+    const handleSearch = () => {
+        fetchStudents();
+    };
+
     const getRiskBadgeVariant = (risk) => {
         if (risk === "주의" || risk === "위험") return "danger";
         if (risk === "낮음" || risk === "안전") return "success";
@@ -42,7 +53,6 @@ export default function StudentList() {
         <div className="container-fluid py-4">
             <h2 className="mb-4 fw-bold">학생 관리</h2>
 
-            {/* 원래 스타일에 맞춘 상단 요약 카드 (기본 부트스트랩 클래스 사용) */}
             <Row className="mb-4 g-3">
                 <Col md={3} sm={6}>
                     <Card className="shadow-sm border-0 h-100">
@@ -69,25 +79,30 @@ export default function StudentList() {
             </Row>
 
             <Row className="g-4">
-                {/* ==========================================
-                    좌측 패널: 학생 목록 및 검색
-                ========================================== */}
                 <Col lg={7}>
                     <Card className="shadow-sm border-0 h-100">
                         <Card.Body className="d-flex flex-column">
-                            
                             <Row className="mb-3">
                                 <Col sm={4}>
-                                    <Form.Select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                                    <Form.Select 
+                                        value={filter} 
+                                        onChange={(e) => setFilter(e.target.value)}
+                                    >
                                         <option value="전체">전체 (재원)</option>
+                                        <option value="대기">승인 대기</option> 
                                         <option value="미납">미납자</option>
                                         <option value="휴원">휴원/퇴원</option>
                                     </Form.Select>
                                 </Col>
                                 <Col sm={8}>
                                     <InputGroup>
-                                        <Form.Control placeholder="학생 이름 또는 학교명 검색" />
-                                        <Button variant="outline-secondary">
+                                        <Form.Control 
+                                            placeholder="학생 이름 또는 학교명 검색" 
+                                            value={searchKeyword}
+                                            onChange={(e) => setSearchKeyword(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                        />
+                                        <Button variant="outline-secondary" onClick={handleSearch}>
                                             <FaSearch /> 검색
                                         </Button>
                                     </InputGroup>
@@ -120,7 +135,6 @@ export default function StudentList() {
                                                 >
                                                     <td className="fw-semibold">
                                                         {student.studentName}
-                                                        {/* 추가하셨던 대기 상태 뱃지 유지 */}
                                                         {student.studentAcademicStatus === '대기' && (
                                                             <Badge bg="warning" text="dark" className="ms-2">대기</Badge>
                                                         )}
@@ -135,7 +149,9 @@ export default function StudentList() {
                                                     </td>
                                                     <td>
                                                         {student.unpaidAmount > 0 ? (
-                                                            <span className="text-danger fw-bold">{student.unpaidAmount.toLocaleString()}원</span>
+                                                            <span className="text-danger fw-bold">
+                                                                {student.unpaidAmount?.toLocaleString()}원
+                                                            </span>
                                                         ) : (
                                                             <span className="text-muted">없음</span>
                                                         )}
@@ -151,24 +167,14 @@ export default function StudentList() {
                                     </tbody>
                                 </Table>
                             </div>
-
-                            <div className="d-flex justify-content-end mt-4 pt-3 border-top">
-                                <Button variant="primary">
-                                    <FaUserPlus className="me-2" /> 수강생 신규 등록
-                                </Button>
-                            </div>
                         </Card.Body>
                     </Card>
                 </Col>
 
-                {/* ==========================================
-                    우측 패널: 선택된 학생 상세 정보
-                ========================================== */}
                 <Col lg={5}>
                     {selectedStudent ? (
                         <Card className="shadow-sm border-0 h-100 bg-light">
                             <Card.Body className="d-flex flex-column">
-                                
                                 <div className="mb-4">
                                     <h4 className="fw-bold mb-1">
                                         {selectedStudent.studentName} <span className="fs-6 text-muted ms-2">{selectedStudent.studentGrade}</span>
@@ -193,7 +199,9 @@ export default function StudentList() {
                                             <Card.Body className="p-3">
                                                 <div className="text-muted" style={{ fontSize: "0.8rem" }}>미납액</div>
                                                 <div className={`fs-5 fw-bold mt-1 ${selectedStudent.unpaidAmount > 0 ? 'text-danger' : 'text-dark'}`}>
-                                                    {selectedStudent.unpaidAmount > 0 ? `${selectedStudent.unpaidAmount.toLocaleString()}원` : '없음'}
+                                                    {selectedStudent.unpaidAmount > 0 
+                                                        ? `${selectedStudent.unpaidAmount?.toLocaleString()}원` 
+                                                        : '없음'}
                                                 </div>
                                             </Card.Body>
                                         </Card>

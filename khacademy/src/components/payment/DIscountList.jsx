@@ -1,25 +1,27 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Fragment } from "react";
 import { Card, Table, Button, Form } from "react-bootstrap";
-import { authClient } from "@utils/reaxios";
+import { apiClient } from "@utils/reaxios";
 
 export default function DiscountList() {
     // 1. 할인 목록 State
     const [discounts, setDiscounts] = useState([]);
     
-    // 2. '추가' 폼 열기/닫기 State
+    // 2. '추가' 폼 관련 State
     const [showAddForm, setShowAddForm] = useState(false);
-    
-    // 3. 신규 등록할 할인 데이터 State
     const [newDiscount, setNewDiscount] = useState({
         discountName: "",
-        discountType: "비율", // 기본값
+        discountType: "비율", 
         discountValue: 0
     });
 
-    // 🌟 백엔드에서 할인 목록 가져오기 (GET)
+    // 🌟 3. 아코디언(수정/삭제) 패널 열림 상태를 관리할 State
+    const [expandedRow, setExpandedRow] = useState(null);
+    const [editDiscount, setEditDiscount] = useState(null); // 수정 중인 데이터 임시 저장
+
+    // 백엔드에서 할인 목록 가져오기
     const fetchDiscounts = useCallback(async () => {
         try {
-            const response = await authClient.get("http://localhost:8080/api/payment/discount/list");
+            const response = await apiClient.get("/payment/discount/list");
             setDiscounts(response.data);
         } catch (error) {
             console.error("할인 목록 로딩 실패:", error);
@@ -30,18 +32,15 @@ export default function DiscountList() {
         fetchDiscounts();
     }, [fetchDiscounts]);
 
-    // 🌟 신규 할인 등록 처리 (POST)
+    // 신규 할인 등록 처리
     const handleAddSubmit = async () => {
         if (!newDiscount.discountName || newDiscount.discountValue <= 0) {
             alert("할인명과 올바른 할인율(금액)을 입력해 주세요.");
             return;
         }
-
         try {
-            const response = await authClient.post("http://localhost:8080/api/payment/discount/add", newDiscount);
+            const response = await apiClient.post("/payment/discount/add", newDiscount);
             alert(response.data);
-            
-            // 등록 성공 시 폼 초기화 및 닫기, 목록 새로고침
             setNewDiscount({ discountName: "", discountType: "비율", discountValue: 0 });
             setShowAddForm(false);
             fetchDiscounts(); 
@@ -50,26 +49,73 @@ export default function DiscountList() {
         }
     };
 
-    // 🌟 활성화/비활성화 스위치(수정) 토글 처리 (PUT)
+    // 활성화/비활성화 스위치 토글 처리 (PUT)
     const handleToggleStatus = async (discount) => {
         const updatedStatus = discount.discountStatus === "Y" ? "N" : "Y";
-        
-        // 백엔드로 보낼 수정 데이터 조립 (기존 데이터 유지, 상태만 변경)
-        const updateData = {
-            ...discount,
-            discountStatus: updatedStatus
-        };
+        const updateData = { ...discount, discountStatus: updatedStatus };
 
         try {
-            await authClient.put("http://localhost:8080/api/payment/discount/edit", updateData);
-            fetchDiscounts(); // 수정 후 즉시 목록 새로고침
+            await apiClient.put("/payment/discount/edit", updateData);
+            fetchDiscounts(); 
         } catch (error) {
-            console.error("할인 상태 변경 실패:", error);
-            alert("상태 변경 중 오류가 발생했습니다.");
+            console.error("할인 정보 변경 실패:", error);
+            alert("정보 변경 중 오류가 발생했습니다.");
         }
     };
 
-    // 신규 입력 폼 핸들러
+    // 🌟 4. 줄(Row) 클릭 시 아코디언 메뉴 열기/닫기 (이벤트 버블링 활용)
+    const handleRowClick = (discount) => {
+        // 이미 열려있는 줄을 다시 누르면 닫기
+        if (expandedRow === discount.discountNo) {
+            setExpandedRow(null);
+            setEditDiscount(null);
+        } else {
+            // 다른 줄을 누르면 해당 줄 열고 수정 데이터 세팅
+            setExpandedRow(discount.discountNo);
+            setEditDiscount({ ...discount });
+        }
+    };
+
+    // 🌟 5. 수정 폼 입력 핸들러
+    const handleEditChange = (e) => {
+        const { name, value } = e.target;
+        setEditDiscount(prev => ({ ...prev, [name]: value }));
+    };
+
+    // 🌟 6. 기존 edit 매핑을 재활용한 '수정 완료' 처리
+    const handleEditSubmit = async () => {
+        if (!editDiscount.discountName || editDiscount.discountValue <= 0) {
+            return alert("올바른 값을 입력해 주세요.");
+        }
+        try {
+            await apiClient.put("/payment/discount/edit", editDiscount);
+            alert("성공적으로 수정되었습니다.");
+            setExpandedRow(null); // 패널 닫기
+            fetchDiscounts(); // 목록 갱신
+        } catch (error) {
+            console.error("할인 수정 실패:", error);
+            alert("수정에 실패했습니다.");
+        }
+    };
+
+    // 🌟 7. 삭제 처리 (DELETE 매핑)
+    const handleDelete = async (discountNo) => {
+        if (!window.confirm("정말 이 할인을 삭제하시겠습니까?")) return;
+        try {
+            // params로 넘기면 URL 뒤에 ?discountNo=값 형태로 붙어서 전송됩니다.
+            await apiClient.delete("/payment/discount/delete", {
+                params: { discountNo }
+            });
+            alert("삭제되었습니다.");
+            setExpandedRow(null);
+            fetchDiscounts();
+        } catch (error) {
+            console.error("할인 삭제 실패:", error);
+            alert("삭제에 실패했습니다.");
+        }
+    };
+
+    // 신규 추가 폼 입력 핸들러
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setNewDiscount(prev => ({ ...prev, [name]: value }));
@@ -93,37 +139,71 @@ export default function DiscountList() {
                             </tr>
                         </thead>
                         <tbody>
-                            {/* 기존 할인 목록 출력 */}
                             {discounts.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="py-4 text-muted">등록된 할인이 없습니다.</td>
                                 </tr>
                             ) : (
                                 discounts.map((d) => (
-                                    <tr key={d.discountNo}>
-                                        <td className="text-muted">DC-{d.discountNo}</td>
-                                        <td className="fw-bold">{d.discountName}</td>
-                                        <td>{d.discountType}</td>
-                                        <td>
-                                            {d.discountType === "비율" 
-                                                ? `${d.discountValue}%` 
-                                                : `₩${d.discountValue.toLocaleString()}`}
-                                        </td>
-                                        <td>
-                                            {/* 활성화 스위치 (클릭 시 Y/N 즉시 변경) */}
-                                            <Form.Check 
-                                                type="switch"
-                                                id={`switch-${d.discountNo}`}
-                                                checked={d.discountStatus === 'Y'}
-                                                onChange={() => handleToggleStatus(d)}
-                                                className="d-flex justify-content-center"
-                                            />
-                                        </td>
-                                    </tr>
+                                    // 🌟 Fragment를 써서 메인 줄과 확장 패널(수정폼)을 하나의 논리적 묶음으로 처리
+                                    <Fragment key={d.discountNo}>
+                                        <tr 
+                                            onClick={() => handleRowClick(d)} 
+                                            style={{ cursor: "pointer" }}
+                                            className={expandedRow === d.discountNo ? "table-active" : ""}
+                                        >
+                                            <td className="text-muted">DC-{d.discountNo}</td>
+                                            <td className="fw-bold">{d.discountName}</td>
+                                            <td>{d.discountType}</td>
+                                            <td>
+                                                {d.discountType === "비율" 
+                                                    ? `${d.discountValue}%` 
+                                                    : `₩${d.discountValue?.toLocaleString()}`}
+                                            </td>
+                                            {/* 🌟 중요: 이벤트 버블링(전파) 차단! 
+                                                여기를 누르면 줄(Row) 전체 클릭 이벤트가 발동하지 않도록 e.stopPropagation() 사용 */}
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                <Form.Check 
+                                                    type="switch"
+                                                    id={`switch-${d.discountNo}`}
+                                                    checked={d.discountStatus === 'Y'}
+                                                    onChange={() => handleToggleStatus(d)}
+                                                    className="d-flex justify-content-center m-0"
+                                                />
+                                            </td>
+                                        </tr>
+
+                                        {/* 🌟 확장(아코디언) 패널: 이 줄이 클릭되었을 때만 렌더링됨 */}
+                                        {expandedRow === d.discountNo && (
+                                            <tr className="bg-light border-bottom">
+                                                <td colSpan="5" className="py-3">
+                                                    <div className="d-flex gap-2 align-items-center justify-content-center">
+                                                        <span className="fw-bold text-secondary me-2">할인 수정</span>
+                                                        <Form.Control size="sm" name="discountName" value={editDiscount.discountName} onChange={handleEditChange} style={{ width: '200px' }} />
+                                                        <Form.Select size="sm" name="discountType" value={editDiscount.discountType} onChange={handleEditChange} style={{ width: '120px' }}>
+                                                            <option value="비율">비율(%)</option>
+                                                            <option value="금액">금액(₩)</option>
+                                                        </Form.Select>
+                                                        <Form.Control size="sm" type="number" name="discountValue" value={editDiscount.discountValue} onChange={handleEditChange} style={{ width: '150px' }} />
+                                                        
+                                                        <Button size="sm" variant="success" className="fw-bold ms-2" onClick={handleEditSubmit}>
+                                                            수정 저장
+                                                        </Button>
+                                                        <Button size="sm" variant="danger" className="fw-bold" onClick={() => handleDelete(d.discountNo)}>
+                                                            삭제
+                                                        </Button>
+                                                        <Button size="sm" variant="secondary" className="fw-bold" onClick={() => setExpandedRow(null)}>
+                                                            닫기
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </Fragment>
                                 ))
                             )}
 
-                            {/* '추가' 버튼을 누르면 열리는 입력 폼 (스토리보드 반영) */}
+                            {/* '추가' 버튼 폼 */}
                             {showAddForm && (
                                 <tr className="table-primary border-primary">
                                     <td className="text-primary fw-bold align-middle">NEW</td>
@@ -150,7 +230,6 @@ export default function DiscountList() {
                     </Table>
                 </Card.Body>
                 
-                {/* 하단 컨트롤 영역 */}
                 <Card.Footer className="bg-white d-flex justify-content-end gap-2 p-3 border-top-0">
                     <Button 
                         variant={showAddForm ? "secondary" : "outline-primary"} 

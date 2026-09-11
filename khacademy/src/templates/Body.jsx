@@ -69,6 +69,7 @@ import ContractEditBeforeSigned from "@components/contract/admin/ContractEditBef
 import ContractSign from "@components/contract/ContractSign";
 import ContractDetail from "@components/contract/admin/ContractDetail";
 import ContractHistory from "@components/contract/ContractHistory";
+
 import ContractExtend from "@components/contract/admin/ContractExtend";
 import ContractChangeCondition from "@components/contract/admin/ContractChangeCondition";
 import ContractList from "@components/contract/admin/ContractList";
@@ -93,6 +94,10 @@ import ExamStudentDetail from "@components/student/exam/ExamStudentDetail";
 import ExamStudentAttempt from "@components/student/exam/ExamStudentAttempt";
 import ExamStudentResult from "@components/student/exam/ExamStudentResult";
 
+
+
+
+import ScoreManagement from "@components/score/ScoreManagement";
 
 
 export default function Body() {
@@ -150,6 +155,9 @@ export default function Body() {
             {/* 학생 */}
             <Route path="/student/list" element={<Employee><StudentList /></Employee>} />
             <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail /></Employee>} />
+
+            {/* 성적 */}
+            <Route path="/score" element={<Employee><ScoreManagement/></Employee>} />
 
             {/* 수납 */}
             <Route path="/payment/list" element={<Employee><PaymentList /></Employee>} />
