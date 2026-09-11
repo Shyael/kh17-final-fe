@@ -245,7 +245,7 @@ export default function Body() {
 
 
             {/* 근태관련 */}
-            <Route path="/employeeAttendance" element={<EmployeeAttendance />} />
+            <Route path="/employee/Attendance" element={<EmployeeAttendance />} />
             {/* 관리자 전용 근태 */}
 
 
@@ -264,7 +264,7 @@ export default function Body() {
 
             {/* 급여 관련 직원 기능 */}
             <Route path="/employee/payroll" element={<EmployeePayrollList />} />
-            <Route path="/employye/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail />} />
+            <Route path="/employee/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail />} />
         </Routes>
 
 
