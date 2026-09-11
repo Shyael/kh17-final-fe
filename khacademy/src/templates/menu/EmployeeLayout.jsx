@@ -12,15 +12,14 @@ import "@templates/menu/menu.css";
 const MENU = [
     { type: "link", icon: "📊", label: "대시보드", to: "/employeeHome" },
     {
-        type: "group", icon: "💳", label: "수납관리", children: [
-            { label: "수납 목록", to: "/payment/list" },
-            { label: "할인 관리", to: "/payment/discount" },
+        type: "group", icon: "🎓", label: "학생·수업관리", children: [
+            { label: "학생 목록", to: "/student/list" },
+            { label: "강의 관리", to: "/employee/course/list" },
+            { label: "과제 관리", to: "/employee/assignment" },
+            { label: "시험 관리", to: "/employee/exam" },
+            { label: "성적 관리", to: "/score/" },
         ],
     },
-    { type: "link", icon: "👥", label: "학생목록", to: "/student/list" },
-
-    { type: "link", icon: "👥", label: "성적관리", to: "/score/" },
-    
     {
         type: "group", icon: "📅", label: "상담관리", children: [
             { label: "상담 예약 목록", to: "/employee/consult/reservation" },
@@ -29,30 +28,26 @@ const MENU = [
         ],
     },
     {
-        type: "group", icon: "🧑‍🏫", label: "직원관리", children: [
+        type: "group", icon: "💳", label: "수납관리", children: [
+            { label: "수납 목록", to: "/payment/list" },
+            { label: "할인 관리", to: "/payment/discount" },
+        ],
+    },
+    {
+        type: "group", icon: "🧑‍🏫", label: "직원·인사관리", children: [
+            { label: "직원 목록", to: "/employee/search" },
             { label: "직원 등록", to: "/employee/register" },
-            { label: "직원 목록", to: "/employee/search"},
+            { label: "계약 관리", to: "/admin/contract/list" },
+            { label: "급여 관리", to: "/admin/payroll", end: true },
         ],
     },
     {
-        type: "group", icon: "📄", label: "계약관리", children : [
-            { label: "계약 목록", to: "/admin/contract/list"},
-        ]
-    },
-    {
-        type: "group", icon: "💰", label: "급여관리", children : [
-            { label: "급여 관리", to:"/admin/payroll", end: true},
-        ]
-    },
-    {
-        type: "group", icon: "🏫", label: "외부정보관리", children: [
-            { label: "학원정보관리", to: "/employee/academy" },
-            { label: "강사정보리스트", to: "/employee/tutor" },
-            { label: "과제리스트", to: "/employee/assignment" },
-            { label: "시험리스트", to: "/employee/exam" },
+        type: "group", icon: "🏫", label: "학원정보관리", children: [
+            { label: "학원 정보 관리", to: "/employee/academy" },
+            { label: "강사 소개 관리", to: "/employee/tutor" },
         ],
     },
-    { type: "link", icon: "⚙️", label: "내 정보 설정", to: "/employee/myInfo" },
+    { type: "link", icon: "⚙️", label: "내 정보", to: "/employee/myInfo" },
 ];
 
 /**
