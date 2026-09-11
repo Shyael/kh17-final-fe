@@ -22,13 +22,38 @@ export default function StudentDetail() {
     const [parentList, setParentList] = useState([]);
     const [payAmount, setPayAmount] = useState(""); 
 
-    // 수강 신청 모달 제어용 State
-    const [showCourseModal, setShowCourseModal] = useState(false);
-    const [selectedCourseNo, setSelectedCourseNo] = useState("");
-    
     // 수강 중인 강의 목록과 전체 강의 목록을 담을 State
     const [enrolledCourses, setEnrolledCourses] = useState([]);
     const [availableCourses, setAvailableCourses] = useState([]);
+
+    // ==========================================
+    // 1. 수강 신청 모달용 필터 상태 추가
+    // ==========================================
+    const [showCourseModal, setShowCourseModal] = useState(false);
+    const [courseFilter, setCourseFilter] = useState({ grade: '전체', subject: '전체' });
+    const [selectedCourseNo, setSelectedCourseNo] = useState(""); // 선택한 강의 번호
+
+    // ==========================================
+    // 🌟 2. 필터 옵션(학년, 과목) 중복 제거해서 뽑아내기
+    // ==========================================
+    // 백엔드에서 가져온 availableCourses 목록을 싹 뒤져서 존재하는 학년과 과목만 골라냅니다.
+    const uniqueGrades = ['전체', ...new Set(availableCourses.map(c => c.gradeLevel))];
+    const uniqueSubjects = ['전체', ...new Set(availableCourses.map(c => c.courseSubject))];
+
+    // ==========================================
+    // 🌟 3. 선택된 필터에 맞게 화면에 보여줄 리스트 계산
+    // ==========================================
+    const filteredCourses = availableCourses.filter(course => {
+        const matchGrade = courseFilter.grade === '전체' || course.gradeLevel === courseFilter.grade;
+        const matchSubject = courseFilter.subject === '전체' || course.courseSubject === courseFilter.subject;
+        return matchGrade && matchSubject;
+    });
+
+    // (모달이 닫힐 때 필터와 선택값을 초기화하는 함수가 있다면 추가해 주시면 좋습니다)
+    const resetCourseModal = () => {
+        setCourseFilter({ grade: '전체', subject: '전체' });
+        setSelectedCourseNo("");
+    };
 
     // ==========================================
     // 2. 데이터 불러오기 (Fetch API) 구역
@@ -73,15 +98,31 @@ export default function StudentDetail() {
         }
     }, [studentNo]);
 
-    // [추가] 모달창에 띄울 전체 강의 목록 (모집중)
+    // 🌟 수정: 전체 조회 대신 학생 번호를 주소에 넣어서 '겹치지 않는 강의'만 가져옴
     const fetchAvailableCourses = useCallback(async () => {
         try {
-            const response = await apiClient.get("/employee/student/course/list");
+            const response = await apiClient.get(`/employee/student/course/list/${studentNo}`);
             setAvailableCourses(response.data || []);
         } catch (error) {
             console.error("개설된 강의 목록 로딩 실패:", error);
         }
-    }, []);
+    }, [studentNo]);
+
+    // 🌟 추가: 수강 취소 기능
+    const handleCancelCourse = async (courseNo) => {
+        if (!window.confirm("정말로 이 강의의 수강을 취소하시겠습니까?")) return;
+        
+        try {
+            await apiClient.delete(`/employee/student/course/cancel/${studentNo}/${courseNo}`);
+            alert("수강이 취소되었습니다.");
+            
+            // 삭제 후 화면의 수강 중인 목록과 모달의 강의 목록을 동시에 갱신!
+            fetchEnrolledCourses(); 
+            fetchAvailableCourses(); 
+        } catch (error) {
+            alert("수강 취소에 실패했습니다.");
+        }
+    };
 
     // [추가] 현재 학생이 수강 중인 강의 목록
     const fetchEnrolledCourses = useCallback(async () => {
@@ -120,6 +161,8 @@ export default function StudentDetail() {
             }
         }
     };
+
+    
     
     // useEffect에 새로운 fetch 함수들 추가
     useEffect(() => {
@@ -341,7 +384,7 @@ export default function StudentDetail() {
                                     <th>과목</th>
                                     <th>강의 유형</th>
                                     <th>상태</th>
-                                    <th>수강료</th>
+                                    <th>관리</th> {/* 🌟 수강료 -> 관리 로 변경 */}
                                 </tr>
                             </thead>
                             <tbody>
@@ -360,7 +403,12 @@ export default function StudentDetail() {
                                                     {course.studentCourseStatus}
                                                 </Badge>
                                             </td>
-                                            <td>₩{course.courseFee?.toLocaleString()}</td>
+                                            <td>
+                                                {/* 🌟 취소 버튼 추가 */}
+                                                <Button variant="outline-danger" size="sm" onClick={() => handleCancelCourse(course.courseNo)}>
+                                                    취소
+                                                </Button>
+                                            </td>
                                         </tr>
                                     ))
                                 )}
@@ -449,35 +497,64 @@ export default function StudentDetail() {
             </Card>
             
             {/* 수강 신청 모달 창 */}
-            <Modal show={showCourseModal} onHide={() => setShowCourseModal(false)} centered>
-                <Modal.Header closeButton>
+            <Modal show={showCourseModal} onHide={() => { setShowCourseModal(false); resetCourseModal(); }} centered>
+                <Modal.Header closeButton className="bg-light">
                     <Modal.Title className="fw-bold fs-5">신규 수강 신청</Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="bg-light p-4">
+                
+                <Modal.Body>
+                    {/* 🌟 새로 추가된 필터 영역 (학년, 과목 2칸으로 나눔) */}
+                    <Row className="g-2 mb-3">
+                        <Col>
+                            <Form.Select 
+                                value={courseFilter.grade} 
+                                onChange={(e) => setCourseFilter(prev => ({ ...prev, grade: e.target.value }))}
+                            >
+                                {uniqueGrades.map(grade => (
+                                    <option key={grade} value={grade}>{grade}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+                        <Col>
+                            <Form.Select 
+                                value={courseFilter.subject} 
+                                onChange={(e) => setCourseFilter(prev => ({ ...prev, subject: e.target.value }))}
+                            >
+                                {uniqueSubjects.map(subject => (
+                                    <option key={subject} value={subject}>{subject}</option>
+                                ))}
+                            </Form.Select>
+                        </Col>
+                    </Row>
+
+                    {/* 기존에 있던 메인 강의 선택 영역 */}
                     <Form.Group>
-                        <Form.Label className="fw-bold text-secondary small">개설된 강의 목록</Form.Label>
+                        <Form.Label className="small text-muted fw-bold">개설된 강의 목록</Form.Label>
                         <Form.Select 
                             value={selectedCourseNo} 
                             onChange={(e) => setSelectedCourseNo(e.target.value)}
                         >
                             <option value="">수강할 강의를 선택하세요</option>
-                            {/* 백엔드 데이터 바인딩 */}
-                            {availableCourses.map(course => (
+                            
+                            {/* 🌟 availableCourses 대신 filteredCourses로 매핑! */}
+                            {filteredCourses.map(course => (
                                 <option key={course.courseNo} value={course.courseNo}>
                                     [{course.courseSubject} / {course.gradeLevel}] {course.courseTitle} - {course.teacherName} 강사
                                 </option>
                             ))}
                         </Form.Select>
-                        <Form.Text className="text-muted mt-2">
-                            * 학생의 학년과 일치하고, 기존 시간표와 겹치지 않는 강의만 신청할 수 있습니다.
+                        
+                        <Form.Text className="text-muted d-block mt-2">
+                            * 학생의 기존 시간표와 겹치지 않는 강의만 노출됩니다.
                         </Form.Text>
                     </Form.Group>
                 </Modal.Body>
+                
                 <Modal.Footer className="border-0">
-                    <Button variant="secondary" onClick={() => setShowCourseModal(false)}>
+                    <Button variant="secondary" onClick={() => { setShowCourseModal(false); resetCourseModal(); }}>
                         취소
                     </Button>
-                    <Button variant="primary" onClick={handleCourseEnrollSubmit}>
+                    <Button variant="dark" disabled={!selectedCourseNo} onClick={handleCourseEnrollSubmit}>
                         신청하기
                     </Button>
                 </Modal.Footer>
