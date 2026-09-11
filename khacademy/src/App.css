@@ -13,3 +13,32 @@
     
 }
 
+/* 채팅 플로팅 버튼 스타일 */
+.fab-hover-action {
+  transition: transform 0.2s ease-in-out !important;
+}
+.fab-hover-action:hover {
+  transform: scale(1.15) !important;
+}
+
+/* 💻 데스크톱(PC) 환경: 우측 스크롤 고정 */
+@media (min-width: 992px) {
+  .responsive-chat-box {
+    position: sticky;
+    top: 90px; /* PC 메뉴바 높이에 맞춰 여백 조절 */
+    height: 570px;
+  }
+}
+
+/* 📱 모바일/태블릿 환경: 화면 상단 중앙에 플로팅 */
+@media (max-width: 991px) {
+  .responsive-chat-box {
+    position: fixed;
+    top: 90px; /* 모바일 메뉴바 높이 */
+    left: 5%; /* 양옆에 5%씩 여백을 주어 답답하지 않게 띄움 */
+    width: 90%;
+    height: 50vh; /* 화면 높이의 절반만 차지하도록 제한 */
+    z-index: 1040; /* 다른 요소들보다 확실히 위에 띄움 */
+  }
+}
+

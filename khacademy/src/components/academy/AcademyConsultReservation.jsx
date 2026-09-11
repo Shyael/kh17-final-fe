@@ -13,7 +13,6 @@ const initReservation = {
 };
 export default function AcademyConsultReservation({ show, handleClose }) {
 
-
     const [reservation, setReservation] = useState(initReservation);
     const inputRefs = useRef({});
 
@@ -25,6 +24,23 @@ export default function AcademyConsultReservation({ show, handleClose }) {
         }));
     }, []);
 
+    const changeNumericValue = useCallback((e)=>{
+        const { name, value } = e.target;
+        const replacement = value.replace(/[^0-9]+/g, "");
+        if (value !== replacement) {
+            e.target.value = replacement; // DOM의 입력창 값을 즉시 강제로 되돌림
+        }
+        setReservation(prev=>({
+            ...prev,
+            [name] : replacement
+        }));
+    }, []);
+
+    //지난 날짜 선택 방지용 코드
+    const now = new Date();
+    const tzOffset = now.getTimezoneOffset() * 60000; 
+    const minDateTime = new Date(now - tzOffset).toISOString().slice(0, 16);
+
     const saveReservation = useCallback(async ()=>{
         if((reservation.reservationName || "").trim().length === 0) {
             const result = await Swal.fire({
@@ -34,9 +50,12 @@ export default function AcademyConsultReservation({ show, handleClose }) {
             if(result.isConfirmed) inputRefs.current.reservationName?.focus();
             return false;
         }
-        if((reservation.reservationPhone || "").trim().length === 0) {
+
+        const regex2 = /^010[1-9][0-9]{7}$/;
+        const valid2 = regex2.test(reservation.reservationPhone);
+        if(!valid2) {
             const result = await Swal.fire({
-                title: "연락처를 입력하세요",
+                title: "올바른 연락처를 입력하세요",
                 returnFocus: false
             });
             if(result.isConfirmed) inputRefs.current.reservationPhone?.focus();
@@ -81,6 +100,7 @@ export default function AcademyConsultReservation({ show, handleClose }) {
                     ref={(el) => (inputRefs.current.reservationName = el)}
                     placeholder="이름을 입력하세요" 
                     value={reservation.reservationName}
+                    maxLength={10}
                     onChange={changeStringValue}
                     className="py-2" 
                     />
@@ -94,7 +114,8 @@ export default function AcademyConsultReservation({ show, handleClose }) {
                     ref={(el) => (inputRefs.current.reservationPhone = el)}
                     placeholder="- 없이 입력" 
                     value={reservation.reservationPhone}
-                    onChange={changeStringValue}
+                    maxLength={11}
+                    onChange={changeNumericValue}
                     className="py-2" 
                     />
                 </Form.Group>
@@ -103,11 +124,12 @@ export default function AcademyConsultReservation({ show, handleClose }) {
                 <Form.Group className="mb-4" controlId="formDateTime">
                     <Form.Label className="fw-bold small">상담 희망 일시</Form.Label>
                     <Form.Control 
-                        type="datetime-local" 
+                        type="datetime-local"
                         name="reservationTime"
                         value={reservation.reservationTime}
                         ref={(el) => (inputRefs.current.reservationTime = el)}
                         onChange={changeStringValue}
+                        min={minDateTime}
                         className="py-2"
                         /* 폰트와 줄간격을 시스템 기본으로 강제 초기화하여 내부 블록들의 높이를 맞춤 */
                         style={{ fontFamily: "sans-serif", lineHeight: "normal" }}
