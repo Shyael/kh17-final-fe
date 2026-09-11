@@ -489,7 +489,6 @@ export default function StudentDetail() {
                         </Form.Group>
 
                         <div className="d-flex justify-content-end gap-2 mt-5 border-top pt-3">
-                            <Button variant="info" className="text-white d-flex align-items-center"><FaComments className="me-2" /> 피드백 보기/등록</Button>
                             <Button variant="primary" className="d-flex align-items-center" onClick={handleUpdate}><FaSave className="me-2" /> 정보 수정 (저장)</Button>
                         </div>
                     </Form>
