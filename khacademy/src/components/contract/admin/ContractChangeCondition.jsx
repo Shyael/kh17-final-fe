@@ -49,7 +49,7 @@ export default function ContractChangeCondition() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/admin/contract/detail/${contractNo}`
+                `/admin/contract/detail/${contractNo}`
             );
 
             setCurrentContract(data);
@@ -198,7 +198,7 @@ export default function ContractChangeCondition() {
             setSending(true);
 
             const { data } = await apiClient.post(
-                `/employee/admin/contract/${contractNo}/changeWorkCondition`,
+                `/admin/contract/${contractNo}/changeWorkCondition`,
                 request
             );
 

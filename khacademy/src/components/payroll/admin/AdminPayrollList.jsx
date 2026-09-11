@@ -145,7 +145,7 @@ const changePayrollYear = (e) => {
 
             const response =
                 await apiClient.get(
-                    `/employee/admin/payroll/list/${employeeNo}`
+                    `/admin/payroll/list/${employeeNo}`
                 );
 
             setPayrollList(

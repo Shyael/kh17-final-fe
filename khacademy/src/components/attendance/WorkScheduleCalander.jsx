@@ -5,7 +5,7 @@ import {
     Card,
     Col,
     Row,
-    Spinner
+    
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 
@@ -22,9 +22,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
 
     const [summary, setSummary] =
         useState(null);
-
-    const [loading, setLoading] =
-        useState(false);
+   
 
 
     // YYYY-MM-DD
@@ -43,6 +41,25 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
         return `${year}-${month}-${day}`;
     };
 
+     // =========================================================
+    // 소수점 시간
+    // =========================================================
+
+    const formatHours = (value) => {
+
+        if (
+            value === null
+            || value === undefined
+        ) {
+            return "-";
+        }
+
+        return (
+            Math.round(
+                Number(value) * 100
+            ) / 100
+        );
+    };
 
     // 이번 달 조회 시작일
     const startDate = useMemo(() => {
@@ -78,7 +95,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
     // 월 근무일정 조회
     const loadSchedule = async () => {
         try {
-            setLoading(true);
+            
 
             const response = await apiClient.get(
                 "/employee/workSchedule/mySearch",
@@ -105,9 +122,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                 "근무일정을 불러오지 못했습니다."
             );
         }
-        finally {
-            setLoading(false);
-        }
+       
     };
 
     useEffect(() => {
@@ -309,7 +324,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                                 총 근무
                                 <div>
                                     <strong>
-                                        {summary.totalWorkHours}
+                                        {formatHours(summary.totalWorkHours)}
                                     </strong>
                                     시간
                                 </div>
@@ -321,7 +336,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                                 연장
                                 <div>
                                     <strong>
-                                        {summary.totalOvertimeHours}
+                                        {formatHours(summary.totalOvertimeHours)}
                                     </strong>
                                     시간
                                 </div>
@@ -333,7 +348,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                                 야간
                                 <div>
                                     <strong>
-                                        {summary.totalNightHours}
+                                        {formatHours(summary.totalNightHours)}
                                     </strong>
                                     시간
                                 </div>
@@ -345,7 +360,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                                 휴일
                                 <div>
                                     <strong>
-                                        {summary.totalHolidayHours}
+                                        {formatHours(summary.totalHolidayHours)}
                                     </strong>
                                     시간
                                 </div>
@@ -356,13 +371,6 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                 )}
 
 
-                {loading ? (
-
-                    <div className="text-center py-5">
-                        <Spinner />
-                    </div>
-
-                ) : (
 
                     <>
                         {/* 요일 */}
@@ -561,8 +569,9 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                                                         && (
                                                             <div className="small mt-1">
                                                                 근무{" "}
-                                                                {
-                                                                    schedule.actualWorkHours
+                                                                {   
+                                                                    formatHours(
+                                                                    schedule.actualWorkHours)
                                                                 }
                                                                 시간
                                                             </div>
@@ -579,8 +588,7 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
 
                         </div>
                     </>
-                )}
-
+                
             </Card.Body>
         </Card>
     );

@@ -204,7 +204,7 @@ export default function ContractList() {
             const { data } =
                     await apiClient.get(
 
-                        "/employee/admin/contract/contractList",
+                        "/admin/contract/contractList",
 
                         {
                             params
