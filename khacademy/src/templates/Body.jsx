@@ -123,21 +123,27 @@ export default function Body() {
                         : <EmployeeLogin />
                 }
             />
+            {/* 직원 홈페이지(대시보드) */}
+            <Route path="/employeeHome" element={<Employee><EmployeeHome /></Employee>} />
+            
             {/* 관리자(원장, 데스크) */}
             <Route path="/employee/search" element={<EmployeeSearch />} />
             <Route path="/admin/employee/detail/:employeeNo" element={<AdminEmployeeDetail />} />
             <Route path="/employee/search/detail/:employeeNo" element={<EmployeeSearchDetail />} />
-
-            {/* 직원(원장, 데스크) */}
             <Route path="/employee/register" element={<EmployeeRegister />} />
             <Route path="/employee/registerSuccess" element={<EmployeeRegisterSuccess />} />
             <Route path="/employee/registerFail" element={<EmployeeRegisterFail />} />
-
-            {/* 직원(원장, 데스크, 강사) */}
             <Route path="/employee/password" element={<EmployeePassword />} />
             <Route path="/employee/myInfo" element={<Employee><EmployeeMyInfo /></Employee>} />
+           
+            {/* 직원 - 성적 */}
+            <Route path="/score" element={<Employee><ScoreManagement /></Employee>} />
+            {/* 직원 - 수납 */}
+            <Route path="/payment/list" element={<Employee><PaymentList /></Employee>} />
+            <Route path="/payment/discount" element={<Employee><DiscountList /></Employee>} />
+            <Route path="/payment/detail/:paymentNo" element={<Employee><PaymentDetail /></Employee>} />
 
-            {/* 회원 가입(학생, 학부모) */}
+            {/* 멤버(학생, 학부모) */}
             <Route
                 path="/member/login"
                 element={
@@ -146,29 +152,18 @@ export default function Body() {
                         : <MemberLogin />
                 }
             />
-            {/* 학생 */}
-            <Route path="/student/myInfo" element={<Member><StudentMyInfo /></Member>} />
-            {/* 학부모 */}
-            <Route path="/Parent/myInfo" element={<Member><ParentMyInfo /></Member>} />
-            {/* 학부모 학생 */}
             <Route path="/member/join" element={<MemberJoin />} />
             <Route path="/member/joinSuccess" element={<MemberJoinSuccess />} />
             <Route path="/member/joinFail" element={<MemberJoinFail />} />
-
+            
             {/* 학생 */}
+            <Route path="/student/myInfo" element={<Member><StudentMyInfo /></Member>} />
             <Route path="/student/list" element={<Employee><StudentList /></Employee>} />
             <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail /></Employee>} />
+            
+            {/* 학부모 */}
+            <Route path="/parent/myInfo" element={<Member><ParentMyInfo /></Member>} />
 
-            {/* 성적 */}
-            <Route path="/score" element={<Employee><ScoreManagement /></Employee>} />
-
-            {/* 수납 */}
-            <Route path="/payment/list" element={<Employee><PaymentList /></Employee>} />
-            <Route path="/payment/discount" element={<Employee><DiscountList /></Employee>} />
-            <Route path="/payment/detail/:paymentNo" element={<Employee><PaymentDetail /></Employee>} />
-
-            {/* 직원 홈페이지(대시보드) */}
-            <Route path="/employeeHome" element={<Employee><EmployeeHome /></Employee>} />
 
             {/* 멤버 홈페이지(대시보드) */}
             <Route path="/" element={<Member><MemberHome /></Member>} />

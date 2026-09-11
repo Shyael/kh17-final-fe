@@ -10,7 +10,10 @@ import {
     FaLocationDot,
     FaPenRuler,
     FaClipboardQuestion,
-    FaArrowLeft
+    FaArrowLeft,
+    FaUserGraduate,
+    FaEnvelope,
+    FaPhone
 } from "react-icons/fa6";
 import Swal from "sweetalert2";
 
@@ -21,12 +24,11 @@ export default function CourseDetail() {
     const { courseNo } = useParams();
     const navigate = useNavigate();
 
-    // 탭 상태 관리: 'attendance' | 'assignment' | 'exam'
+    // 탭 상태: 'attendance' | 'students' | 'assignment' | 'exam'
     const [activeTab, setActiveTab] = useState("attendance");
     const [loading, setLoading] = useState(true);
     const [detail, setDetail] = useState(null);
 
-    // 날짜 및 시간 포맷팅 (YYYY-MM-DD HH:mm)
     const formatDateTime = (timestamp) => {
         if (!timestamp) return "-";
         const d = new Date(timestamp);
@@ -34,10 +36,8 @@ export default function CourseDetail() {
         return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
-    // 오늘 요일 (일, 월, 화, 수, 목, 금, 토)
     const todayKorean = ["일", "월", "화", "수", "목", "금", "토"][new Date().getDay()];
 
-    // 강좌 상세 및 하위 목록 전체 조회
     const loadCourseDetail = useCallback(async () => {
         try {
             setLoading(true);
@@ -58,14 +58,12 @@ export default function CourseDetail() {
         }
     }, [courseNo, loadCourseDetail]);
 
-    // 수업 시작 핸들러
     const handleStartClass = useCallback(async () => {
         if (!detail?.scheduleList || detail.scheduleList.length === 0) {
             await Swal.fire("경고", "연결된 수업 스케줄이 없습니다.", "warning");
             return;
         }
 
-        // 오늘 요일에 해당하는 스케줄 매핑
         const todaySchedule = detail.scheduleList.find(sc => sc.scheduleWeek === todayKorean);
         if (!todaySchedule) {
             await Swal.fire("확인", `오늘은 수업 요일(${todayKorean}요일)이 아닙니다.`, "warning");
@@ -95,13 +93,11 @@ export default function CourseDetail() {
         }
     }, [detail, todayKorean, loadCourseDetail]);
 
-    //종료 시간 체크
     const isEndTimePassed = () => {
-        if (!todaySession?.sessionEnd) return false;
-        return new Date().getTime() >= new Date(todaySession.sessionEnd).getTime();
+        if (!detail?.todaySession?.sessionEnd) return false;
+        return new Date().getTime() >= new Date(detail.todaySession.sessionEnd).getTime();
     };
 
-    // 수업 종료 핸들러
     const handleEndClass = useCallback(async (sessionNo) => {
         const confirm = await Swal.fire({
             title: "수업을 종료하시겠습니까?",
@@ -124,7 +120,6 @@ export default function CourseDetail() {
         }
     }, [loadCourseDetail]);
 
-    // 수동 출결 상태 변경 핸들러
     const handleAttendanceChange = useCallback(async (attendanceNo, newState) => {
         try {
             await apiClient.patch(`/employee/attendance/${attendanceNo}`, {
@@ -148,7 +143,7 @@ export default function CourseDetail() {
 
     if (!detail) return null;
 
-    const { courseInfo, tutorName, scheduleList, todaySession, attendanceDetail, assignmentList, examList } = detail;
+    const { courseInfo, tutorName, scheduleList, todaySession, attendanceDetail, assignmentList, examList, studentList } = detail;
     const isTodayClassDay = scheduleList?.some(sc => sc.scheduleWeek === todayKorean);
 
     return (
@@ -181,7 +176,7 @@ export default function CourseDetail() {
                         <div className="text-muted small mb-2">{courseInfo.courseInfo || "강좌 설명이 등록되지 않았습니다."}</div>
                         <div className="d-flex flex-wrap gap-3 text-secondary small">
                             <span><FaChalkboardUser className="me-1" /> 강사: <strong>{tutorName || "미지정"}</strong></span>
-                            <span><FaUsers className="me-1" /> 정원: <strong>{courseInfo.courseCurrentCount} / {courseInfo.courseLimit}명</strong></span>
+                            <span><FaUsers className="me-1" /> 수강 인원: <strong>{studentList?.length || courseInfo.courseCurrentCount} / {courseInfo.courseLimit}명</strong></span>
                             <span>수강료: <strong>{Number(courseInfo.courseFee).toLocaleString()}원</strong></span>
                         </div>
                     </Col>
@@ -257,7 +252,7 @@ export default function CourseDetail() {
                 </div>
             </div>
 
-            {/* 네비게이션 탭 바 (onClick 직접 바인딩) */}
+            {/* 네비게이션 탭 바 */}
             <Nav variant="tabs" className="mt-4">
                 <Nav.Item>
                     <Nav.Link
@@ -269,6 +264,22 @@ export default function CourseDetail() {
                         <FaUsers className="me-1" /> 오늘 출결 현황
                     </Nav.Link>
                 </Nav.Item>
+
+                {/* [수강생 목록 탭] */}
+                <Nav.Item>
+                    <Nav.Link
+                        active={activeTab === "students"}
+                        onClick={() => setActiveTab("students")}
+                        className="fw-bold"
+                        style={{ cursor: "pointer" }}
+                    >
+                        <FaUserGraduate className="me-1" /> 수강생 목록
+                        <Badge bg="primary" className="ms-2">
+                            {studentList?.length || 0}
+                        </Badge>
+                    </Nav.Link>
+                </Nav.Item>
+
                 <Nav.Item>
                     <Nav.Link
                         active={activeTab === "assignment"}
@@ -282,6 +293,7 @@ export default function CourseDetail() {
                         </Badge>
                     </Nav.Link>
                 </Nav.Item>
+
                 <Nav.Item>
                     <Nav.Link
                         active={activeTab === "exam"}
@@ -297,7 +309,7 @@ export default function CourseDetail() {
                 </Nav.Item>
             </Nav>
 
-            {/* [탭 1] 출결 현황 */}
+            {/* [탭 1] 오늘 출결 현황 */}
             {activeTab === "attendance" && (
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
                     {attendanceDetail && attendanceDetail.studentList && attendanceDetail.studentList.length > 0 ? (
@@ -364,7 +376,56 @@ export default function CourseDetail() {
                 </div>
             )}
 
-            {/* [탭 2] 과제 관리 */}
+            {/* [탭 2] 수강생 목록 (신청일자 컬럼 제외, 상시 조회) */}
+            {activeTab === "students" && (
+                <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h6 className="fw-bold mb-0">
+                            강좌 등록 수강생 목록 ({studentList?.length || 0}명)
+                        </h6>
+                    </div>
+                    <Table bordered hover responsive className="text-center align-middle mb-0">
+                        <thead>
+                            <tr className="table-light">
+                                <th style={{ width: "60px" }}>No</th>
+                                <th style={{ width: "90px" }}>학번</th>
+                                <th>이름</th>
+                                <th>연락처</th>
+                                <th style={{ width: "110px" }}>수강 상태</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {!studentList || studentList.length === 0 ? (
+                                <tr>
+                                    <td colSpan={6} className="py-4 text-muted">
+                                        등록된 수강생이 없습니다.
+                                    </td>
+                                </tr>
+                            ) : (
+                                studentList.map((st, idx) => (
+                                    <tr key={st.studentNo}>
+                                        <td className="text-muted small">{idx + 1}</td>
+                                        <td className="fw-bold text-secondary">#{st.studentNo}</td>
+                                        <td className="fw-semibold text-dark">{st.studentName}</td>
+                                        <td>
+                                            {st.studentPhone ? (
+                                                <span><FaPhone className="me-1 text-muted small" />{st.studentPhone}</span>
+                                            ) : "-"}
+                                        </td>
+                                        <td>
+                                            <Badge bg={st.studentStatus === "수강중" ? "primary" : "secondary"}>
+                                                {st.studentStatus || "수강중"}
+                                            </Badge>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </Table>
+                </div>
+            )}
+
+            {/* [탭 3] 과제 관리 */}
             {activeTab === "assignment" && (
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
                     <div className="d-flex justify-content-between align-items-center mb-3">
@@ -417,7 +478,7 @@ export default function CourseDetail() {
                 </div>
             )}
 
-            {/* [탭 3] 시험 관리 */}
+            {/* [탭 4] 시험 관리 */}
             {activeTab === "exam" && (
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
                     <h6 className="fw-bold mb-3">등록된 시험 목록 ({examList?.length || 0}건)</h6>

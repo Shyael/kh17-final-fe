@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // <-- 추가
 import { Button, Col, Form, Row, Table } from "react-bootstrap";
 import { FaMagnifyingGlass, FaRotate } from "react-icons/fa6";
 import Swal from "sweetalert2";
@@ -16,7 +17,7 @@ const initialSearchState = {
 };
 
 export default function CourseList() {
-
+    const navigate = useNavigate();
     // 검색 조건
     const [search, setSearch] = useState(initialSearchState);
 
@@ -325,6 +326,7 @@ export default function CourseList() {
             </Row>
 
             {/* 강좌 목록 테이블 */}
+            {/* 강좌 목록 테이블 */}
             <Table
                 bordered
                 hover
@@ -353,10 +355,13 @@ export default function CourseList() {
                         </tr>
                     ) : (
                         pageData.list.map((course, index) => (
-                            <tr key={course.courseNo}>
+                            <tr
+                                key={course.courseNo}
+                                style={{ cursor: "pointer" }}
+                                onClick={() => navigate(`/employee/course/detail/${course.courseNo}`)}
+                            >
                                 <td>{pageData.totalCount - ((pageData.page - 1) * pageData.size) - index}</td>
-                                {/* courseTitle -> courseTitle 수정 */}
-                                <td className="text-start">{course.courseTitle}</td>
+                                <td className="text-start fw-semibold text-primary">{course.courseTitle}</td>
                                 <td>{course.courseSubject}</td>
                                 <td>{course.gradeLevel}</td>
                                 <td>{course.tutorName}</td>
