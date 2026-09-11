@@ -492,7 +492,7 @@ export default function EmployeeMyInfo() {
                             </Row>
 
                             {/* 버튼 */}
-                            <Row className="mt-5">
+                            <Row className="mt-5 mb-5">
                                 <Col className="text-end">
                                     {/* 비밀번호 변경버튼 */}
                                     <Button variant = "warning" className="me-2"

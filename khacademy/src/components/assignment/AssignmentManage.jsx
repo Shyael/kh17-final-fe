@@ -96,7 +96,7 @@ export default function AssignmentManage() {
 
         for (const attachNo of attachNumbers) {
             await apiClient.delete(
-                `/assignment/${assignmentNo}/file/${attachNo}`
+                `/employee/assignment/${assignmentNo}/file/${attachNo}`
             );
         }
 
@@ -134,7 +134,7 @@ export default function AssignmentManage() {
     const loadAssignment = useCallback(async () => {
         try {
             const response =
-                await apiClient.get(`/assignment/${assignmentNo}`);
+                await apiClient.get(`/academy/assignment/${assignmentNo}`);
 
             const data = response.data;
 
@@ -211,7 +211,7 @@ export default function AssignmentManage() {
                 form.append("files", file);
             });
 
-            const response = await apiClient.post("/assignment/", form);
+            const response = await apiClient.post("/employee/assignment", form);
 
             const assignmentNo = response.data;
             toast.success("과제 등록이 완료되었습니다.");
@@ -266,7 +266,7 @@ export default function AssignmentManage() {
                 form.append("files", file);
             });
 
-            await apiClient.put(`/assignment/${assignmentNo}`, form);
+            await apiClient.put(`/employee/assignment/${assignmentNo}`, form);
 
             // 수정 후 상세페이지 이동
             toast.success("수정이 완료되었습니다");

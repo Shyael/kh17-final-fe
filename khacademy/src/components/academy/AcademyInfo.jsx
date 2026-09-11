@@ -56,7 +56,7 @@ export default function AcademyInfo() {
 
     //강사정보 (미리보기용 3명만 조회)
     const loadTutor = useCallback(async () => {
-        const response = await apiClient.get("/tutor", {
+        const response = await apiClient.get("/academy/tutor", {
             params: { page: 1, size: 3 },
         });
         setTutorList(response.data?.list ?? []);

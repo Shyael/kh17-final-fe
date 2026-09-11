@@ -34,7 +34,7 @@ export default function AcademyTutorDetail() {
             //api한번에 하는 처리인거 같음
             await Promise.all([
                 apiClient.get("/academy/"),
-                apiClient.get(`/tutor/${tutorNo}`)
+                apiClient.get(`/academy/tutor/${tutorNo}`)
             ]);
 
         // 학원 과목가져와서 리스트에 넣기

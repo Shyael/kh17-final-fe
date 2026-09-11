@@ -44,7 +44,7 @@ export default function ParentAssignmentDetail() {
 
         try {
             const response = await apiClient.get(
-                `/assignment/parent/student/${selectedChildNo}/${assignmentNo}`
+                `/academy/assignment/parent/student/${selectedChildNo}/${assignmentNo}`
             );
 
             setAssignment(response.data);
@@ -64,7 +64,7 @@ export default function ParentAssignmentDetail() {
 
         try {
             const response = await apiClient.get(
-                `/assignment-submit/parent/student/${selectedChildNo}/assignment/${assignmentNo}`
+                `/academy/assignment-submit/parent/student/${selectedChildNo}/assignment/${assignmentNo}`
             );
 
             setSubmit(response.data || null);

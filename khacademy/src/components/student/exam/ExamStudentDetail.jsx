@@ -35,11 +35,11 @@ export default function ExamStudentDetail() {
                     return;
                 }
                 response = await apiClient.get(
-                    `/exam/parent/student/${selectedChildNo}/${examNo}`
+                    `/academy/exam/parent/student/${selectedChildNo}/${examNo}`
                 );
             }
             else {
-                response = await apiClient.get(`/exam/student/${examNo}`);
+                response = await apiClient.get(`/academy/exam/student/${examNo}`);
             }
 
             setExam(response.data);
@@ -128,7 +128,7 @@ export default function ExamStudentDetail() {
         try {
             setStarting(true);
 
-            const response = await apiClient.post("/attempt/", { examNo: Number(examNo) });
+            const response = await apiClient.post("/academy/attempt", { examNo: Number(examNo) });
 
             const attemptNo = response.data;
 

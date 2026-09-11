@@ -49,11 +49,11 @@ export default function ExamResult() {
                 statisticsResponse
             ] = await Promise.all([
                 //시험 기본정보
-                apiClient.get(`/exam/${examNo}`),
+                apiClient.get(`/employee/exam/${examNo}`),
                 //응시자 목록
-                apiClient.get(`/exam/${examNo}/attempts`),
+                apiClient.get(`/employee/exam/${examNo}/attempts`),
                 //시험 통계
-                apiClient.get(`/exam/${examNo}/statistics`)
+                apiClient.get(`/employee/exam/${examNo}/statistics`)
             ]);
 
             //시험 기본정보
@@ -117,7 +117,7 @@ export default function ExamResult() {
         }
 
         try {
-            await apiClient.put(`/exam/${examNo}/close`);
+            await apiClient.put(`/employee/exam/${examNo}/close`);
 
             await Swal.fire({
                 title: "마감 완료",

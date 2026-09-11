@@ -99,7 +99,7 @@ export default function ExamManage() {
     //수정이면 시험 불러오기
     const loadExam = useCallback(async () => {
         try {
-            const response = await apiClient.get(`/exam/${paramExamNo}`);
+            const response = await apiClient.get(`/employee/exam/${paramExamNo}`);
             const data = response.data;
             //시험 기본정보
             setExam({
@@ -207,7 +207,7 @@ export default function ExamManage() {
                 examLimit: exam.examLimit === "" ? null : Number(exam.examLimit)
             };
 
-            const response = await apiClient.post("/exam/", data);
+            const response = await apiClient.post("/employee/exam", data);
 
             //생성된 시험번호 보관
             setExamNo(response.data);
@@ -234,7 +234,7 @@ export default function ExamManage() {
                 examStatus: exam.examStatus
             };
 
-            await apiClient.put(`/exam/${examNo}`, data);
+            await apiClient.put(`/employee/exam/${examNo}`, data);
 
             toast.success("시험 기본정보가 수정되었습니다.");
         }
@@ -291,7 +291,7 @@ export default function ExamManage() {
     //기존(DB) 첨부파일 삭제
     const removeBeforeFile = useCallback(async (questionTempId, questionNo, attachNo) => {
         try {
-            await apiClient.delete(`/question/${questionNo}/file/${attachNo}`);
+            await apiClient.delete(`/employee/question/${questionNo}/file/${attachNo}`);
 
             setQuestionList(prev =>
                 prev.map(question =>
@@ -597,7 +597,7 @@ export default function ExamManage() {
             // 1. 문제 + 보기 전체 일괄 저장
             //============================================
 
-            const response = await apiClient.put(`/exam/${examNo}/draft`, data);
+            const response = await apiClient.put(`/employee/exam/${examNo}/draft`, data);
 
             //서버에서 questionNo / optionNo가
             //생성되어 돌아온 문제 목록
@@ -658,7 +658,7 @@ export default function ExamManage() {
                     );
                 });
 
-                await apiClient.put(`/question/${savedQuestion.questionNo}`, formData);
+                await apiClient.put(`/employee/question/${savedQuestion.questionNo}`, formData);
             }
 
             //============================================
@@ -667,7 +667,7 @@ export default function ExamManage() {
             //============================================
             let latestQuestionList = savedQuestionList;
             try {
-                const latest = await apiClient.get(`/exam/${examNo}`);
+                const latest = await apiClient.get(`/employee/exam/${examNo}`);
                 latestQuestionList = latest.data.questionList ?? savedQuestionList;
             }
             catch (e) {
@@ -792,7 +792,7 @@ export default function ExamManage() {
                 examStatus: "공개"
             };
 
-            await apiClient.put(`/exam/${examNo}`, data);
+            await apiClient.put(`/employee/exam/${examNo}`, data);
 
             toast.success("출제가 완료되었습니다.");
         }
