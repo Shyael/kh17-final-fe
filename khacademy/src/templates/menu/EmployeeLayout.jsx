@@ -18,6 +18,9 @@ const MENU = [
         ],
     },
     { type: "link", icon: "👥", label: "학생목록", to: "/student/list" },
+
+    { type: "link", icon: "👥", label: "성적관리", to: "/score/" },
+    
     {
         type: "group", icon: "📅", label: "상담관리", children: [
             { label: "상담 예약 목록", to: "/employee/consult/reservation" },
