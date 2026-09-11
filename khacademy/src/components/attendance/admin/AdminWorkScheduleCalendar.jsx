@@ -31,7 +31,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         useState(false);
 
 
+    // =========================================================
     // 선택 날짜 / 일정
+    // =========================================================
+
     const [selectedDate, setSelectedDate] =
         useState(null);
 
@@ -42,7 +45,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         useState(false);
 
 
+    // =========================================================
     // 예정 근무
+    // =========================================================
+
     const [scheduledDayType, setScheduledDayType] =
         useState("workday");
 
@@ -53,7 +59,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         useState("");
 
 
+    // =========================================================
     // 실제 근태
+    // =========================================================
+
     const [clockIn, setClockIn] =
         useState("");
 
@@ -64,8 +73,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         useState(0);
 
 
-
+    // =========================================================
     // YYYY-MM-DD
+    // =========================================================
+
     const dateKey = (date) => {
 
         const year =
@@ -74,69 +85,126 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         const month =
             String(
                 date.getMonth() + 1
-            ).padStart(2, "0");
+            ).padStart(
+                2,
+                "0"
+            );
 
         const day =
             String(
                 date.getDate()
-            ).padStart(2, "0");
+            ).padStart(
+                2,
+                "0"
+            );
 
         return `${year}-${month}-${day}`;
     };
 
 
-
+    // =========================================================
     // Timestamp -> datetime-local
+    // =========================================================
+
     const dateTimeInputValue = (value) => {
 
-        if (!value) return "";
+        if (!value) {
+            return "";
+        }
 
-        return value.substring(0, 16);
+        return value.substring(
+            0,
+            16
+        );
     };
 
 
-
+    // =========================================================
     // HH:mm
+    // =========================================================
+
     const timeText = (value) => {
 
-        if (!value) return null;
+        if (!value) {
+            return null;
+        }
 
-        return value.substring(11, 16);
+        return value.substring(
+            11,
+            16
+        );
     };
 
 
+    // =========================================================
+    // 소수점 시간
+    // =========================================================
 
+    const formatHours = (value) => {
+
+        if (
+            value === null
+            || value === undefined
+        ) {
+            return "-";
+        }
+
+        return (
+            Math.round(
+                Number(value) * 100
+            ) / 100
+        );
+    };
+
+
+    // =========================================================
     // 이번 달 시작
-    const startDate = useMemo(() => {
+    // =========================================================
 
-        const year =
-            currentDate.getFullYear();
+    const startDate = useMemo(
+        () => {
 
-        const month =
-            String(
-                currentDate.getMonth() + 1
-            ).padStart(2, "0");
+            const year =
+                currentDate.getFullYear();
 
-        return `${year}-${month}-01 00:00:00`;
+            const month =
+                String(
+                    currentDate.getMonth() + 1
+                ).padStart(
+                    2,
+                    "0"
+                );
 
-    }, [currentDate]);
+            return `${year}-${month}-01 00:00:00`;
+
+        },
+        [
+            currentDate
+        ]
+    );
 
 
-
+    // =========================================================
     // 이번 달 끝
-    const endDate = useMemo(() => {
+    // =========================================================
 
-        const lastDate =
-            new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth() + 1,
-                0
-            );
+    const endDate = useMemo(
+        () => {
 
-        return `${dateKey(lastDate)} 23:59:59`;
+            const lastDate =
+                new Date(
+                    currentDate.getFullYear(),
+                    currentDate.getMonth() + 1,
+                    0
+                );
 
-    }, [currentDate]);
+            return `${dateKey(lastDate)} 23:59:59`;
 
+        },
+        [
+            currentDate
+        ]
+    );
 
 
     // =========================================================
@@ -145,11 +213,15 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
     const loadSchedule = async () => {
 
-        if (!employeeNo) return;
+        if (!employeeNo) {
+            return;
+        }
+
 
         try {
 
             setLoading(true);
+
 
             const response =
                 await apiClient.get(
@@ -165,17 +237,21 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
             setScheduleList(
-                response.data.scheduleList ?? []
+                response.data.scheduleList
+                ?? []
             );
 
+
             setSummary(
-                response.data.summary ?? null
+                response.data.summary
+                ?? null
             );
 
         }
         catch (err) {
 
             console.error(err);
+
 
             toast.error(
                 "근무일정 조회에 실패했습니다."
@@ -185,135 +261,159 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         finally {
 
             setLoading(false);
+
         }
     };
 
 
-
+    // =========================================================
     // 직원 / 월 변경
-    useEffect(() => {
+    // =========================================================
 
-        if (!employeeNo) {
+    useEffect(
+        () => {
+
+            if (!employeeNo) {
+
+                setScheduleList([]);
+                setSummary(null);
+
+                return;
+            }
+
+
+            setShowModal(false);
+
+            setSelectedDate(null);
+            setSelectedSchedule(null);
 
             setScheduleList([]);
             setSummary(null);
 
-            return;
-        }
 
+            loadSchedule();
 
-        // 이전 직원 데이터 제거
-        setShowModal(false);
-
-        setSelectedDate(null);
-        setSelectedSchedule(null);
-
-        setScheduleList([]);
-        setSummary(null);
-
-
-        loadSchedule();
-
-    }, [
-        employeeNo,
-        startDate,
-        endDate
-    ]);
-
+        },
+        [
+            employeeNo,
+            startDate,
+            endDate
+        ]
+    );
 
 
     // =========================================================
-    // 날짜 -> 일정
+    // 날짜 -> 일정 Map
     // =========================================================
 
-    const scheduleMap = useMemo(() => {
+    const scheduleMap = useMemo(
+        () => {
 
-        const map = {};
+            const map = {};
 
-        scheduleList.forEach(
-            schedule => {
 
-                const key =
-                    schedule
-                        .scheduledWorkDate
-                        ?.substring(0, 10);
+            scheduleList.forEach(
+                schedule => {
 
-                if (key) {
+                    const key =
+                        schedule
+                            .scheduledWorkDate
+                            ?.substring(
+                                0,
+                                10
+                            );
 
-                    map[key] = schedule;
+
+                    if (key) {
+
+                        map[key] =
+                            schedule;
+
+                    }
+
                 }
-            }
-        );
+            );
 
-        return map;
 
-    }, [scheduleList]);
+            return map;
 
+        },
+        [
+            scheduleList
+        ]
+    );
 
 
     // =========================================================
     // 달력 날짜
     // =========================================================
 
-    const calendarDays = useMemo(() => {
+    const calendarDays = useMemo(
+        () => {
 
-        const year =
-            currentDate.getFullYear();
+            const year =
+                currentDate.getFullYear();
 
-        const month =
-            currentDate.getMonth();
-
-
-        const firstDay =
-            new Date(
-                year,
-                month,
-                1
-            );
-
-        const lastDay =
-            new Date(
-                year,
-                month + 1,
-                0
-            );
+            const month =
+                currentDate.getMonth();
 
 
-        const result = [];
-
-
-        // 첫 주 빈 공간
-        for (
-            let i = 0;
-            i < firstDay.getDay();
-            i++
-        ) {
-
-            result.push(null);
-        }
-
-
-        // 실제 날짜
-        for (
-            let day = 1;
-            day <= lastDay.getDate();
-            day++
-        ) {
-
-            result.push(
+            const firstDay =
                 new Date(
                     year,
                     month,
-                    day
-                )
-            );
-        }
+                    1
+                );
 
 
-        return result;
+            const lastDay =
+                new Date(
+                    year,
+                    month + 1,
+                    0
+                );
 
-    }, [currentDate]);
 
+            const result = [];
+
+
+            for (
+                let i = 0;
+                i < firstDay.getDay();
+                i++
+            ) {
+
+                result.push(
+                    null
+                );
+
+            }
+
+
+            for (
+                let day = 1;
+                day <= lastDay.getDate();
+                day++
+            ) {
+
+                result.push(
+                    new Date(
+                        year,
+                        month,
+                        day
+                    )
+                );
+
+            }
+
+
+            return result;
+
+        },
+        [
+            currentDate
+        ]
+    );
 
 
     // =========================================================
@@ -323,11 +423,12 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
     const previousMonth = () => {
 
         setCurrentDate(
-            new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth() - 1,
-                1
-            )
+            previous =>
+                new Date(
+                    previous.getFullYear(),
+                    previous.getMonth() - 1,
+                    1
+                )
         );
     };
 
@@ -335,45 +436,26 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
     const nextMonth = () => {
 
         setCurrentDate(
-            new Date(
-                currentDate.getFullYear(),
-                currentDate.getMonth() + 1,
-                1
-            )
+            previous =>
+                new Date(
+                    previous.getFullYear(),
+                    previous.getMonth() + 1,
+                    1
+                )
         );
     };
 
 
-
     // =========================================================
-    // 표시용
+    // 근태 표시
     // =========================================================
-
-    const dayTypeLabel = (type) => {
-
-        switch (type) {
-
-            case "workday":
-                return "근무일";
-
-            case "holiday":
-                return "휴일";
-
-            case "dayOff":
-                return "휴무일";
-
-            default:
-                return "";
-        }
-    };
-
 
     const attendanceLabel = (type) => {
 
         switch (type) {
 
             case "normal":
-                return "정상";
+                return "출근";
 
             case "absent":
                 return "결근";
@@ -412,7 +494,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
     };
 
 
-
     // =========================================================
     // 날짜 클릭
     // =========================================================
@@ -422,16 +503,21 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         const key =
             dateKey(date);
 
+
         const schedule =
-            scheduleMap[key] ?? null;
+            scheduleMap[key]
+            ?? null;
 
 
-        setSelectedDate(key);
+        setSelectedDate(
+            key
+        );
 
-        setSelectedSchedule(schedule);
+        setSelectedSchedule(
+            schedule
+        );
 
 
-        // 기존 스케줄
         if (schedule) {
 
             setScheduledDayType(
@@ -439,11 +525,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 ?? "workday"
             );
 
+
             setScheduledClockIn(
                 dateTimeInputValue(
                     schedule.scheduledClockIn
                 )
             );
+
 
             setScheduledClockOut(
                 dateTimeInputValue(
@@ -458,28 +546,31 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 )
             );
 
+
             setClockOut(
                 dateTimeInputValue(
                     schedule.clockOut
                 )
             );
 
-            setBreakMinutes(
-                schedule.breakMinutes ?? 0
-            );
-        }
 
-        // 신규 스케줄
+            setBreakMinutes(
+                schedule.breakMinutes
+                ?? 0
+            );
+
+        }
         else {
 
             setScheduledDayType(
                 "workday"
             );
 
-            // 기본 근무시간
+
             setScheduledClockIn(
                 `${key}T09:00`
             );
+
 
             setScheduledClockOut(
                 `${key}T18:00`
@@ -487,33 +578,44 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
             setClockIn("");
+
             setClockOut("");
 
-            setBreakMinutes(0);
+            setBreakMinutes(
+                0
+            );
+
         }
 
 
-        setShowModal(true);
+        setShowModal(
+            true
+        );
     };
 
 
+    // =========================================================
+    // Modal 닫기
+    // =========================================================
 
     const closeModal = () => {
 
-        setShowModal(false);
+        setShowModal(
+            false
+        );
 
-        setSelectedDate(null);
-        setSelectedSchedule(null);
+        setSelectedDate(
+            null
+        );
+
+        setSelectedSchedule(
+            null
+        );
     };
-
 
 
     // =========================================================
     // 신규 근무일정 등록
-    //
-    // contractNo는 보내지 않음
-    // employeeNo + scheduledWorkDate 기준으로
-    // BE가 그 날짜의 계약을 결정
     // =========================================================
 
     const addSchedule = async () => {
@@ -528,11 +630,14 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
         }
 
 
-        if (!selectedDate) return;
+        if (!selectedDate) {
+            return;
+        }
 
 
         if (
-            scheduledDayType !== "dayOff"
+            scheduledDayType
+            !== "dayOff"
             &&
             (
                 !scheduledClockIn
@@ -559,11 +664,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                     `${selectedDate}T00:00:00`,
 
                 scheduledDayType
+
             };
 
 
             if (
-                scheduledDayType !== "dayOff"
+                scheduledDayType
+                !== "dayOff"
             ) {
 
                 request.scheduledClockIn =
@@ -571,6 +678,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                 request.scheduledClockOut =
                     scheduledClockOut;
+
             }
 
 
@@ -596,7 +704,8 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
             if (
-                err.response?.status === 403
+                err.response?.status
+                === 403
             ) {
 
                 toast.error(
@@ -608,7 +717,8 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
             if (
-                err.response?.status === 404
+                err.response?.status
+                === 404
             ) {
 
                 toast.error(
@@ -622,9 +732,9 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             toast.error(
                 "근무일정 등록에 실패했습니다."
             );
+
         }
     };
-
 
 
     // =========================================================
@@ -633,7 +743,9 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
     const updateSchedule = async () => {
 
-        if (!selectedSchedule) return;
+        if (!selectedSchedule) {
+            return;
+        }
 
 
         try {
@@ -645,11 +757,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                         .workScheduleNo,
 
                 scheduledDayType
+
             };
 
 
             if (
-                scheduledDayType !== "dayOff"
+                scheduledDayType
+                !== "dayOff"
             ) {
 
                 if (
@@ -671,6 +785,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                 request.scheduledClockOut =
                     scheduledClockOut;
+
             }
 
 
@@ -696,7 +811,8 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
             if (
-                err.response?.status === 403
+                err.response?.status
+                === 403
             ) {
 
                 toast.error(
@@ -710,19 +826,23 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             toast.error(
                 "근무일정 수정에 실패했습니다."
             );
+
         }
     };
 
 
-
     // =========================================================
-    // 근태 없음 -> 비근무 등록
+    // 근태 없음 -> 결근 / 휴가 신규 생성
     // =========================================================
 
     const addNonWorkingAttendance =
-        async (type) => {
+        async (
+            type
+        ) => {
 
-            if (!selectedSchedule) return;
+            if (!selectedSchedule) {
+                return;
+            }
 
 
             const request = {
@@ -731,6 +851,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                 workDate:
                     `${selectedDate}T00:00:00`
+
             };
 
 
@@ -793,13 +914,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 toast.error(
                     "근태 등록에 실패했습니다."
                 );
+
             }
         };
 
 
-
     // =========================================================
-    // 정상 -> 정상
+    // 출근 -> 출근
     // =========================================================
 
     const normalToNormal = async () => {
@@ -832,7 +953,9 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
         if (
-            Number(breakMinutes) < 0
+            Number(
+                breakMinutes
+            ) < 0
         ) {
 
             toast.warning(
@@ -848,6 +971,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             await apiClient.patch(
                 "/employee/attendance/normalToNormal",
                 {
+
                     empAttendanceNo:
                         selectedSchedule
                             .empAttendanceNo,
@@ -860,12 +984,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                         Number(
                             breakMinutes
                         )
+
                 }
             );
 
 
             toast.success(
-                "정상 근태가 수정되었습니다."
+                "출근 근태가 수정되었습니다."
             );
 
 
@@ -881,17 +1006,19 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             toast.error(
                 "근태 수정에 실패했습니다."
             );
+
         }
     };
 
 
-
     // =========================================================
-    // 정상 -> 비근무
+    // 출근 -> 결근 / 휴가
     // =========================================================
 
     const normalToAbsent =
-        async (attendanceType) => {
+        async (
+            attendanceType
+        ) => {
 
             if (
                 !selectedSchedule
@@ -911,11 +1038,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 await apiClient.patch(
                     "/employee/attendance/normalToAbsent",
                     {
+
                         empAttendanceNo:
                             selectedSchedule
                                 .empAttendanceNo,
 
                         attendanceType
+
                     }
                 );
 
@@ -937,17 +1066,19 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 toast.error(
                     "근태 상태 변경에 실패했습니다."
                 );
+
             }
         };
 
 
-
     // =========================================================
-    // 비근무 -> 비근무
+    // 결근 / 휴가 -> 결근 / 휴가
     // =========================================================
 
     const absentToAbsent =
-        async (attendanceType) => {
+        async (
+            attendanceType
+        ) => {
 
             if (
                 !selectedSchedule
@@ -967,11 +1098,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 await apiClient.patch(
                     "/employee/attendance/absentToAbsent",
                     {
+
                         empAttendanceNo:
                             selectedSchedule
                                 .empAttendanceNo,
 
                         attendanceType
+
                     }
                 );
 
@@ -993,13 +1126,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 toast.error(
                     "근태 상태 변경에 실패했습니다."
                 );
+
             }
         };
 
 
-
     // =========================================================
-    // 비근무 -> 정상
+    // 결근 / 휴가 -> 출근
     // =========================================================
 
     const absentToNormal = async () => {
@@ -1032,7 +1165,9 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
         if (
-            Number(breakMinutes) < 0
+            Number(
+                breakMinutes
+            ) < 0
         ) {
 
             toast.warning(
@@ -1048,6 +1183,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             await apiClient.patch(
                 "/employee/attendance/absentToNormal",
                 {
+
                     empAttendanceNo:
                         selectedSchedule
                             .empAttendanceNo,
@@ -1060,12 +1196,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                         Number(
                             breakMinutes
                         )
+
                 }
             );
 
 
             toast.success(
-                "정상 근태로 변경되었습니다."
+                "출근 상태로 변경되었습니다."
             );
 
 
@@ -1079,21 +1216,26 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             console.error(err);
 
             toast.error(
-                "정상 근태 변경에 실패했습니다."
+                "출근 상태 변경에 실패했습니다."
             );
+
         }
     };
 
 
+    // =========================================================
+    // 현재 근태
+    // =========================================================
 
     const attendanceType =
-        selectedSchedule?.attendanceType;
+        selectedSchedule
+            ?.attendanceType;
 
 
     const attendanceExist =
-        selectedSchedule?.empAttendanceNo
+        selectedSchedule
+            ?.empAttendanceNo
         != null;
-
 
 
     return (
@@ -1103,12 +1245,16 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             {/* =====================================================
                 달력
             ===================================================== */}
+
             <Card>
 
                 <Card.Body>
 
 
-                    {/* 월 이동 */}
+                    {/* =================================================
+                        월 이동
+                    ================================================= */}
+
                     <div
                         className="
                             d-flex
@@ -1158,8 +1304,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                     </div>
 
 
+                    {/* =================================================
+                        월 합계
+                    ================================================= */}
 
-                    {/* 월 합계 */}
                     {
                         summary
                         && (
@@ -1177,8 +1325,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                             <strong>
                                                 {
-                                                    summary
-                                                        .totalWorkHours
+                                                    formatHours(
+                                                        summary
+                                                            .totalWorkHours
+                                                    )
                                                 }
                                             </strong>
                                             시간
@@ -1200,8 +1350,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                             <strong>
                                                 {
-                                                    summary
-                                                        .totalOvertimeHours
+                                                    formatHours(
+                                                        summary
+                                                            .totalOvertimeHours
+                                                    )
                                                 }
                                             </strong>
                                             시간
@@ -1223,8 +1375,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                             <strong>
                                                 {
-                                                    summary
-                                                        .totalNightHours
+                                                    formatHours(
+                                                        summary
+                                                            .totalNightHours
+                                                    )
                                                 }
                                             </strong>
                                             시간
@@ -1246,8 +1400,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                             <strong>
                                                 {
-                                                    summary
-                                                        .totalHolidayHours
+                                                    formatHours(
+                                                        summary
+                                                            .totalHolidayHours
+                                                    )
                                                 }
                                             </strong>
                                             시간
@@ -1263,7 +1419,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                         )
                     }
-
 
 
                     {
@@ -1287,7 +1442,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                             <>
 
 
-                                {/* 요일 */}
+                                {/* =================================================
+                                    요일
+                                ================================================= */}
+
                                 <div
                                     style={{
                                         display:
@@ -1333,8 +1491,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 </div>
 
 
+                                {/* =================================================
+                                    날짜
+                                ================================================= */}
 
-                                {/* 날짜 */}
                                 <div
                                     style={{
                                         display:
@@ -1410,6 +1570,8 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     >
 
 
+                                                        {/* 날짜 */}
+
                                                         <div
                                                             className="
                                                                 fw-bold
@@ -1425,7 +1587,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                         </div>
 
 
-
                                                         {
                                                             schedule
                                                             && (
@@ -1433,25 +1594,90 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                 <>
 
 
-                                                                    <Badge
-                                                                        bg="secondary"
-                                                                        className="me-1"
-                                                                    >
+                                                                    {/* =================================================
+                                                                        휴일근무
+                                                                    ================================================= */}
 
-                                                                        {
-                                                                            dayTypeLabel(
-                                                                                schedule
-                                                                                    .scheduledDayType
-                                                                            )
-                                                                        }
+                                                                    {
+                                                                        schedule
+                                                                            .scheduledDayType
+                                                                        === "holiday"
+                                                                        &&
+                                                                        schedule
+                                                                            .attendanceType
+                                                                        === "normal"
+                                                                        && (
 
-                                                                    </Badge>
+                                                                            <Badge
+                                                                                bg="warning"
+                                                                                text="dark"
+                                                                            >
+                                                                                휴일근무
+                                                                            </Badge>
+
+                                                                        )
+                                                                    }
 
 
+                                                                    {/* =================================================
+                                                                        그냥 휴일
+                                                                    ================================================= */}
+
+                                                                    {
+                                                                        schedule
+                                                                            .scheduledDayType
+                                                                        === "holiday"
+                                                                        &&
+                                                                        schedule
+                                                                            .attendanceType
+                                                                        !== "normal"
+                                                                        && (
+
+                                                                            <Badge
+                                                                                bg="secondary"
+                                                                                className="me-1"
+                                                                            >
+                                                                                휴일
+                                                                            </Badge>
+
+                                                                        )
+                                                                    }
+
+
+                                                                    {/* =================================================
+                                                                        휴무일
+                                                                    ================================================= */}
+
+                                                                    {
+                                                                        schedule
+                                                                            .scheduledDayType
+                                                                        === "dayOff"
+                                                                        && (
+
+                                                                            <Badge bg="secondary">
+                                                                                휴무일
+                                                                            </Badge>
+
+                                                                        )
+                                                                    }
+
+
+                                                                    {/* =================================================
+                                                                        결근 / 휴가
+                                                                        normal은 Badge 없음
+                                                                    ================================================= */}
 
                                                                     {
                                                                         schedule
                                                                             .attendanceType
+                                                                        &&
+                                                                        schedule
+                                                                            .attendanceType
+                                                                        !== "normal"
+                                                                        &&
+                                                                        schedule
+                                                                            .scheduledDayType
+                                                                        !== "dayOff"
                                                                         && (
 
                                                                             <Badge
@@ -1476,16 +1702,52 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                     }
 
 
+                                                                    {/* =================================================
+                                                                        일정은 있는데 근태 없음
+                                                                    ================================================= */}
 
                                                                     {
+                                                                        !schedule
+                                                                            .attendanceType
+                                                                        &&
+                                                                        schedule
+                                                                            .scheduledDayType
+                                                                        !== "dayOff"
+                                                                        && (
+
+                                                                            <Badge
+                                                                                bg="light"
+                                                                                text="dark"
+                                                                            >
+                                                                                근태 미등록
+                                                                            </Badge>
+
+                                                                        )
+                                                                    }
+
+
+                                                                    {/* =================================================
+                                                                        아직 출근 전
+                                                                        예정시간 표시
+                                                                    ================================================= */}
+
+                                                                    {
+                                                                        !schedule
+                                                                            .attendanceType
+                                                                        &&
                                                                         schedule
                                                                             .scheduledClockIn
+                                                                        &&
+                                                                        schedule
+                                                                            .scheduledDayType
+                                                                        !== "dayOff"
                                                                         && (
 
                                                                             <div
                                                                                 className="
                                                                                     small
                                                                                     mt-2
+                                                                                    text-muted
                                                                                 "
                                                                             >
 
@@ -1513,8 +1775,16 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                     }
 
 
+                                                                    {/* =================================================
+                                                                        실제 출근
+                                                                        normal이면 시간만 표시
+                                                                    ================================================= */}
 
                                                                     {
+                                                                        schedule
+                                                                            .attendanceType
+                                                                        === "normal"
+                                                                        &&
                                                                         schedule
                                                                             .clockIn
                                                                         && (
@@ -1522,11 +1792,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                             <div
                                                                                 className="
                                                                                     small
-                                                                                    mt-1
+                                                                                    mt-2
+                                                                                    fw-semibold
                                                                                 "
                                                                             >
-
-                                                                                실제{" "}
 
                                                                                 {
                                                                                     timeText(
@@ -1552,8 +1821,15 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                     }
 
 
+                                                                    {/* =================================================
+                                                                        실제 근무시간
+                                                                    ================================================= */}
 
                                                                     {
+                                                                        schedule
+                                                                            .attendanceType
+                                                                        === "normal"
+                                                                        &&
                                                                         schedule
                                                                             .actualWorkHours
                                                                         > 0
@@ -1563,14 +1839,60 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                                 className="
                                                                                     small
                                                                                     mt-1
+                                                                                    text-muted
                                                                                 "
                                                                             >
 
                                                                                 실제근무{" "}
 
                                                                                 {
-                                                                                    schedule
-                                                                                        .actualWorkHours
+                                                                                    formatHours(
+                                                                                        schedule
+                                                                                            .actualWorkHours
+                                                                                    )
+                                                                                }
+
+                                                                                시간
+
+                                                                            </div>
+
+                                                                        )
+                                                                    }
+
+
+                                                                    {/* =================================================
+                                                                        휴일근로시간
+                                                                    ================================================= */}
+
+                                                                    {
+                                                                        schedule
+                                                                            .scheduledDayType
+                                                                        === "holiday"
+                                                                        &&
+                                                                        schedule
+                                                                            .attendanceType
+                                                                        === "normal"
+                                                                        &&
+                                                                        schedule
+                                                                            .actualHolidayHours
+                                                                        > 0
+                                                                        && (
+
+                                                                            <div
+                                                                                className="
+                                                                                    small
+                                                                                    mt-1
+                                                                                    text-muted
+                                                                                "
+                                                                            >
+
+                                                                                휴일근로{" "}
+
+                                                                                {
+                                                                                    formatHours(
+                                                                                        schedule
+                                                                                            .actualHolidayHours
+                                                                                    )
                                                                                 }
 
                                                                                 시간
@@ -1608,10 +1930,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             </Card>
 
 
-
             {/* =====================================================
                 날짜 관리 Modal
             ===================================================== */}
+
             <Modal
                 show={
                     showModal
@@ -1636,13 +1958,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                 </Modal.Header>
 
 
-
                 <Modal.Body>
 
 
                     {/* =================================================
                         신규 근무일정
                     ================================================= */}
+
                     {
                         !selectedSchedule
                         ? (
@@ -1662,11 +1984,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                     "
                                 >
 
-                                    {selectedDate}의
+                                    {selectedDate}의{" "}
                                     근무 일정을 등록합니다.
 
                                 </div>
-
 
 
                                 <Row className="g-3">
@@ -1712,7 +2033,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                     </Col>
 
 
-
                                     {
                                         scheduledDayType
                                         !== "dayOff"
@@ -1746,7 +2066,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     </Form.Group>
 
                                                 </Col>
-
 
 
                                                 <Col md={4}>
@@ -1785,7 +2104,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 </Row>
 
 
-
                                 {
                                     scheduledDayType
                                     === "dayOff"
@@ -1806,7 +2124,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                     )
                                 }
-
 
 
                                 <div
@@ -1834,10 +2151,10 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                         )
 
-
                         // =================================================
                         // 기존 근무일정
                         // =================================================
+
                         : (
 
                             <>
@@ -1848,8 +2165,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 </h5>
 
 
-
-                                {/* 계약이 변경된 경우 확인용 */}
                                 {
                                     selectedSchedule
                                         .contractNo
@@ -1875,7 +2190,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                     )
                                 }
-
 
 
                                 <Row className="g-3 mb-4">
@@ -1924,7 +2238,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                     </Col>
 
 
-
                                     {
                                         scheduledDayType
                                         !== "dayOff"
@@ -1958,7 +2271,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     </Form.Group>
 
                                                 </Col>
-
 
 
                                                 <Col md={4}>
@@ -1997,7 +2309,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 </Row>
 
 
-
                                 <div className="text-end mb-4">
 
                                     <Button
@@ -2014,9 +2325,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 </div>
 
 
-
                                 <hr />
-
 
 
                                 <h5 className="mb-3">
@@ -2024,11 +2333,38 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 </h5>
 
 
+                                {/* =================================================
+                                    휴무일
+                                ================================================= */}
+
+                                {
+                                    scheduledDayType
+                                    === "dayOff"
+                                    && (
+
+                                        <div
+                                            className="
+                                                text-muted
+                                                py-2
+                                            "
+                                        >
+
+                                            휴무일은 근태 관리 대상이 아닙니다.
+
+                                        </div>
+
+                                    )
+                                }
+
 
                                 {/* =================================================
-                                    아직 근태 없음
+                                    근태 미등록
                                 ================================================= */}
+
                                 {
+                                    scheduledDayType
+                                    !== "dayOff"
+                                    &&
                                     !attendanceExist
                                     && (
 
@@ -2042,10 +2378,9 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 "
                                             >
 
-                                                등록된 근태가 없습니다.
+                                                아직 등록된 근태가 없습니다.
 
                                             </div>
-
 
 
                                             <div
@@ -2072,7 +2407,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 </Button>
 
 
-
                                                 <Button
                                                     variant="primary"
                                                     onClick={
@@ -2083,10 +2417,9 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     }
                                                 >
 
-                                                    유급휴가
+                                                    유급휴가 등록
 
                                                 </Button>
-
 
 
                                                 <Button
@@ -2099,10 +2432,24 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     }
                                                 >
 
-                                                    무급휴가
+                                                    무급휴가 등록
 
                                                 </Button>
 
+
+                                            </div>
+
+
+                                            <div
+                                                className="
+                                                    small
+                                                    text-muted
+                                                    mt-3
+                                                "
+                                            >
+
+                                                실제 출근은 직원이 출근 처리하면
+                                                자동으로 등록됩니다.
 
                                             </div>
 
@@ -2113,11 +2460,13 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 }
 
 
-
                                 {/* =================================================
-                                    정상 근태
+                                    출근
                                 ================================================= */}
+
                                 {
+                                    attendanceExist
+                                    &&
                                     attendanceType
                                     === "normal"
                                     && (
@@ -2129,12 +2478,31 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                                 현재 상태 :{" "}
 
-                                                <Badge bg="success">
-                                                    정상
+                                                <Badge
+                                                    bg={
+                                                        scheduledDayType
+                                                        === "holiday"
+                                                            ? "warning"
+                                                            : "success"
+                                                    }
+                                                    text={
+                                                        scheduledDayType
+                                                        === "holiday"
+                                                            ? "dark"
+                                                            : undefined
+                                                    }
+                                                >
+
+                                                    {
+                                                        scheduledDayType
+                                                        === "holiday"
+                                                        ? "휴일근무"
+                                                        : "출근"
+                                                    }
+
                                                 </Badge>
 
                                             </div>
-
 
 
                                             <Row className="g-3">
@@ -2167,7 +2535,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 </Col>
 
 
-
                                                 <Col md={4}>
 
                                                     <Form.Group>
@@ -2193,7 +2560,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     </Form.Group>
 
                                                 </Col>
-
 
 
                                                 <Col md={4}>
@@ -2227,7 +2593,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                             </Row>
 
 
-
                                             <div
                                                 className="
                                                     d-flex
@@ -2244,10 +2609,9 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     }
                                                 >
 
-                                                    정상근태 수정
+                                                    출근정보 수정
 
                                                 </Button>
-
 
 
                                                 <Button
@@ -2265,7 +2629,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 </Button>
 
 
-
                                                 <Button
                                                     variant="outline-primary"
                                                     onClick={
@@ -2279,7 +2642,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                     유급휴가 전환
 
                                                 </Button>
-
 
 
                                                 <Button
@@ -2306,14 +2668,15 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                 }
 
 
-
                                 {/* =================================================
-                                    비근무 근태
+                                    결근 / 휴가
                                 ================================================= */}
+
                                 {
                                     attendanceExist
                                     &&
-                                    attendanceType !== "normal"
+                                    attendanceType
+                                    !== "normal"
                                     && (
 
                                         <>
@@ -2340,7 +2703,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 </Badge>
 
                                             </div>
-
 
 
                                             <div
@@ -2376,7 +2738,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 }
 
 
-
                                                 {
                                                     attendanceType
                                                     !== "paid_leave"
@@ -2398,7 +2759,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                                     )
                                                 }
-
 
 
                                                 {
@@ -2427,15 +2787,12 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                             </div>
 
 
-
                                             <hr />
 
 
-
                                             <h6>
-                                                정상 근태로 변경
+                                                출근 상태로 변경
                                             </h6>
-
 
 
                                             <Row className="g-3 mt-1">
@@ -2448,6 +2805,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                         <Form.Label>
                                                             실제 출근
                                                         </Form.Label>
+
 
                                                         <Form.Control
                                                             type="datetime-local"
@@ -2467,7 +2825,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 </Col>
 
 
-
                                                 <Col md={4}>
 
                                                     <Form.Group>
@@ -2475,6 +2832,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                         <Form.Label>
                                                             실제 퇴근
                                                         </Form.Label>
+
 
                                                         <Form.Control
                                                             type="datetime-local"
@@ -2494,7 +2852,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 </Col>
 
 
-
                                                 <Col md={4}>
 
                                                     <Form.Group>
@@ -2502,6 +2859,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                         <Form.Label>
                                                             휴게시간(분)
                                                         </Form.Label>
+
 
                                                         <Form.Control
                                                             type="number"
@@ -2525,7 +2883,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                             </Row>
 
 
-
                                             <Button
                                                 className="mt-3"
                                                 variant="success"
@@ -2534,7 +2891,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                 }
                                             >
 
-                                                정상 근태로 변경
+                                                출근 상태로 변경
 
                                             </Button>
 
@@ -2552,7 +2909,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
                 </Modal.Body>
-
 
 
                 <Modal.Footer>

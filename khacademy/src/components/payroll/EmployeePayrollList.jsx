@@ -73,6 +73,22 @@ const EmployeePayrollList = () => {
         return value.toLocaleString();
     };
 
+    const formatHours = (value) => {
+
+        if (
+            value === null
+            || value === undefined
+        ) {
+            return "-";
+        }
+
+        const number =
+            Number(value);
+
+        return Number(
+            number.toFixed(2)
+        );
+    };
 
     // =========================
     // 급여 목록 조회
@@ -172,188 +188,188 @@ const EmployeePayrollList = () => {
 
                     {
                         loading
-                        ? (
+                            ? (
 
-                            <Row>
+                                <Row>
 
-                                <Col
-                                    className="
+                                    <Col
+                                        className="
                                         text-center
                                         py-5
                                     "
-                                >
-                                    급여 목록을 불러오는 중입니다
-                                </Col>
+                                    >
+                                        급여 목록을 불러오는 중입니다
+                                    </Col>
 
-                            </Row>
+                                </Row>
 
-                        )
-                        : payrollList.length === 0
-                        ? (
+                            )
+                            : payrollList.length === 0
+                                ? (
 
-                            <Row>
+                                    <Row>
 
-                                <Col
-                                    className="
+                                        <Col
+                                            className="
                                         text-center
                                         text-muted
                                         py-5
                                     "
-                                >
-                                    조회할 수 있는 급여가 없습니다
-                                </Col>
+                                        >
+                                            조회할 수 있는 급여가 없습니다
+                                        </Col>
 
-                            </Row>
+                                    </Row>
 
-                        )
-                        : (
+                                )
+                                : (
 
-                            <>
-                                {/* 제목 */}
+                                    <>
+                                        {/* 제목 */}
 
-                                <Row
-                                    className="
+                                        <Row
+                                            className="
                                         fw-bold
                                         text-center
                                         border-bottom
                                         py-3
                                     "
-                                >
+                                        >
 
-                                    <Col md={2}>
-                                        귀속월
-                                    </Col>
+                                            <Col md={2}>
+                                                귀속월
+                                            </Col>
 
-                                    <Col md={2}>
-                                        근로시간
-                                    </Col>
+                                            <Col md={2}>
+                                                근로시간
+                                            </Col>
 
-                                    <Col md={2}>
-                                        총 지급액
-                                    </Col>
+                                            <Col md={2}>
+                                                총 지급액
+                                            </Col>
 
-                                    <Col md={2}>
-                                        총 공제액
-                                    </Col>
+                                            <Col md={2}>
+                                                총 공제액
+                                            </Col>
 
-                                    <Col md={2}>
-                                        실수령액
-                                    </Col>
+                                            <Col md={2}>
+                                                실수령액
+                                            </Col>
 
-                                    <Col md={2}>
-                                        명세서
-                                    </Col>
+                                            <Col md={2}>
+                                                명세서
+                                            </Col>
 
-                                </Row>
+                                        </Row>
 
 
-                                {
-                                    payrollList.map(
-                                        payroll => (
+                                        {
+                                            payrollList.map(
+                                                payroll => (
 
-                                            <Row
-                                                key={
-                                                    payroll.payrollNo
-                                                }
-                                                className="
+                                                    <Row
+                                                        key={
+                                                            payroll.payrollNo
+                                                        }
+                                                        className="
                                                     align-items-center
                                                     text-center
                                                     border-bottom
                                                     py-3
                                                 "
-                                            >
-
-                                                <Col md={2}>
-
-                                                    <strong>
-
-                                                        {
-                                                            payroll.payrollYear
-                                                        }년{" "}
-
-                                                        {
-                                                            payroll.payrollMonth
-                                                        }월
-
-                                                    </strong>
-
-                                                </Col>
-
-
-                                                <Col md={2}>
-
-                                                    {
-                                                        payroll.totalWorkHours
-                                                        ?? 0
-                                                    }시간
-
-                                                </Col>
-
-
-                                                <Col md={2}>
-
-                                                    {
-                                                        formatMoney(
-                                                            payroll.grossPay
-                                                        )
-                                                    }원
-
-                                                </Col>
-
-
-                                                <Col md={2}>
-
-                                                    {
-                                                        formatMoney(
-                                                            payroll.totalDeduction
-                                                        )
-                                                    }원
-
-                                                </Col>
-
-
-                                                <Col md={2}>
-
-                                                    <strong>
-
-                                                        {
-                                                            formatMoney(
-                                                                payroll.netPay
-                                                            )
-                                                        }원
-
-                                                    </strong>
-
-                                                </Col>
-
-
-                                                <Col md={2}>
-
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline-primary"
-                                                        onClick={
-                                                            () =>
-                                                                movePayrollDetail(
-                                                                    payroll.payrollYear,
-                                                                    payroll.payrollMonth
-                                                                )
-                                                        }
                                                     >
-                                                        급여명세서
-                                                    </Button>
 
-                                                </Col>
+                                                        <Col md={2}>
 
-                                            </Row>
+                                                            <strong>
 
-                                        )
-                                    )
-                                }
+                                                                {
+                                                                    payroll.payrollYear
+                                                                }년{" "}
 
-                            </>
+                                                                {
+                                                                    payroll.payrollMonth
+                                                                }월
 
-                        )
+                                                            </strong>
+
+                                                        </Col>
+
+
+                                                        <Col md={2}>
+
+                                                            {   formatHours(
+                                                                payroll.totalWorkHours
+                                                                ?? 0)
+                                                            }시간
+
+                                                        </Col>
+
+
+                                                        <Col md={2}>
+
+                                                            {
+                                                                formatMoney(
+                                                                    payroll.grossPay
+                                                                )
+                                                            }원
+
+                                                        </Col>
+
+
+                                                        <Col md={2}>
+
+                                                            {
+                                                                formatMoney(
+                                                                    payroll.totalDeduction
+                                                                )
+                                                            }원
+
+                                                        </Col>
+
+
+                                                        <Col md={2}>
+
+                                                            <strong>
+
+                                                                {
+                                                                    formatMoney(
+                                                                        payroll.netPay
+                                                                    )
+                                                                }원
+
+                                                            </strong>
+
+                                                        </Col>
+
+
+                                                        <Col md={2}>
+
+                                                            <Button
+                                                                size="sm"
+                                                                variant="outline-primary"
+                                                                onClick={
+                                                                    () =>
+                                                                        movePayrollDetail(
+                                                                            payroll.payrollYear,
+                                                                            payroll.payrollMonth
+                                                                        )
+                                                                }
+                                                            >
+                                                                급여명세서
+                                                            </Button>
+
+                                                        </Col>
+
+                                                    </Row>
+
+                                                )
+                                            )
+                                        }
+
+                                    </>
+
+                                )
                     }
 
                 </Card.Body>

@@ -92,6 +92,29 @@ const changePayrollYear = (e) => {
     };
 
 
+    const formatHours = (value) => {
+
+        if (
+            value === null
+            || value === undefined
+        ) {
+            return "-";
+        }
+
+        const number =
+            Number(value);
+
+        return Number(
+            number.toFixed(2)
+        );
+    };
+
+    const formatDateTime = (value) => {
+        if (!value) return "-";
+
+        return new Date(value).toLocaleString("ko-KR");
+    };
+
     // =========================
     // 급여 상태 한글 표시
     // =========================
@@ -405,8 +428,9 @@ const changePayrollYear = (e) => {
                                                         <Col md={2}>
 
                                                             {
+                                                                formatHours(
                                                                 payroll.totalWorkHours
-                                                                ?? 0
+                                                                ?? 0)
                                                             }시간
 
                                                         </Col>

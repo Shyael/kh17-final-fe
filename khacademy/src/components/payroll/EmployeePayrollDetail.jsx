@@ -14,26 +14,21 @@ import {
     Card,
     Col,
     Container,
-    Form,
-    Modal,
     Row
 } from "react-bootstrap";
 
 import { toast } from "react-toastify";
 
 import { apiClient } from "@utils/reaxios";
-
 import Jumbotron from "@templates/Jumbotron";
 
 
-const AdminPayrollDetail = () => {
+const EmployeePayrollDetail = () => {
 
     const navigate =
         useNavigate();
 
-
     const {
-        employeeNo,
         payrollYear,
         payrollMonth
     } = useParams();
@@ -47,51 +42,108 @@ const AdminPayrollDetail = () => {
 
 
     // =========================
-    // 지급 Modal
-    // =========================
-
-    const [showPayModal, setShowPayModal] =
-        useState(false);
-
-    const [paymentMethod, setPaymentMethod] =
-        useState("");
-
-    const [paymentNote, setPaymentNote] =
-        useState("");
-
-
-    // =========================
-    // 지급취소 Modal
-    // =========================
-
-    const [showCancelModal, setShowCancelModal] =
-        useState(false);
-
-    const [cancelAmount, setCancelAmount] =
-        useState("");
-
-    const [cancelNote, setCancelNote] =
-        useState("");
-
-
-    // =========================
     // 금액 표시
     // =========================
 
     const formatMoney = (value) => {
 
-        if (value === null
-            || value === undefined) {
-
+        if (
+            value === null
+            || value === undefined
+        ) {
             return "0";
         }
 
-        return value.toLocaleString();
+        return Number(value).toLocaleString();
     };
 
 
     // =========================
-    // 급여 상태 한글
+    // 근로시간 표시
+    // =========================
+
+    const formatHours = (value) => {
+
+        if (
+            value === null
+            || value === undefined
+        ) {
+            return 0;
+        }
+
+        return (
+            Math.round(
+                Number(value) * 100
+            ) / 100
+        );
+    };
+
+
+    // =========================
+    // 날짜 + 시간 표시
+    // =========================
+
+    const formatDateTime = (value) => {
+
+        if (!value) {
+            return "-";
+        }
+
+        const date =
+            new Date(value);
+
+        const year =
+            date.getFullYear();
+
+        const month =
+            String(
+                date.getMonth() + 1
+            ).padStart(
+                2,
+                "0"
+            );
+
+        const day =
+            String(
+                date.getDate()
+            ).padStart(
+                2,
+                "0"
+            );
+
+        const hour =
+            String(
+                date.getHours()
+            ).padStart(
+                2,
+                "0"
+            );
+
+        const minute =
+            String(
+                date.getMinutes()
+            ).padStart(
+                2,
+                "0"
+            );
+
+        const second =
+            String(
+                date.getSeconds()
+            ).padStart(
+                2,
+                "0"
+            );
+
+        return (
+            `${year}-${month}-${day} `
+            + `${hour}:${minute}:${second}`
+        );
+    };
+
+
+    // =========================
+    // 급여 상태
     // =========================
 
     const payrollStatusText = (status) => {
@@ -104,12 +156,12 @@ const AdminPayrollDetail = () => {
             return "확정";
         }
 
-        return status;
+        return status ?? "-";
     };
 
 
     // =========================
-    // 지급 상태 한글
+    // 지급 상태
     // =========================
 
     const paymentStatusText = (status) => {
@@ -122,12 +174,48 @@ const AdminPayrollDetail = () => {
             return "지급취소";
         }
 
-        return status;
+        if (status === "unpaid") {
+            return "미지급";
+        }
+
+        return status ?? "-";
     };
 
 
     // =========================
-    // 상세 조회
+    // 지급 상태 Badge
+    // =========================
+
+    const paymentStatusBadge = (status) => {
+
+        if (status === "paid") {
+
+            return (
+                <Badge bg="success">
+                    지급
+                </Badge>
+            );
+        }
+
+        if (status === "cancelled") {
+
+            return (
+                <Badge bg="danger">
+                    지급취소
+                </Badge>
+            );
+        }
+
+        return (
+            <Badge bg="secondary">
+                {paymentStatusText(status)}
+            </Badge>
+        );
+    };
+
+
+    // =========================
+    // 직원 본인 급여 조회
     // =========================
 
     const loadPayroll = async () => {
@@ -139,7 +227,7 @@ const AdminPayrollDetail = () => {
 
             const response =
                 await apiClient.get(
-                    `/employee/admin/payroll/detail/${employeeNo}/${payrollYear}/${payrollMonth}`
+                    `/employee/payroll/my/${payrollYear}/${payrollMonth}`
                 );
 
 
@@ -150,10 +238,16 @@ const AdminPayrollDetail = () => {
         }
         catch (error) {
 
-            console.error(error);
+            console.error(
+                "직원 급여 상세 조회 실패",
+                error
+            );
 
 
-            if (error.response?.status === 404) {
+            if (
+                error.response?.status
+                === 404
+            ) {
 
                 setPayroll(null);
 
@@ -162,7 +256,7 @@ const AdminPayrollDetail = () => {
 
 
             toast.error(
-                "급여 상세 조회에 실패했습니다"
+                "급여 정보를 불러오지 못했습니다"
             );
 
         }
@@ -171,256 +265,6 @@ const AdminPayrollDetail = () => {
             setLoading(false);
 
         }
-    };
-
-
-    // =========================
-    // 재계산
-    // =========================
-
-    const recalculatePayroll = async () => {
-
-        try {
-
-            setLoading(true);
-
-
-            await apiClient.patch(
-                "/employee/admin/payroll/recalculate",
-                {
-                    employeeNo: employeeNo,
-                    payrollYear: payrollYear,
-                    payrollMonth: payrollMonth
-                }
-            );
-
-
-            toast.success(
-                "급여 재계산이 완료되었습니다"
-            );
-
-
-            await loadPayroll();
-
-        }
-        catch (error) {
-
-            console.error(error);
-
-
-            toast.error(
-                "급여 재계산에 실패했습니다"
-            );
-
-        }
-        finally {
-
-            setLoading(false);
-
-        }
-    };
-
-
-    // =========================
-    // 급여 확정
-    // =========================
-
-    const confirmPayroll = async () => {
-
-        try {
-
-            setLoading(true);
-
-
-            await apiClient.patch(
-                "/employee/admin/payroll/confirm",
-                {
-                    employeeNo: employeeNo,
-                    payrollYear: payrollYear,
-                    payrollMonth: payrollMonth
-                }
-            );
-
-
-            toast.success(
-                "급여가 확정되었습니다"
-            );
-
-
-            await loadPayroll();
-
-        }
-        catch (error) {
-
-            console.error(error);
-
-
-            toast.error(
-                "급여 확정에 실패했습니다"
-            );
-
-        }
-        finally {
-
-            setLoading(false);
-
-        }
-    };
-
-
-    // =========================
-    // 지급
-    // =========================
-
-    const payPayroll = async () => {
-
-        if (paymentMethod === null
-            || paymentMethod === "") {
-
-            toast.warning(
-                "지급 방법을 입력해주세요"
-            );
-
-            return;
-        }
-
-
-        try {
-
-            setLoading(true);
-
-
-            await apiClient.post(
-                "/employee/admin/payroll/pay",
-                {
-                    employeeNo: employeeNo,
-                    payrollYear: payrollYear,
-                    payrollMonth: payrollMonth,
-                    paymentMethod: paymentMethod,
-                    paymentNote: paymentNote
-                }
-            );
-
-
-            toast.success(
-                "급여 지급이 완료되었습니다"
-            );
-
-
-            setShowPayModal(false);
-
-            setPaymentMethod("");
-
-            setPaymentNote("");
-
-
-            await loadPayroll();
-
-        }
-        catch (error) {
-
-            console.error(error);
-
-
-            toast.error(
-                "급여 지급에 실패했습니다"
-            );
-
-        }
-        finally {
-
-            setLoading(false);
-
-        }
-    };
-
-
-    // =========================
-    // 지급 취소
-    // =========================
-
-    const cancelPayment = async () => {
-
-        if (cancelAmount === null
-            || cancelAmount === "") {
-
-            toast.warning(
-                "취소 금액을 입력해주세요"
-            );
-
-            return;
-        }
-
-
-        if (cancelAmount <= 0) {
-
-            toast.warning(
-                "취소 금액을 확인해주세요"
-            );
-
-            return;
-        }
-
-
-        try {
-
-            setLoading(true);
-
-
-            await apiClient.post(
-                "/employee/admin/payroll/cancel-payment",
-                {
-                    employeeNo: employeeNo,
-                    payrollYear: payrollYear,
-                    payrollMonth: payrollMonth,
-                    cancelAmount: cancelAmount,
-                    paymentNote: cancelNote
-                }
-            );
-
-
-            toast.success(
-                "지급 취소가 완료되었습니다"
-            );
-
-
-            setShowCancelModal(false);
-
-            setCancelAmount("");
-
-            setCancelNote("");
-
-
-            await loadPayroll();
-
-        }
-        catch (error) {
-
-            console.error(error);
-
-
-            toast.error(
-                "지급 취소에 실패했습니다"
-            );
-
-        }
-        finally {
-
-            setLoading(false);
-
-        }
-    };
-
-
-    // =========================
-    // 월별 현황 이동
-    // =========================
-
-    const movePayrollMonthly = () => {
-
-        navigate(
-            "/employee/admin/payroll"
-        );
     };
 
 
@@ -433,49 +277,35 @@ const AdminPayrollDetail = () => {
         loadPayroll();
 
     }, [
-        employeeNo,
         payrollYear,
         payrollMonth
     ]);
 
 
     // =========================
-    // 지급 여부
-    // =========================
-
-    const hasPayment =
-        payroll !== null
-        && payroll.currentPaidAmount !== null
-        && payroll.currentPaidAmount > 0;
-
-
-    // =========================
     // 로딩
     // =========================
 
-    if (loading
-        && payroll === null) {
+    if (
+        loading
+        && payroll === null
+    ) {
 
         return (
             <Container className="py-4">
 
                 <Jumbotron
-                    title="급여 상세"
+                    title="급여명세"
                 />
 
-
-                <Row>
-
-                    <Col
-                        className="
-                            text-center
-                            py-5
-                        "
-                    >
-                        급여 정보를 불러오는 중입니다
-                    </Col>
-
-                </Row>
+                <div
+                    className="
+                        text-center
+                        py-5
+                    "
+                >
+                    급여 정보를 불러오는 중입니다
+                </div>
 
             </Container>
         );
@@ -492,40 +322,35 @@ const AdminPayrollDetail = () => {
             <Container className="py-4">
 
                 <Jumbotron
-                    title="급여 상세"
+                    title="급여명세"
                 />
-
 
                 <Card>
 
                     <Card.Body>
 
-                        <Row>
+                        <div
+                            className="
+                                text-center
+                                py-5
+                            "
+                        >
 
-                            <Col
-                                className="
-                                    text-center
-                                    py-5
-                                "
+                            <div className="mb-4">
+                                해당 월의 급여 정보가 없습니다
+                            </div>
+
+                            <Button
+                                variant="outline-secondary"
+                                onClick={
+                                    () =>
+                                        navigate(-1)
+                                }
                             >
+                                돌아가기
+                            </Button>
 
-                                <div className="mb-4">
-                                    해당 급여가 존재하지 않습니다
-                                </div>
-
-
-                                <Button
-                                    variant="outline-secondary"
-                                    onClick={
-                                        movePayrollMonthly
-                                    }
-                                >
-                                    월별 급여 현황
-                                </Button>
-
-                            </Col>
-
-                        </Row>
+                        </div>
 
                     </Card.Body>
 
@@ -540,7 +365,7 @@ const AdminPayrollDetail = () => {
         <Container className="py-4">
 
             <Jumbotron
-                title="급여 상세"
+                title="급여명세"
             />
 
 
@@ -554,9 +379,9 @@ const AdminPayrollDetail = () => {
 
                     <Row className="align-items-center">
 
-                        <Col md={8}>
+                        <Col>
 
-                            <h3>
+                            <h3 className="mb-3">
 
                                 {payroll.payrollYear}년{" "}
                                 {payroll.payrollMonth}월 급여
@@ -564,22 +389,7 @@ const AdminPayrollDetail = () => {
                             </h3>
 
 
-                            <Row className="mt-4">
-
-                                <Col md={3}>
-                                    직원번호
-                                </Col>
-
-                                <Col>
-                                    <strong>
-                                        {payroll.employeeNo}
-                                    </strong>
-                                </Col>
-
-                            </Row>
-
-
-                            <Row className="mt-2">
+                            <Row className="mb-2">
 
                                 <Col md={3}>
                                     급여상태
@@ -591,17 +401,15 @@ const AdminPayrollDetail = () => {
                                         bg={
                                             payroll.payrollStatus
                                             === "confirmed"
-                                            ? "success"
-                                            : "secondary"
+                                                ? "success"
+                                                : "secondary"
                                         }
                                     >
-
                                         {
                                             payrollStatusText(
                                                 payroll.payrollStatus
                                             )
                                         }
-
                                     </Badge>
 
                                 </Col>
@@ -609,7 +417,7 @@ const AdminPayrollDetail = () => {
                             </Row>
 
 
-                            <Row className="mt-2">
+                            <Row className="mb-2">
 
                                 <Col md={3}>
                                     계산일시
@@ -617,15 +425,16 @@ const AdminPayrollDetail = () => {
 
                                 <Col>
                                     {
-                                        payroll.calculatedAt
-                                        ?? "-"
+                                        formatDateTime(
+                                            payroll.calculatedAt
+                                        )
                                     }
                                 </Col>
 
                             </Row>
 
 
-                            <Row className="mt-2">
+                            <Row>
 
                                 <Col md={3}>
                                     확정일시
@@ -633,29 +442,13 @@ const AdminPayrollDetail = () => {
 
                                 <Col>
                                     {
-                                        payroll.confirmedAt
-                                        ?? "-"
+                                        formatDateTime(
+                                            payroll.confirmedAt
+                                        )
                                     }
                                 </Col>
 
                             </Row>
-
-                        </Col>
-
-
-                        <Col
-                            md={4}
-                            className="text-end"
-                        >
-
-                            <Button
-                                variant="outline-secondary"
-                                onClick={
-                                    movePayrollMonthly
-                                }
-                            >
-                                월별 현황
-                            </Button>
 
                         </Col>
 
@@ -676,21 +469,21 @@ const AdminPayrollDetail = () => {
                     근로시간
                 </Card.Header>
 
-
                 <Card.Body>
 
                     <Row className="text-center">
 
                         <Col md={3}>
 
-                            <div>
+                            <div className="mb-2">
                                 총 근로시간
                             </div>
 
                             <strong>
                                 {
-                                    payroll.totalWorkHours
-                                    ?? 0
+                                    formatHours(
+                                        payroll.totalWorkHours
+                                    )
                                 }시간
                             </strong>
 
@@ -699,14 +492,15 @@ const AdminPayrollDetail = () => {
 
                         <Col md={3}>
 
-                            <div>
+                            <div className="mb-2">
                                 연장근로
                             </div>
 
                             <strong>
                                 {
-                                    payroll.totalOvertimeHours
-                                    ?? 0
+                                    formatHours(
+                                        payroll.totalOvertimeHours
+                                    )
                                 }시간
                             </strong>
 
@@ -715,14 +509,15 @@ const AdminPayrollDetail = () => {
 
                         <Col md={3}>
 
-                            <div>
+                            <div className="mb-2">
                                 야간근로
                             </div>
 
                             <strong>
                                 {
-                                    payroll.totalNightHours
-                                    ?? 0
+                                    formatHours(
+                                        payroll.totalNightHours
+                                    )
                                 }시간
                             </strong>
 
@@ -731,14 +526,15 @@ const AdminPayrollDetail = () => {
 
                         <Col md={3}>
 
-                            <div>
+                            <div className="mb-2">
                                 휴일근로
                             </div>
 
                             <strong>
                                 {
-                                    payroll.totalHolidayHours
-                                    ?? 0
+                                    formatHours(
+                                        payroll.totalHolidayHours
+                                    )
                                 }시간
                             </strong>
 
@@ -761,100 +557,47 @@ const AdminPayrollDetail = () => {
                     지급 내역
                 </Card.Header>
 
-
                 <Card.Body>
 
-                    <Row className="py-2 border-bottom">
+                    <PayRow
+                        label="기본급"
+                        value={payroll.basePay}
+                        formatMoney={formatMoney}
+                    />
 
-                        <Col>
-                            기본급
-                        </Col>
+                    <PayRow
+                        label="주휴수당"
+                        value={payroll.weekHolidayPay}
+                        formatMoney={formatMoney}
+                    />
 
-                        <Col className="text-end">
-                            {
-                                formatMoney(
-                                    payroll.basePay
-                                )
-                            }원
-                        </Col>
+                    <PayRow
+                        label="연장근로수당"
+                        value={payroll.overtimePay}
+                        formatMoney={formatMoney}
+                    />
 
-                    </Row>
+                    <PayRow
+                        label="야간근로수당"
+                        value={payroll.nightPay}
+                        formatMoney={formatMoney}
+                    />
 
-
-                    <Row className="py-2 border-bottom">
-
-                        <Col>
-                            주휴수당
-                        </Col>
-
-                        <Col className="text-end">
-                            {
-                                formatMoney(
-                                    payroll.weekHolidayPay
-                                )
-                            }원
-                        </Col>
-
-                    </Row>
-
-
-                    <Row className="py-2 border-bottom">
-
-                        <Col>
-                            연장근로수당
-                        </Col>
-
-                        <Col className="text-end">
-                            {
-                                formatMoney(
-                                    payroll.overtimePay
-                                )
-                            }원
-                        </Col>
-
-                    </Row>
-
-
-                    <Row className="py-2 border-bottom">
-
-                        <Col>
-                            야간근로수당
-                        </Col>
-
-                        <Col className="text-end">
-                            {
-                                formatMoney(
-                                    payroll.nightPay
-                                )
-                            }원
-                        </Col>
-
-                    </Row>
-
-
-                    <Row className="py-2 border-bottom">
-
-                        <Col>
-                            휴일근로수당
-                        </Col>
-
-                        <Col className="text-end">
-                            {
-                                formatMoney(
-                                    payroll.holidayPay
-                                )
-                            }원
-                        </Col>
-
-                    </Row>
+                    <PayRow
+                        label="휴일근로수당"
+                        value={payroll.holidayPay}
+                        formatMoney={formatMoney}
+                    />
 
 
                     <Row className="pt-3">
 
                         <Col>
+
                             <strong>
                                 총 지급액
                             </strong>
+
                         </Col>
 
                         <Col className="text-end">
@@ -886,54 +629,51 @@ const AdminPayrollDetail = () => {
                     공제 내역
                 </Card.Header>
 
-
                 <Card.Body>
 
                     {
                         payroll.deductionList
                             ?.length > 0
-                        ? (
+                            ? (
 
-                            payroll.deductionList.map(
-                                deduction => (
+                                payroll.deductionList.map(
+                                    deduction => (
 
-                                    <Row
-                                        key={
-                                            deduction.deductionType
-                                        }
-                                        className="
-                                            py-2
-                                            border-bottom
-                                        "
-                                    >
-
-                                        <Col>
-                                            {
+                                        <Row
+                                            key={
                                                 deduction.deductionType
                                             }
-                                        </Col>
+                                            className="
+                                                py-2
+                                                border-bottom
+                                            "
+                                        >
 
-                                        <Col className="text-end">
+                                            <Col>
+                                                {
+                                                    deduction.deductionType
+                                                }
+                                            </Col>
 
-                                            {
-                                                formatMoney(
-                                                    deduction.deductionAmount
-                                                )
-                                            }원
+                                            <Col className="text-end">
 
-                                        </Col>
+                                                {
+                                                    formatMoney(
+                                                        deduction.deductionAmount
+                                                    )
+                                                }원
 
-                                    </Row>
+                                            </Col>
 
+                                        </Row>
+
+                                    )
                                 )
+
                             )
+                            : (
 
-                        )
-                        : (
-
-                            <Row>
-
-                                <Col
+                                <div
                                     className="
                                         text-center
                                         text-muted
@@ -941,20 +681,20 @@ const AdminPayrollDetail = () => {
                                     "
                                 >
                                     공제내역이 없습니다
-                                </Col>
+                                </div>
 
-                            </Row>
-
-                        )
+                            )
                     }
 
 
                     <Row className="pt-3">
 
                         <Col>
+
                             <strong>
                                 총 공제액
                             </strong>
+
                         </Col>
 
                         <Col className="text-end">
@@ -977,7 +717,7 @@ const AdminPayrollDetail = () => {
 
 
             {/* ========================= */}
-            {/* 최종 금액 */}
+            {/* 실수령액 */}
             {/* ========================= */}
 
             <Card className="mb-4">
@@ -1031,93 +771,6 @@ const AdminPayrollDetail = () => {
 
 
             {/* ========================= */}
-            {/* 관리 버튼 */}
-            {/* ========================= */}
-
-            <Card className="mb-4">
-
-                <Card.Body>
-
-                    <Row>
-
-                        <Col>
-
-                            <Button
-                                variant="outline-primary"
-                                className="me-2"
-                                disabled={
-                                    loading
-                                    || hasPayment
-                                }
-                                onClick={
-                                    recalculatePayroll
-                                }
-                            >
-                                재계산
-                            </Button>
-
-
-                            <Button
-                                variant="success"
-                                className="me-2"
-                                disabled={
-                                    loading
-                                    || payroll.payrollStatus
-                                    === "confirmed"
-                                }
-                                onClick={
-                                    confirmPayroll
-                                }
-                            >
-                                급여 확정
-                            </Button>
-
-
-                            <Button
-                                className="me-2"
-                                disabled={
-                                    loading
-                                    || payroll.payrollStatus
-                                    !== "confirmed"
-                                    || hasPayment
-                                }
-                                onClick={
-                                    () =>
-                                        setShowPayModal(
-                                            true
-                                        )
-                                }
-                            >
-                                지급
-                            </Button>
-
-
-                            <Button
-                                variant="danger"
-                                disabled={
-                                    loading
-                                    || !hasPayment
-                                }
-                                onClick={
-                                    () =>
-                                        setShowCancelModal(
-                                            true
-                                        )
-                                }
-                            >
-                                지급 취소
-                            </Button>
-
-                        </Col>
-
-                    </Row>
-
-                </Card.Body>
-
-            </Card>
-
-
-            {/* ========================= */}
             {/* 지급 이력 */}
             {/* ========================= */}
 
@@ -1127,104 +780,91 @@ const AdminPayrollDetail = () => {
                     지급 이력
                 </Card.Header>
 
-
                 <Card.Body>
 
                     {
                         payroll.paymentList
                             ?.length > 0
-                        ? (
+                            ? (
 
-                            payroll.paymentList.map(
-                                payment => (
+                                payroll.paymentList.map(
+                                    payment => (
 
-                                    <Row
-                                        key={
-                                            payment.payrollPaymentNo
-                                        }
-                                        className="
-                                            py-3
-                                            border-bottom
-                                            align-items-center
-                                        "
-                                    >
+                                        <Row
+                                            key={
+                                                payment.payrollPaymentNo
+                                            }
+                                            className="
+                                                py-3
+                                                border-bottom
+                                                align-items-center
+                                            "
+                                        >
 
-                                        <Col md={2}>
-
-                                            <Badge
-                                                bg={
-                                                    payment.paymentStatus
-                                                    === "paid"
-                                                    ? "success"
-                                                    : "danger"
-                                                }
-                                            >
+                                            <Col md={2}>
 
                                                 {
-                                                    paymentStatusText(
+                                                    paymentStatusBadge(
                                                         payment.paymentStatus
                                                     )
                                                 }
 
-                                            </Badge>
-
-                                        </Col>
+                                            </Col>
 
 
-                                        <Col md={3}>
+                                            <Col md={3}>
 
-                                            {
-                                                payment.paymentAt
-                                                ?? "-"
-                                            }
+                                                {
+                                                    formatDateTime(
+                                                        payment.paymentAt
+                                                    )
+                                                }
 
-                                        </Col>
-
-
-                                        <Col
-                                            md={2}
-                                            className="text-end"
-                                        >
-
-                                            {
-                                                formatMoney(
-                                                    payment.paymentAmount
-                                                )
-                                            }원
-
-                                        </Col>
+                                            </Col>
 
 
-                                        <Col md={2}>
+                                            <Col
+                                                md={2}
+                                                className="text-end"
+                                            >
 
-                                            {
-                                                payment.paymentMethod
-                                                ?? "-"
-                                            }
+                                                {
+                                                    formatMoney(
+                                                        payment.paymentAmount
+                                                    )
+                                                }원
 
-                                        </Col>
+                                            </Col>
 
 
-                                        <Col md={3}>
+                                            <Col md={2}>
 
-                                            {
-                                                payment.paymentNote
-                                                ?? "-"
-                                            }
+                                                {
+                                                    payment.paymentMethod
+                                                    ?? "-"
+                                                }
 
-                                        </Col>
+                                            </Col>
 
-                                    </Row>
 
+                                            <Col md={3}>
+
+                                                {
+                                                    payment.paymentNote
+                                                    ?? "-"
+                                                }
+
+                                            </Col>
+
+                                        </Row>
+
+                                    )
                                 )
+
                             )
+                            : (
 
-                        )
-                        : (
-
-                            <Row>
-
-                                <Col
+                                <div
                                     className="
                                         text-center
                                         text-muted
@@ -1232,271 +872,44 @@ const AdminPayrollDetail = () => {
                                     "
                                 >
                                     지급 이력이 없습니다
-                                </Col>
+                                </div>
 
-                            </Row>
-
-                        )
+                            )
                     }
 
                 </Card.Body>
 
             </Card>
 
-
-            {/* ========================= */}
-            {/* 지급 Modal */}
-            {/* ========================= */}
-
-            <Modal
-                show={
-                    showPayModal
-                }
-                onHide={
-                    () =>
-                        setShowPayModal(
-                            false
-                        )
-                }
-            >
-
-                <Modal.Header closeButton>
-
-                    <Modal.Title>
-                        급여 지급
-                    </Modal.Title>
-
-                </Modal.Header>
-
-
-                <Modal.Body>
-
-                    <Row className="mb-3">
-
-                        <Col md={4}>
-                            지급 금액
-                        </Col>
-
-                        <Col>
-
-                            <strong>
-                                {
-                                    formatMoney(
-                                        payroll.netPay
-                                    )
-                                }원
-                            </strong>
-
-                        </Col>
-
-                    </Row>
-
-
-                    <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            지급 방법
-                        </Form.Label>
-
-                        <Form.Control
-                            value={
-                                paymentMethod
-                            }
-                            onChange={
-                                e =>
-                                    setPaymentMethod(
-                                        e.target.value
-                                    )
-                            }
-                            placeholder="예: 계좌이체"
-                        />
-
-                    </Form.Group>
-
-
-                    <Form.Group>
-
-                        <Form.Label>
-                            지급 메모
-                        </Form.Label>
-
-                        <Form.Control
-                            as="textarea"
-                            value={
-                                paymentNote
-                            }
-                            onChange={
-                                e =>
-                                    setPaymentNote(
-                                        e.target.value
-                                    )
-                            }
-                        />
-
-                    </Form.Group>
-
-                </Modal.Body>
-
-
-                <Modal.Footer>
-
-                    <Button
-                        variant="outline-secondary"
-                        onClick={
-                            () =>
-                                setShowPayModal(
-                                    false
-                                )
-                        }
-                    >
-                        취소
-                    </Button>
-
-
-                    <Button
-                        disabled={
-                            loading
-                        }
-                        onClick={
-                            payPayroll
-                        }
-                    >
-                        지급
-                    </Button>
-
-                </Modal.Footer>
-
-            </Modal>
-
-
-            {/* ========================= */}
-            {/* 지급 취소 Modal */}
-            {/* ========================= */}
-
-            <Modal
-                show={
-                    showCancelModal
-                }
-                onHide={
-                    () =>
-                        setShowCancelModal(
-                            false
-                        )
-                }
-            >
-
-                <Modal.Header closeButton>
-
-                    <Modal.Title>
-                        지급 취소
-                    </Modal.Title>
-
-                </Modal.Header>
-
-
-                <Modal.Body>
-
-                    <Row className="mb-3">
-
-                        <Col md={4}>
-                            현재 지급액
-                        </Col>
-
-                        <Col>
-
-                            <strong>
-                                {
-                                    formatMoney(
-                                        payroll.currentPaidAmount
-                                    )
-                                }원
-                            </strong>
-
-                        </Col>
-
-                    </Row>
-
-
-                    <Form.Group className="mb-3">
-
-                        <Form.Label>
-                            취소 금액
-                        </Form.Label>
-
-                        <Form.Control
-                            type="number"
-                            value={
-                                cancelAmount
-                            }
-                            onChange={
-                                e =>
-                                    setCancelAmount(
-                                        e.target.value
-                                    )
-                            }
-                        />
-
-                    </Form.Group>
-
-
-                    <Form.Group>
-
-                        <Form.Label>
-                            취소 메모
-                        </Form.Label>
-
-                        <Form.Control
-                            as="textarea"
-                            value={
-                                cancelNote
-                            }
-                            onChange={
-                                e =>
-                                    setCancelNote(
-                                        e.target.value
-                                    )
-                            }
-                        />
-
-                    </Form.Group>
-
-                </Modal.Body>
-
-
-                <Modal.Footer>
-
-                    <Button
-                        variant="outline-secondary"
-                        onClick={
-                            () =>
-                                setShowCancelModal(
-                                    false
-                                )
-                        }
-                    >
-                        닫기
-                    </Button>
-
-
-                    <Button
-                        variant="danger"
-                        disabled={
-                            loading
-                        }
-                        onClick={
-                            cancelPayment
-                        }
-                    >
-                        지급 취소
-                    </Button>
-
-                </Modal.Footer>
-
-            </Modal>
-
         </Container>
     );
 };
 
 
-export default AdminPayrollDetail;
+// =============================================
+// 지급 항목 한 줄
+// =============================================
+
+function PayRow({
+    label,
+    value,
+    formatMoney
+}) {
+
+    return (
+        <Row className="py-2 border-bottom">
+
+            <Col>
+                {label}
+            </Col>
+
+            <Col className="text-end">
+                {formatMoney(value)}원
+            </Col>
+
+        </Row>
+    );
+}
+
+
+export default EmployeePayrollDetail;

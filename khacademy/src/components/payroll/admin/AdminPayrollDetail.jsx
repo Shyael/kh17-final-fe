@@ -113,6 +113,19 @@ const AdminPayrollDetail = () => {
         return status;
     };
 
+    const formatHours = (value) => {
+        if (value === null || value === undefined) {
+            return "-";
+        }
+
+        return Math.round(Number(value) * 100) / 100;
+    };
+
+    const formatDateTime = (value) => {
+        if (!value) return "-";
+
+        return new Date(value).toLocaleString("ko-KR");
+    };
 
     // =========================
     // 급여 상세 조회
@@ -588,32 +601,32 @@ const AdminPayrollDetail = () => {
 
                                     {
                                         isConfirmed
-                                        ? (
+                                            ? (
 
-                                            <Badge bg="success">
+                                                <Badge bg="success">
 
-                                                {
-                                                    payrollStatusText(
-                                                        payroll.payrollStatus
-                                                    )
-                                                }
+                                                    {
+                                                        payrollStatusText(
+                                                            payroll.payrollStatus
+                                                        )
+                                                    }
 
-                                            </Badge>
+                                                </Badge>
 
-                                        )
-                                        : (
+                                            )
+                                            : (
 
-                                            <Badge bg="secondary">
+                                                <Badge bg="secondary">
 
-                                                {
-                                                    payrollStatusText(
-                                                        payroll.payrollStatus
-                                                    )
-                                                }
+                                                    {
+                                                        payrollStatusText(
+                                                            payroll.payrollStatus
+                                                        )
+                                                    }
 
-                                            </Badge>
+                                                </Badge>
 
-                                        )
+                                            )
                                     }
 
                                 </Col>
@@ -630,8 +643,9 @@ const AdminPayrollDetail = () => {
                                 <Col>
 
                                     {
+                                        formatDateTime(
                                         payroll.calculatedAt
-                                        ?? "-"
+                                        ?? "-")
                                     }
 
                                 </Col>
@@ -647,9 +661,9 @@ const AdminPayrollDetail = () => {
 
                                 <Col>
 
-                                    {
+                                    {   formatDateTime(
                                         payroll.confirmedAt
-                                        ?? "-"
+                                        ?? "-")
                                     }
 
                                 </Col>
@@ -725,7 +739,7 @@ const AdminPayrollDetail = () => {
                             </div>
 
                             <strong>
-                                {payroll.totalWorkHours}시간
+                                {formatHours(payroll.totalWorkHours)}시간
                             </strong>
 
                         </Col>
@@ -941,64 +955,64 @@ const AdminPayrollDetail = () => {
                             {
                                 payroll.deductionList
                                     ?.length > 0
-                                ? (
+                                    ? (
 
-                                    payroll.deductionList
-                                        .map(
-                                            deduction => (
+                                        payroll.deductionList
+                                            .map(
+                                                deduction => (
 
-                                                <Row
-                                                    key={
-                                                        deduction.deductionType
-                                                    }
-                                                    className="
+                                                    <Row
+                                                        key={
+                                                            deduction.deductionType
+                                                        }
+                                                        className="
                                                         py-2
                                                         border-bottom
                                                     "
-                                                >
+                                                    >
 
-                                                    <Col>
+                                                        <Col>
 
-                                                        {
-                                                            deduction.deductionType
-                                                        }
+                                                            {
+                                                                deduction.deductionType
+                                                            }
 
-                                                    </Col>
+                                                        </Col>
 
 
-                                                    <Col className="text-end">
+                                                        <Col className="text-end">
 
-                                                        {
-                                                            formatMoney(
-                                                                deduction.deductionAmount
-                                                            )
-                                                        }원
+                                                            {
+                                                                formatMoney(
+                                                                    deduction.deductionAmount
+                                                                )
+                                                            }원
 
-                                                    </Col>
+                                                        </Col>
 
-                                                </Row>
+                                                    </Row>
 
+                                                )
                                             )
-                                        )
 
-                                )
-                                : (
+                                    )
+                                    : (
 
-                                    <Row>
+                                        <Row>
 
-                                        <Col
-                                            className="
+                                            <Col
+                                                className="
                                                 text-center
                                                 text-muted
                                                 py-3
                                             "
-                                        >
-                                            공제내역이 없습니다
-                                        </Col>
+                                            >
+                                                공제내역이 없습니다
+                                            </Col>
 
-                                    </Row>
+                                        </Row>
 
-                                )
+                                    )
                             }
 
 
@@ -1194,135 +1208,135 @@ const AdminPayrollDetail = () => {
                     {
                         payroll.paymentList
                             ?.length > 0
-                        ? (
+                            ? (
 
-                            payroll.paymentList
-                                .map(
-                                    payment => (
+                                payroll.paymentList
+                                    .map(
+                                        payment => (
 
-                                        <Row
-                                            key={
-                                                payment.payrollPaymentNo
-                                            }
-                                            className="
+                                            <Row
+                                                key={
+                                                    payment.payrollPaymentNo
+                                                }
+                                                className="
                                                 py-3
                                                 border-bottom
                                                 align-items-center
                                                 text-center
                                             "
-                                        >
-
-                                            <Col md={1}>
-
-                                                {
-                                                    payment.payrollPaymentNo
-                                                }
-
-                                            </Col>
-
-
-                                            <Col md={2}>
-
-                                                {
-                                                    payment.paymentStatus
-                                                    === "paid"
-                                                    ? (
-
-                                                        <Badge bg="success">
-
-                                                            {
-                                                                paymentStatusText(
-                                                                    payment.paymentStatus
-                                                                )
-                                                            }
-
-                                                        </Badge>
-
-                                                    )
-                                                    : (
-
-                                                        <Badge bg="danger">
-
-                                                            {
-                                                                paymentStatusText(
-                                                                    payment.paymentStatus
-                                                                )
-                                                            }
-
-                                                        </Badge>
-
-                                                    )
-                                                }
-
-                                            </Col>
-
-
-                                            <Col
-                                                md={2}
-                                                className="text-end"
                                             >
 
-                                                {
-                                                    formatMoney(
-                                                        payment.paymentAmount
-                                                    )
-                                                }원
+                                                <Col md={1}>
 
-                                            </Col>
+                                                    {
+                                                        payment.payrollPaymentNo
+                                                    }
 
-
-                                            <Col md={2}>
-
-                                                {
-                                                    payment.paymentMethod
-                                                    ?? "-"
-                                                }
-
-                                            </Col>
+                                                </Col>
 
 
-                                            <Col md={3}>
+                                                <Col md={2}>
 
-                                                {
-                                                    payment.paymentAt
-                                                    ?? "-"
-                                                }
+                                                    {
+                                                        payment.paymentStatus
+                                                            === "paid"
+                                                            ? (
 
-                                            </Col>
+                                                                <Badge bg="success">
+
+                                                                    {
+                                                                        paymentStatusText(
+                                                                            payment.paymentStatus
+                                                                        )
+                                                                    }
+
+                                                                </Badge>
+
+                                                            )
+                                                            : (
+
+                                                                <Badge bg="danger">
+
+                                                                    {
+                                                                        paymentStatusText(
+                                                                            payment.paymentStatus
+                                                                        )
+                                                                    }
+
+                                                                </Badge>
+
+                                                            )
+                                                    }
+
+                                                </Col>
 
 
-                                            <Col md={2}>
+                                                <Col
+                                                    md={2}
+                                                    className="text-end"
+                                                >
 
-                                                {
-                                                    payment.paymentNote
-                                                    ?? "-"
-                                                }
+                                                    {
+                                                        formatMoney(
+                                                            payment.paymentAmount
+                                                        )
+                                                    }원
 
-                                            </Col>
+                                                </Col>
 
-                                        </Row>
 
+                                                <Col md={2}>
+
+                                                    {
+                                                        payment.paymentMethod
+                                                        ?? "-"
+                                                    }
+
+                                                </Col>
+
+
+                                                <Col md={3}>
+
+                                                    {formatDateTime(
+                                                        payment.paymentAt
+                                                        ?? "-")
+                                                    }
+
+                                                </Col>
+
+
+                                                <Col md={2}>
+
+                                                    {
+                                                        payment.paymentNote
+                                                        ?? "-"
+                                                    }
+
+                                                </Col>
+
+                                            </Row>
+
+                                        )
                                     )
-                                )
 
-                        )
-                        : (
+                            )
+                            : (
 
-                            <Row>
+                                <Row>
 
-                                <Col
-                                    className="
+                                    <Col
+                                        className="
                                         text-center
                                         text-muted
                                         py-4
                                     "
-                                >
-                                    지급 이력이 없습니다
-                                </Col>
+                                    >
+                                        지급 이력이 없습니다
+                                    </Col>
 
-                            </Row>
+                                </Row>
 
-                        )
+                            )
                     }
 
                 </Card.Body>

@@ -28,7 +28,7 @@ const MENU = [
     {
         type: "group", icon: "🧑‍🏫", label: "직원관리", children: [
             { label: "직원 등록", to: "/employee/register" },
-            { label: "직원 목록", to: "/employee/list"},
+            { label: "직원 목록", to: "/employee/search"},
         ],
     },
     {
@@ -38,8 +38,7 @@ const MENU = [
     },
     {
         type: "group", icon: "💰", label: "급여관리", children : [
-            { label: "급여 관리", to:"/admin/payroll"},
-            { label: "월 별 급여 현황", to:"/admin/payroll/monthly/:payrollYear/:payrollMonth"},
+            { label: "급여 관리", to:"/admin/payroll", end: true},
         ]
     },
     {

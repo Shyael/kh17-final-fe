@@ -12,7 +12,7 @@ import EmployeeRegisterSuccess from "@components/employee/EmployeeRegisterSucces
 import EmployeeRegisterFail from "@components/employee/EmployeeRegisterFail";
 import EmployeePassword from "@components/employee/EmployeePassword";
 import EmployeeMyInfo from "@components/employee/EmployeeMyInfo";
-import EmployeeList from "@components/employee/EmployeeList";
+
 
 import MemberLogin from "@components/member/MemberLogin";
 import MemberJoin from "@components/member/MemberJoin";
@@ -23,7 +23,8 @@ import ConsultReservation from "@components/employee/consult/ConsultReservation"
 import ConsultManage from "@components/employee/consult/ConsultManage";
 import ConsultChat from "@components/employee/consult/ConsultChat";
 
-import AdminEmployeeList from "@components/admin/employee/AdminEmployeeList";
+import EmployeeSearch from "@components/employee/EmployeeSearch";
+import EmployeeSearchDetail from "@components/employee/EmployeeSearchDetail";
 import AdminEmployeeDetail from "@components/admin/employee/AdminEmployeeDetail";
 
 import NotFound from "@error/NotFound";
@@ -81,7 +82,7 @@ import AdminPayrollCalculate from "@components/payroll/admin/AdminPayrollCalcula
 
 import EmployeePayrollList from "@components/payroll/EmployeePayrollList";
 import EmployeePayrollDetail from "@components/payroll/EmployeePayrollDetail";
-import AdminPayrollMonthly from "@components/payroll/admin/AdminPayrollMonthly";
+
 
 import ExamManageList from "@components/employee/exam/ExamManageList";
 import ExamManage from "@components/employee/exam/ExamManage";
@@ -91,6 +92,7 @@ import ExamStudentList from "@components/student/exam/ExamStudentList";
 import ExamStudentDetail from "@components/student/exam/ExamStudentDetail";
 import ExamStudentAttempt from "@components/student/exam/ExamStudentAttempt";
 import ExamStudentResult from "@components/student/exam/ExamStudentResult";
+
 
 
 export default function Body() {
@@ -112,8 +114,9 @@ export default function Body() {
                 }
             />
             {/* 관리자(원장, 데스크) */}
-            <Route path="/admin/employee/list" element={<AdminEmployeeList />} />
+            <Route path="/employee/search" element={<EmployeeSearch />} />
             <Route path="/admin/employee/detail/:employeeNo" element={<AdminEmployeeDetail />} />
+            <Route path="/employee/search/detail/:employeeNo" element={<EmployeeSearchDetail/>}/>
 
             {/* 직원(원장, 데스크) */}
             <Route path="/employee/register" element={<EmployeeRegister />} />
@@ -169,7 +172,7 @@ export default function Body() {
             <Route path="/employee/tutor" element={<TutorList />} />
             <Route path="/employee/tutor/add" element={<TutorManage />} />
             <Route path="/employee/tutor/:tutorNo" element={<TutorManage />} />
-            <Route path="/employee/list" element={<EmployeeList/>}/>
+            
 
             {/* 과제(관리) */}
             <Route path="/employee/assignment" element={<AssignmentList />} />
@@ -221,7 +224,7 @@ export default function Body() {
             {/* 근태관련 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance />} />
             {/* 관리자 전용 근태 */}
-            <Route path="/admin/attendance/" element={<AdminAttendance />} />
+            <Route path="/admin/attendance/:employeeNo/" element={<AdminAttendance />} />
 
 
             {/* 급여 관련 관리자 기능 */}
@@ -229,11 +232,11 @@ export default function Body() {
             <Route path="/admin/payroll/:employeeNo" element={<AdminPayrollList/>}/>
             <Route path="/admin/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<AdminPayrollDetail/>}/>
             <Route path="/admin/payroll/:employeeNo/calculate/:payrollYear/:payrollMonth" element={<AdminPayrollCalculate/>}/>
-            <Route path="/admin/payroll/monthly/:payrollYear/:payrollMonth" element={<AdminPayrollMonthly/>}/>
+            
         
             {/* 급여 관련 직원 기능 */}
             <Route path="/employee/payroll" element={<EmployeePayrollList/>}/>
-            <Route path="/employye/payroll/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail/>}/>
+            <Route path="/employye/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail/>}/>
         </Routes>
 
 
