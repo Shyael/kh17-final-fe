@@ -1,15 +1,20 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Badge, Button, Card, Col, Form, InputGroup, ProgressBar, Row, Table } from "react-bootstrap";
-import { FaSearch, FaUserPlus, FaUserShield, FaExclamationTriangle } from "react-icons/fa";
+import { FaSearch, FaUserShield, FaExclamationTriangle } from "react-icons/fa";
 import { apiClient } from "@utils/reaxios";
 import { Link } from "react-router-dom";
+import PaginationBar from "@templates/PaginationBar";
 
-// 🌟 수정 1: eexport -> export 로 오타 수정 완료!
 export default function StudentList() {
     const [searchKeyword, setSearchKeyword] = useState("");
     const [filter, setFilter] = useState("전체");
     
-    const [students, setStudents] = useState([]);
+    // 🌟 수정: 배열(students) 대신 백엔드의 PageResponseVO 구조를 통째로 담을 State
+    const [pageData, setPageData] = useState({
+        list: [], page: 1, totalPages: 0, startBlock: 1, endBlock: 0, prev: false, next: false
+    });
+    const [currentPage, setCurrentPage] = useState(1); // 현재 선택된 페이지 번호
+
     const [selectedStudent, setSelectedStudent] = useState(null); 
     const [summary, setSummary] = useState({ total: 0, riskCount: 0 });
 
@@ -18,29 +23,41 @@ export default function StudentList() {
             const response = await apiClient.get("/employee/student/list", {
                 params: {
                     filter: filter,
-                    searchKeyword: searchKeyword
+                    searchKeyword: searchKeyword,
+                    page: currentPage // 🌟 백엔드로 현재 페이지 번호 전송
                 }
             });
             
             const data = response.data;
-            setStudents(data); 
+            setPageData(data); // 🌟 PageResponseVO 통째로 덮어쓰기
 
-            const total = data.length;
-            const riskCount = data.filter(s => s.riskLevel === '위험' || s.riskLevel === '주의').length;
+            // 🌟 요약 정보 업데이트 (총 학생 수는 백엔드가 계산해준 totalCount 사용)
+            const total = data.totalCount || 0;
+            // 위험/주의 학생은 현재 페이지에 노출된 목록(list) 기준으로 카운트
+            const riskCount = (data.list || []).filter(s => s.riskLevel === '위험' || s.riskLevel === '주의').length;
             setSummary({ total, riskCount });
         } catch (error) {
             console.error("학생 목록 로딩 실패:", error);
         }
-    }, [filter, searchKeyword]); 
+    }, [filter, searchKeyword, currentPage]); 
 
-    // 실시간 검색 발동기
+    // 필터가 바뀌면 무조건 1페이지로 리셋
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [filter]);
+
+    // 실시간 검색 발동기 (currentPage가 바뀌면 자동으로 fetch 실행)
     useEffect(() => {
         fetchStudents();
     }, [fetchStudents]);
 
-    // 🌟 수정 2: UI에서 에러가 나지 않도록 검색 버튼용 함수를 다시 살려두었습니다!
+    // 검색 버튼 클릭 시
     const handleSearch = () => {
-        fetchStudents();
+        if (currentPage !== 1) {
+            setCurrentPage(1); // 1페이지가 아니면 1페이지로 리셋하여 자동 검색 유도
+        } else {
+            fetchStudents();   // 이미 1페이지면 바로 검색
+        }
     };
 
     const getRiskBadgeVariant = (risk) => {
@@ -70,7 +87,7 @@ export default function StudentList() {
                         <Card.Body className="d-flex align-items-center">
                             <div className="me-3 text-danger"><FaExclamationTriangle size={32} /></div>
                             <div>
-                                <div className="text-muted small fw-bold">집중 관리 대상</div>
+                                <div className="text-muted small fw-bold">집중 관리 대상 (현재 페이지)</div>
                                 <h4 className="fw-bold mb-0 text-danger">{summary.riskCount.toLocaleString()}명</h4>
                             </div>
                         </Card.Body>
@@ -79,6 +96,7 @@ export default function StudentList() {
             </Row>
 
             <Row className="g-4">
+                {/* 왼쪽 학생 목록 영역 */}
                 <Col lg={7}>
                     <Card className="shadow-sm border-0 h-100">
                         <Card.Body className="d-flex flex-column">
@@ -121,12 +139,13 @@ export default function StudentList() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {students.length === 0 ? (
+                                        {/* 🌟 수정: students 배열 대신 pageData.list 사용 */}
+                                        {pageData.list.length === 0 ? (
                                             <tr>
-                                                <td colSpan="5" className="py-4 text-muted">등록된 학생 데이터가 없습니다.</td>
+                                                <td colSpan="5" className="py-5 text-muted">등록된 학생 데이터가 없습니다.</td>
                                             </tr>
                                         ) : (
-                                            students.map((student) => (
+                                            pageData.list.map((student) => (
                                                 <tr 
                                                     key={student.studentNo}
                                                     onClick={() => setSelectedStudent(student)}
@@ -167,11 +186,25 @@ export default function StudentList() {
                                     </tbody>
                                 </Table>
                             </div>
+
+                            {/* 🌟 추가: 하단 페이지네이션 컴포넌트 부착 */}
+                            {pageData.totalPages > 1 && (
+                                <PaginationBar 
+                                    page={pageData.page}
+                                    totalPages={pageData.totalPages}
+                                    startBlock={pageData.startBlock}
+                                    endBlock={pageData.endBlock}
+                                    prev={pageData.prev}
+                                    next={pageData.next}
+                                    onChange={(targetPage) => setCurrentPage(targetPage)} 
+                                />
+                            )}
                         </Card.Body>
                     </Card>
                 </Col>
 
-                <Col lg={5}>
+                {/* 🌟 수정: 클래스와 스타일 추가로 스크롤을 내려도 오른쪽 카드가 고정(Sticky) 되도록 처리! */}
+                <Col lg={5} className="align-self-start position-sticky" style={{ top: '2rem' }}>
                     {selectedStudent ? (
                         <Card className="shadow-sm border-0 h-100 bg-light">
                             <Card.Body className="d-flex flex-column">
@@ -236,7 +269,7 @@ export default function StudentList() {
                             </Card.Body>
                         </Card>
                     ) : (
-                        <Card className="shadow-sm border-0 h-100 bg-light d-flex align-items-center justify-content-center">
+                        <Card className="shadow-sm border-0 h-100 bg-light d-flex align-items-center justify-content-center" style={{ minHeight: "400px" }}>
                             <span className="text-muted">좌측 목록에서 학생을 선택해주세요.</span>
                         </Card>
                     )}

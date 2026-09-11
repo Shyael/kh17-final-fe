@@ -9,6 +9,8 @@ export default function ScoreManagement() {
     // ==========================================
     const [searchKeyword, setSearchKeyword] = useState("");
     const [student, setStudent] = useState(null); 
+    const [searchResults, setSearchResults] = useState([]); 
+    const [showSearchModal, setShowSearchModal] = useState(false);
 
     const [scoreForm, setScoreForm] = useState({
         scoreNo: null, 
@@ -31,27 +33,33 @@ export default function ScoreManagement() {
     const handleSearchStudent = async () => {
         if (!searchKeyword.trim()) return alert("학생 이름이나 번호를 입력해주세요.");
         try {
-            // 🌟 /api 제거
             const response = await apiClient.get("/employee/student/list", {
                 params: {
-                    filter: '재원',
+                    filter: '전체', // 전체 학생 대상 검색
                     searchKeyword: searchKeyword
                 }
             });
+            
             if (response.data && response.data.length > 0) {
-                const foundStudent = response.data[0]; 
-                setStudent(foundStudent);
-                fetchScores(foundStudent.studentNo);
-                resetForm(); 
+                // 검색 결과가 있으면 모달을 열고 데이터를 채워줍니다.
+                setSearchResults(response.data);
+                setShowSearchModal(true); 
             } else {
                 alert("검색된 학생이 없습니다.");
-                setStudent(null);
-                setRawScores([]);
+                setSearchResults([]);
             }
         } catch (error) {
             console.error("학생 검색 실패:", error);
             alert("학생 검색 중 오류가 발생했습니다.");
         }
+    };
+
+    // 🌟 추가: 모달에서 [선택] 버튼을 눌렀을 때 실행될 함수
+    const handleSelectStudent = (selected) => {
+        setStudent(selected);            // 1. 선택한 학생 정보를 화면에 세팅
+        fetchScores(selected.studentNo); // 2. 해당 학생의 성적 목록 불러오기
+        resetForm();                     // 3. 입력 폼 초기화
+        setShowSearchModal(false);       // 4. 검색 모달 닫기
     };
 
     const fetchScores = useCallback(async (studentNo) => {
@@ -394,6 +402,53 @@ export default function ScoreManagement() {
                 </Modal.Body>
                 <Modal.Footer className="border-0 bg-light">
                     <Button variant="secondary" onClick={() => setShowModal(false)}>닫기</Button>
+                </Modal.Footer>
+            </Modal>
+            {/* ... 기존 세부 성적 조회 모달 코드 ... */}
+
+            {/* 🌟 5. 학생 검색 결과 모달 (새로 추가!) */}
+            <Modal show={showSearchModal} onHide={() => setShowSearchModal(false)} size="lg" centered>
+                <Modal.Header closeButton className="bg-light">
+                    <Modal.Title className="fw-bold fs-5 text-dark">
+                        [{searchKeyword}] 검색 결과 목록 ({searchResults.length}건)
+                    </Modal.Title>
+                </Modal.Header>
+                <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
+                    <Table hover responsive className="align-middle text-center mb-0">
+                        <thead className="bg-white border-bottom sticky-top">
+                            <tr>
+                                <th>번호</th>
+                                <th>이름</th>
+                                <th>학교</th>
+                                <th>학년</th>
+                                <th>상태</th>
+                                <th>선택</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {searchResults.map(res => (
+                                <tr key={res.studentNo}>
+                                    <td className="text-muted">{res.studentNo}</td>
+                                    <td className="fw-bold text-dark">{res.studentName}</td>
+                                    <td>{res.studentSchool || '-'}</td>
+                                    <td>{res.studentGrade || '-'}</td>
+                                    <td>
+                                        <Badge bg={res.studentAcademicStatus === '재원' ? 'success' : 'secondary'}>
+                                            {res.studentAcademicStatus}
+                                        </Badge>
+                                    </td>
+                                    <td>
+                                        <Button variant="outline-primary" size="sm" onClick={() => handleSelectStudent(res)}>
+                                            선택
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                </Modal.Body>
+                <Modal.Footer className="border-0 bg-light">
+                    <Button variant="secondary" onClick={() => setShowSearchModal(false)}>닫기</Button>
                 </Modal.Footer>
             </Modal>
         </div>
