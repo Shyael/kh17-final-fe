@@ -1,7 +1,18 @@
-
+import { useAtomValue } from "jotai";
+import AcademyChat from "@components/academy/AcademyChat";
+import Student from "@guard/Student";
+import Alarm from "@components/employee/alarm/Alarm";
+import { isLoginState, isEmployeeState } from "@utils/storage";
 
 export default function Footer() {
+    const isLogin = useAtomValue(isLoginState);
+    const isEmployee = useAtomValue(isEmployeeState);
+
     return (<>
+        {isLogin && isEmployee && (
+            <Alarm />
+        )}
+        <Student><AcademyChat/></Student>
         <div className="d-flex flex-column flex-md-row">
             <div className="w-md-50">
                 <h2 className="mb-4">KH정보교육원</h2>

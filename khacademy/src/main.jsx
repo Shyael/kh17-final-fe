@@ -4,7 +4,7 @@ import App from './App.jsx'
 import { BrowserRouter } from "react-router-dom"
 //jotai에서 제공하는 개발도구(jotai-devtools)를 적용하기 위한 코드
 import { Provider } from "jotai";
-import { DevTools } from "jotai-devtools";
+//import { DevTools } from "jotai-devtools";
 import "jotai-devtools/styles.css";
 
 //bootstrap (JS는 불러오지 않음)
@@ -37,9 +37,9 @@ createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Provider>
       {/* 개발 모드일 때만 표시되도록 조건 설정 */}
-      { import.meta.env.DEV && (
+      {/* { import.meta.env.DEV && (
         <DevTools position="bottom-right"/>
-      ) }
+      ) } */}
 
       <App />
     </Provider>

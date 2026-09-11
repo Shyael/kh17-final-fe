@@ -1,6 +1,6 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Badge, Button, Card, Col, Row } from "react-bootstrap";
+import { Badge, Button, Card, Col, Form, Row } from "react-bootstrap";
 import { FaArrowRight, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
@@ -13,6 +13,7 @@ import {
     CustomOverlayMap,
     useKakaoLoader
 } from "react-kakao-maps-sdk";
+import { useAtomValue } from "jotai";
 
 //오버레이가 마커 위쪽으로 열리므로 지도를 아래로 내려 상단이 잘리지 않게 하는 픽셀 값
 const MAP_OFFSET_Y = -100;
@@ -133,273 +134,278 @@ export default function AcademyInfo() {
 
     return (
         <>
-            <Jumbotron
-                title={info.academyName || "학원 소개"} />
-
-            {/* 메인 배너 이미지 (Lorem Picsum 자리잡기) */}
-            <Row>
-                <Col>
-                    {academy.imageList?.length > 0 ? (
-                        <Carousel>
-                            {academy.imageList.map((image) => (
-                                <Carousel.Item key={image.attachNo}>
-                                    <img
-                                        src={`${import.meta.env.VITE_SERVER_URL}/api/attach/${image.attachNo}`}
-                                        alt={image.attachName}
-                                        className="d-block w-100 rounded"
-                                        style={{
-                                            height: "400px",
-                                            objectFit: "cover"
-                                        }}
-                                    />
-                                </Carousel.Item>
-                            ))}
-                        </Carousel>
-                    ) : (
-                        <div
-                            className="d-flex justify-content-center align-items-center bg-light rounded"
-                            style={{ height: "400px" }}
-                        >
-                            <span className="text-muted">
-                                등록된 이미지가 없습니다.
-                            </span>
-                        </div>
-                    )}
-                </Col>
-            </Row>
-
-            {/* 캐치프레이즈 + 과목 뱃지 + 소개글 */}
-            <Row className="mt-4 text-center">
-                <Col>
-                    <h2 className="fw-bold">
-                        {info.academyTagline}
-                    </h2>
-
-                    <div className="my-3 d-flex justify-content-center flex-wrap gap-2">
-                        {academy.subjectList.map((subject, index) => (
-                            <Badge
-                                key={subject.academySubjectNo ?? index}
-                                bg="primary"
-                                pill
-                                className="px-3 py-2">
-                                {subject.academySubjectName}
-                            </Badge>
-                        ))}
-                    </div>
-
-                    <p className="text-muted" style={{ whiteSpace: "pre-line" }}>
-                        {info.academyIntro}
-                    </p>
-                </Col>
-            </Row>
-
-            <hr className="mt-4" />
-
-            {/* 학원 연혁 */}
-            <Row className="mt-4">
-                <Col>
-                    <h3 className="fw-bold mb-3">학원 연혁</h3>
-                    <ul className="list-unstyled">
-                        {academy.historyList.map((history, index) => (
-                            <li
-                                key={history.academyHistoryNo ?? index}
-                                className="d-flex gap-3 py-2 border-bottom">
-                                <span className="fw-bold text-primary text-nowrap">
-                                    {history.academyHistoryYear}
-                                </span>
-                                <span>{history.academyHistoryContent}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </Col>
-            </Row>
-
-            <hr className="mt-4" />
-
-            {/* 오시는 길 */}
-            <Row className="mt-4">
-                <Col>
-                    <h3 className="fw-bold mb-3">
-                        <FaLocationDot className="text-primary me-2" />
-                        <span>오시는 길</span>
-                    </h3>
-                </Col>
-            </Row>
-            <Row className="align-items-center">
-                <Col md={7}>
-                    {!mapError && !position && (
-                        <div
-                            className="d-flex justify-content-center align-items-center border rounded"
-                            style={{ height: "300px" }}
-                        >
-                            위치 정보를 불러오는 중...
-                        </div>
-                    )}
-
-                    {!mapError && position && (
-                        <Map
-                            center={position}
-                            style={{
-                                width: "100%",
-                                height: "300px"
-                            }}
-                            level={3}
-                            onCreate={(map) => {
-                                mapRef.current = map;
-                                setMapReady(true);
-                            }}
-                        >
-                            <MapMarker
-                                position={position}
-                                onClick={() => setOverlayOpen(true)}
-                            />
-
-                            {overlayOpen && (
-                                <CustomOverlayMap
-                                    position={position}
-                                    yAnchor={1.4}
-                                >
-                                    <div
-                                        className="bg-white border rounded shadow-sm"
-                                        style={{
-                                            minWidth: "240px",
-                                            overflow: "hidden"
-                                        }}
-                                    >
-                                        <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-                                            <strong>
-                                                {info.academyName}
-                                            </strong>
-
-                                            <button
-                                                type="button"
-                                                className="btn-close"
-                                                onClick={() => setOverlayOpen(false)}
+            <Row className="g-0">
+                {/* 메인 영역 */}
+                <Col xs={12}
+                    className="px-lg-4 px-2">
+                    <Jumbotron
+                        title={info.academyName || "학원 소개"} />
+                    {/* 메인 배너 이미지 (Lorem Picsum 자리잡기) */}
+                    <Row>
+                        <Col>
+                            {academy.imageList?.length > 0 ? (
+                                <Carousel>
+                                    {academy.imageList.map((image) => (
+                                        <Carousel.Item key={image.attachNo}>
+                                            <img
+                                                src={`${import.meta.env.VITE_SERVER_URL}/api/attach/${image.attachNo}`}
+                                                alt={image.attachName}
+                                                className="d-block w-100 rounded"
+                                                style={{
+                                                    height: "400px",
+                                                    objectFit: "cover"
+                                                }}
                                             />
-                                        </div>
-
-                                        <div className="p-3">
-                                            <div className="text-muted small mb-2">
-                                                {info.academyAddress}
-                                            </div>
-
-                                            <div className="d-flex gap-3">
-                                                <a
-                                                    href={`https://map.kakao.com/link/map/${encodeURIComponent(info.academyName)},${position.lat},${position.lng}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-decoration-none"
-                                                >
-                                                    큰지도보기
-                                                </a>
-
-                                                <a
-                                                    href={`https://map.kakao.com/link/to/${encodeURIComponent(info.academyName)},${position.lat},${position.lng}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                    className="text-decoration-none"
-                                                >
-                                                    길찾기
-                                                </a>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CustomOverlayMap>
-                            )}
-                        </Map>
-                    )}
-                </Col>
-                <Col md={5} className="mt-3 mt-md-0">
-                    <p className="fw-bold fs-5 mb-2">
-                        {info.academyAddress}
-                    </p>
-                </Col>
-            </Row>
-
-            <hr className="mt-4" />
-
-            {/* 강사 소개 */}
-            <Row className="mt-4">
-                <Col>
-                    <h3 className="fw-bold mb-3">
-                        <FaUsers className="text-primary me-2" />
-                        <span>강사 소개</span>
-                    </h3>
-                </Col>
-            </Row>
-            <Row className="g-3">
-                {previewTutorList.map((tutor) => (
-                    <Col key={tutor.tutorNo} xs={12} md={4}>
-                        <Card
-                            as={Link}
-                            to={`/academy/tutor/${tutor.tutorNo}`}
-                            className="h-100 text-center text-decoration-none text-reset">
-                            <Card.Body>
-                                <img
-                                    src={
-                                        tutor.image
-                                            ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
-                                            : NoImage
-                                    }
-                                    alt={`${tutor.accountName} 강사`}
-                                    className="rounded-circle mb-3"
-                                    width={120}
-                                    height={120}
-                                    style={{ objectFit: "cover" }}
-                                />
-                                <Card.Title className="fw-bold mb-1">
-                                    {tutor.accountName} 강사
-                                </Card.Title>
-                                <Card.Text className="text-muted">
-                                    {tutor.tutorTagline}
-                                </Card.Text>
-                            </Card.Body>
-                        </Card>
-                    </Col>
-                ))}
-            </Row>
-
-            <Row className="mt-3">
-                <Col className="text-center">
-                    <Link
-                        to="/academy/tutor"
-                        className="text-decoration-none fw-bold">
-                        <span>강사진 전체보기</span>
-                        <FaArrowRight className="ms-2" />
-                    </Link>
-                </Col>
-            </Row>
-
-            <hr className="mt-4" />
-
-            {/* 상담 신청 */}
-            <Row className="mt-4 mb-5">
-                <Col>
-                    <Card>
-                        <Card.Body>
-                            <Card.Title className="fw-bold mb-3">
-                                <FaPhone className="text-primary me-2" />
-                                <span>상담 신청</span>
-                            </Card.Title>
-
-                            <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-3">
-                                <div>
-                                    <p className="fw-bold fs-4 mb-1">
-                                        {info.academyPhone}
-                                    </p>
-                                </div>
-
-                                <Button
-                                    href={`tel:${info.academyPhone}`}
-                                    variant="primary"
-                                    className="text-nowrap"
+                                        </Carousel.Item>
+                                    ))}
+                                </Carousel>
+                            ) : (
+                                <div
+                                    className="d-flex justify-content-center align-items-center bg-light rounded"
+                                    style={{ height: "400px" }}
                                 >
-                                    <FaPhone className="me-2" />
-                                    <span>전화 걸기</span>
-                                </Button>
+                                    <span className="text-muted">
+                                        등록된 이미지가 없습니다.
+                                    </span>
+                                </div>
+                            )}
+                        </Col>
+                    </Row>
+
+                    {/* 캐치프레이즈 + 과목 뱃지 + 소개글 */}
+                    <Row className="mt-4 text-center">
+                        <Col>
+                            <h2 className="fw-bold">
+                                {info.academyTagline}
+                            </h2>
+
+                            <div className="my-3 d-flex justify-content-center flex-wrap gap-2">
+                                {academy.subjectList.map((subject, index) => (
+                                    <Badge
+                                        key={subject.academySubjectNo ?? index}
+                                        bg="primary"
+                                        pill
+                                        className="px-3 py-2">
+                                        {subject.academySubjectName}
+                                    </Badge>
+                                ))}
                             </div>
-                        </Card.Body>
-                    </Card>
+
+                            <p className="text-muted" style={{ whiteSpace: "pre-line" }}>
+                                {info.academyIntro}
+                            </p>
+                        </Col>
+                    </Row>
+
+                    <hr className="mt-4" />
+
+                    {/* 학원 연혁 */}
+                    <Row className="mt-4">
+                        <Col>
+                            <h3 className="fw-bold mb-3">학원 연혁</h3>
+                            <ul className="list-unstyled">
+                                {academy.historyList.map((history, index) => (
+                                    <li
+                                        key={history.academyHistoryNo ?? index}
+                                        className="d-flex gap-3 py-2 border-bottom">
+                                        <span className="fw-bold text-primary text-nowrap">
+                                            {history.academyHistoryYear}
+                                        </span>
+                                        <span>{history.academyHistoryContent}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </Col>
+                    </Row>
+
+                    <hr className="mt-4" />
+
+                    {/* 오시는 길 */}
+                    <Row className="mt-4">
+                        <Col>
+                            <h3 className="fw-bold mb-3">
+                                <FaLocationDot className="text-primary me-2" />
+                                <span>오시는 길</span>
+                            </h3>
+                        </Col>
+                    </Row>
+                    <Row className="align-items-center">
+                        <Col md={7}>
+                            {!mapError && !position && (
+                                <div
+                                    className="d-flex justify-content-center align-items-center border rounded"
+                                    style={{ height: "300px" }}
+                                >
+                                    위치 정보를 불러오는 중...
+                                </div>
+                            )}
+
+                            {!mapError && position && (
+                                <Map
+                                    center={position}
+                                    style={{
+                                        width: "100%",
+                                        height: "300px"
+                                    }}
+                                    level={3}
+                                    onCreate={(map) => {
+                                        mapRef.current = map;
+                                        setMapReady(true);
+                                    }}
+                                >
+                                    <MapMarker
+                                        position={position}
+                                        onClick={() => setOverlayOpen(true)}
+                                    />
+
+                                    {overlayOpen && (
+                                        <CustomOverlayMap
+                                            position={position}
+                                            yAnchor={1.4}
+                                        >
+                                            <div
+                                                className="bg-white border rounded shadow-sm"
+                                                style={{
+                                                    minWidth: "240px",
+                                                    overflow: "hidden"
+                                                }}
+                                            >
+                                                <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                                                    <strong>
+                                                        {info.academyName}
+                                                    </strong>
+
+                                                    <button
+                                                        type="button"
+                                                        className="btn-close"
+                                                        onClick={() => setOverlayOpen(false)}
+                                                    />
+                                                </div>
+
+                                                <div className="p-3">
+                                                    <div className="text-muted small mb-2">
+                                                        {info.academyAddress}
+                                                    </div>
+
+                                                    <div className="d-flex gap-3">
+                                                        <a
+                                                            href={`https://map.kakao.com/link/map/${encodeURIComponent(info.academyName)},${position.lat},${position.lng}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-decoration-none"
+                                                        >
+                                                            큰지도보기
+                                                        </a>
+
+                                                        <a
+                                                            href={`https://map.kakao.com/link/to/${encodeURIComponent(info.academyName)},${position.lat},${position.lng}`}
+                                                            target="_blank"
+                                                            rel="noreferrer"
+                                                            className="text-decoration-none"
+                                                        >
+                                                            길찾기
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </CustomOverlayMap>
+                                    )}
+                                </Map>
+                            )}
+                        </Col>
+                        <Col md={5} className="mt-3 mt-md-0">
+                            <p className="fw-bold fs-5 mb-2">
+                                {info.academyAddress}
+                            </p>
+                        </Col>
+                    </Row>
+
+                    <hr className="mt-4" />
+
+                    {/* 강사 소개 */}
+                    <Row className="mt-4">
+                        <Col>
+                            <h3 className="fw-bold mb-3">
+                                <FaUsers className="text-primary me-2" />
+                                <span>강사 소개</span>
+                            </h3>
+                        </Col>
+                    </Row>
+                    <Row className="g-3">
+                        {previewTutorList.map((tutor) => (
+                            <Col key={tutor.tutorNo} xs={12} md={4}>
+                                <Card
+                                    as={Link}
+                                    to={`/academy/tutor/${tutor.tutorNo}`}
+                                    className="h-100 text-center text-decoration-none text-reset">
+                                    <Card.Body>
+                                        <img
+                                            src={
+                                                tutor.image
+                                                    ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
+                                                    : NoImage
+                                            }
+                                            alt={`${tutor.accountName} 강사`}
+                                            className="rounded-circle mb-3"
+                                            width={120}
+                                            height={120}
+                                            style={{ objectFit: "cover" }}
+                                        />
+                                        <Card.Title className="fw-bold mb-1">
+                                            {tutor.accountName} 강사
+                                        </Card.Title>
+                                        <Card.Text className="text-muted">
+                                            {tutor.tutorTagline}
+                                        </Card.Text>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        ))}
+                    </Row>
+
+                    <Row className="mt-3">
+                        <Col className="text-center">
+                            <Link
+                                to="/academy/tutor"
+                                className="text-decoration-none fw-bold">
+                                <span>강사진 전체보기</span>
+                                <FaArrowRight className="ms-2" />
+                            </Link>
+                        </Col>
+                    </Row>
+
+                    <hr className="mt-4" />
+
+                    {/* 상담 신청 */}
+                    <Row className="mt-4 mb-5">
+                        <Col>
+                            <Card>
+                                <Card.Body>
+                                    <Card.Title className="fw-bold mb-3">
+                                        <FaPhone className="text-primary me-2" />
+                                        <span>상담 신청</span>
+                                    </Card.Title>
+
+                                    <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 border rounded p-3">
+                                        <div>
+                                            <p className="fw-bold fs-4 mb-1">
+                                                {info.academyPhone}
+                                            </p>
+                                        </div>
+
+                                        <Button
+                                            href={`tel:${info.academyPhone}`}
+                                            variant="primary"
+                                            className="text-nowrap"
+                                        >
+                                            <FaPhone className="me-2" />
+                                            <span>전화 걸기</span>
+                                        </Button>
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    </Row>
                 </Col>
             </Row>
         </>
