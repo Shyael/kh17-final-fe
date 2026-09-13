@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; // <-- 추가
 import { Button, Col, Form, Row, Table } from "react-bootstrap";
-import { FaMagnifyingGlass, FaRotate } from "react-icons/fa6";
+import { FaMagnifyingGlass, FaPlus, FaRotate } from "react-icons/fa6";
 import Swal from "sweetalert2";
 
 import { apiClient } from "@utils/reaxios";
@@ -282,23 +282,35 @@ export default function CourseList() {
 
                 {/* 검색 / 초기화 버튼 */}
                 <Row>
-                    <Col className="text-end">
+                    <Col className="d-flex justify-content-between align-items-center">
+                        {/* 왼쪽: 강좌 등록 버튼 */}
                         <Button
-                            variant="secondary"
-                            className="me-2"
-                            onClick={resetSearch}
+                            variant="success"
+                            onClick={() => navigate("/employee/course/create")} // 보통 등록 페이지는 insert/add 등을 사용합니다.
                         >
-                            <FaRotate />
-                            <span className="ms-2">초기화</span>
+                            <FaPlus />
+                            <span className="ms-2">강좌 등록</span>
                         </Button>
 
-                        <Button
-                            variant="primary"
-                            onClick={searchCourse}
-                        >
-                            <FaMagnifyingGlass />
-                            <span className="ms-2">검색</span>
-                        </Button>
+                        {/* 오른쪽: 초기화 및 검색 버튼 */}
+                        <div>
+                            <Button
+                                variant="secondary"
+                                className="me-2"
+                                onClick={resetSearch}
+                            >
+                                <FaRotate />
+                                <span className="ms-2">초기화</span>
+                            </Button>
+
+                            <Button
+                                variant="primary"
+                                onClick={searchCourse}
+                            >
+                                <FaMagnifyingGlass />
+                                <span className="ms-2">검색</span>
+                            </Button>
+                        </div>
                     </Col>
                 </Row>
             </div>

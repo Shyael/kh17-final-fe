@@ -149,7 +149,7 @@ export default function TopMenu() {
                             <Nav.Link as={Link} to={isParent ? "/Parent/myInfo" : "/student/myInfo"}>
                                 내정보
                             </Nav.Link>
-                            <Nav.Link onClick={logout}>
+                            <Nav.Link onClick={() => logout(`/academy/`)}>
                                 로그아웃
                             </Nav.Link>
                         </Nav>

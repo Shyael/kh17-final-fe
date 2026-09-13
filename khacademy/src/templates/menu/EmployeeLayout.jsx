@@ -91,6 +91,8 @@ export default function EmployeeLayout({ children }) {
     );
     const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
+    //로그아웃 처리
+
     return (
         <div className={"kh-gw-layout" + (sidebarOpen ? " sidebar-open" : "")}>
             {/* 사이드바가 열려있을 때 작은 화면에서 뒤 화면을 덮는 백드롭 (클릭 시 닫힘) */}
@@ -184,7 +186,7 @@ export default function EmployeeLayout({ children }) {
                         <button
                             type="button"
                             className="btn btn-outline-secondary btn-sm"
-                            onClick={logout}
+                            onClick={() => logout(`/employee/login`)}
                         >
                             로그아웃
                         </button>

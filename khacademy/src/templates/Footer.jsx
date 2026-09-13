@@ -24,12 +24,13 @@ export default function Footer() {
     const year = new Date().getFullYear();
     const isLogin = useAtomValue(isLoginState);
     const isEmployee = useAtomValue(isEmployeeState);
-
+    
     return (
         <>
             {isLogin && isEmployee && (
                 <Alarm />
             )}
+            <Student><AcademyChat/></Student>
             <footer className="kh-footer">
                 <div className="kh-footer-main">
                     <div className="kh-footer-info">
