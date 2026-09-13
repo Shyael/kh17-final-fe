@@ -41,7 +41,7 @@ export default function CourseDetail() {
     const loadCourseDetail = useCallback(async () => {
         try {
             setLoading(true);
-            const { data } = await apiClient.get(`/employee/course/${courseNo}`);
+            const { data } = await apiClient.get(`/employee/course/detail/${courseNo}`);
             setDetail(data);
         } catch (e) {
             console.error("강좌 상세 조회 오류:", e);

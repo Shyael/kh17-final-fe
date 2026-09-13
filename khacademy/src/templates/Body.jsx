@@ -173,8 +173,24 @@ export default function Body() {
             <Route path="/employee/exam/:examNo/result" element={<ExamResult />} />
             <Route path="/employee/exam/:examNo/result/:attemptNo" element={<ExamStudentResult />} />
 
+            {/* 직원 - 계약관련 */}
+            <Route path="/employee/contract/sign/:contractNo" element={<ContractSign />} />
+            <Route path="/employee/contract/history/:employeeNo" element={<ContractHistory />} />
+            <Route path="/employee/contract/detail/:contractNo" element={<EmployeeContractDetail />} />
 
+            {/* 직원 - 강좌관련 */}
+            <Route path="/employee/course/create" element={<CourseCreate />} />
+            <Route path="/employee/course/list" element={<CourseList />} />
+            <Route path="/employee/course/detail/:courseNo" element={<CourseDetail />} />
 
+            {/* 직원 - 근태 */}
+            <Route path="/employeeAttendance" element={<EmployeeAttendance />} />
+            {/* 직원 - 학생근태 */}
+            <Route path="/employee/kiosk/" element={<KioskAttendance />} />
+
+            {/* 직원 - 급여 */}
+            <Route path="/employee/payroll" element={<EmployeePayrollList />} />
+            <Route path="/employye/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail />} />
 
             {/* 관리자 - 계약관련 */}
             <Route path="/admin/contract/add/:employeeNo" element={<ContractAdd />} />
@@ -193,24 +209,6 @@ export default function Body() {
             <Route path="/admin/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<AdminPayrollDetail />} />
             <Route path="/admin/payroll/:employeeNo/calculate/:payrollYear/:payrollMonth" element={<AdminPayrollCalculate />} />
 
-            {/* 직원 - 계약관련 */}
-            <Route path="/employee/contract/sign/:contractNo" element={<ContractSign />} />
-            <Route path="/employee/contract/history/:employeeNo" element={<ContractHistory />} />
-            <Route path="/employee/contract/detail/:contractNo" element={<EmployeeContractDetail />} />
-
-            {/* 직원 - 강좌관련 */}
-            <Route path="/employee/course/create" element={<CourseCreate />} />
-            <Route path="/employee/course/list" element={<CourseList />} />
-            <Route path="/employee/course/detail/:courseNo" element={<CourseDetail />} />
-
-            {/* 직원 - 근태 */}
-            <Route path="/employeeAttendance" element={<EmployeeAttendance />} />
-            {/* 직원 - 학생근태 */}
-            <Route path="/employee/kiosk/" element={<KioskAttendance />} />
-
-            {/* 급여 관련 직원 기능 */}
-            <Route path="/employee/payroll" element={<EmployeePayrollList />} />
-            <Route path="/employye/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail />} />
 
 
             {/* 멤버(학생, 학부모) */}
