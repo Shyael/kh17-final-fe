@@ -232,7 +232,7 @@ export default function Body() {
             <Route path="/employee/contract/sign/:contractNo" element={<ContractSign />} />
             <Route path="/admin/contract/detail/:contractNo" element={<ContractDetail />} />
             <Route path="/employee/contract/history/:employeeNo" element={<ContractHistory />} />
-            <Route path="/admin/contract/extend/:contractNo" element={<ContractExtend />} />
+            <Route path="/admin/contract/extend/:contractNo" element={<ContractExtend/>} />
             <Route path="/admin/contract/changeCondition/:contractNo" element={<ContractChangeCondition />} />
             <Route path="/admin/contract/list" element={<ContractList />} />
             <Route path="/employee/contract/detail/:contractNo" element={<EmployeeContractDetail />} />
