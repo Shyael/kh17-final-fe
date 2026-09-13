@@ -60,7 +60,7 @@ const AdminPayrollCalculate = () => {
 
 
             await apiClient.post(
-                "/employee/admin/payroll/calculate",
+                "/admin/payroll/calculate",
                 {
                     employeeNo: employeeNo,
                     payrollYear: payrollYear,

@@ -78,12 +78,12 @@ export default function StudentAssignmentList() {
                 }
 
                 response = await apiClient.get(
-                    `/assignment/parent/student/${selectedChildNo}`,
+                    `/academy/assignment/parent/student/${selectedChildNo}`,
                     query
                 );
             }
             else {
-                response = await apiClient.get("/assignment/student", query);
+                response = await apiClient.get("/academy/assignment/student", query);
             }
 
             setPageResponse(response.data);

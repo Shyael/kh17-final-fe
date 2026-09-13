@@ -40,13 +40,13 @@ export default function ExamStudentResult() {
         try {
             let url;
             if (isManage) {
-                url = `/attempt/${attemptNo}/result/manage`;
+                url = `/employee/attempt/${attemptNo}/result`;
             }
             else if (isParent) {
-                url = `/exam/parent/student/${selectedChildNo}/attempt/${attemptNo}/result`;
+                url = `/academy/exam/parent/student/${selectedChildNo}/attempt/${attemptNo}/result`;
             }
             else {
-                url = `/attempt/${attemptNo}/result`;
+                url = `/academy/attempt/${attemptNo}/result`;
             }
 
             const response = await apiClient.get(url);

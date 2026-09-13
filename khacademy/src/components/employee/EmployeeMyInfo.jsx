@@ -4,6 +4,8 @@ import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
 import WorkScheduleCalendar from "@components/attendance/WorkScheduleCalander";
+
+import { Link } from "react-router-dom";
 export default function EmployeeMyInfo() {
 
     const [employee, setEmployee] = useState(null);
@@ -492,8 +494,16 @@ export default function EmployeeMyInfo() {
                             </Row>
 
                             {/* 버튼 */}
-                            <Row className="mt-5">
+                            <Row className="mt-5 mb-5">
                                 <Col className="text-end">
+
+                                    <Button as={Link} to={`/employee/contract/history/${employee.employeeNo}`}
+                                    variant="info" className="me-2">
+                                    
+                                        내 계약 보기
+                                        
+                                        </Button>        
+
                                     {/* 비밀번호 변경버튼 */}
                                     <Button variant = "warning" className="me-2"
                                         onClick={() => {

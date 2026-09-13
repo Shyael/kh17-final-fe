@@ -51,11 +51,11 @@ export default function ExamStudentAttempt() {
                 answerResponse
             ] = await Promise.all([
                 //시험 기본정보 + attempt 정보
-                apiClient.get(`/exam/student/${examNo}`),
+                apiClient.get(`/academy/exam/student/${examNo}`),
                 //학생용 문제
-                apiClient.get(`/question/attempt/${attemptNo}`),
+                apiClient.get(`/academy/question/attempt/${attemptNo}`),
                 //기존 저장 답안
-                apiClient.get(`/attempt-answer/attempt/${attemptNo}`)
+                apiClient.get(`/academy/attempt-answer/attempt/${attemptNo}`)
             ]);
             setExam(examResponse.data);
             setQuestionList(questionResponse.data);
@@ -193,7 +193,7 @@ export default function ExamStudentAttempt() {
             // -> 수정
             if (existingAnswer) {
                 await apiClient.put(
-                    `/attempt-answer/attempt/${attemptNo}/question/${questionNo}`, { optionNo }
+                    `/academy/attempt-answer/attempt/${attemptNo}/question/${questionNo}`, { optionNo }
                 );
 
                 setAnswerList(prev =>
@@ -211,7 +211,7 @@ export default function ExamStudentAttempt() {
             //최초 답안
             // -> 등록
             else {
-                await apiClient.post("/attempt-answer/", {
+                await apiClient.post("/academy/attempt-answer", {
                     attemptNo: Number(attemptNo),
                     questionNo: Number(questionNo),
                     optionNo: Number(optionNo)
@@ -257,7 +257,7 @@ export default function ExamStudentAttempt() {
         try {
             setSavingQuestionNo(questionNo);
 
-            await apiClient.delete(`/attempt-answer/attempt/${attemptNo}/question/${questionNo}`);
+            await apiClient.delete(`/academy/attempt-answer/attempt/${attemptNo}/question/${questionNo}`);
 
             setAnswerList(prev =>
                 prev.filter(
@@ -307,7 +307,7 @@ export default function ExamStudentAttempt() {
 
         try {
             setSubmitting(true);
-            await apiClient.put(`/attempt/${attemptNo}/submit`);
+            await apiClient.put(`/academy/attempt/${attemptNo}/submit`);
             toast.success(auto ? "응시 시간이 종료되어 자동 제출되었습니다." : "시험이 제출되었습니다.");
 
             //시험 목록으로 이동

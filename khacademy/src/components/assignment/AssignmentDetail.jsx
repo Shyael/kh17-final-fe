@@ -1,7 +1,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row, Table } from "react-bootstrap";
-import { FaCheck, FaPen, FaTrash, FaLock, FaPaperclip, FaDownload, FaListUl } from "react-icons/fa6";
+import { FaPen, FaTrash, FaLock, FaPaperclip, FaDownload, FaListUl } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
@@ -34,15 +34,12 @@ export default function AssignmentDetail() {
     // 제출 현황 필터 (전체 / 미확인 / 미제출)
     const [filter, setFilter] = useState("전체");
 
-    // 체크된 제출 번호 목록 (일괄 확인완료용)
-    const [checkedSubmitNos, setCheckedSubmitNos] = useState([]);
-
     // 과제 상세 조회
     const loadAssignment = useCallback(async () => {
 
         try {
             const response = await apiClient.get(
-                `/assignment/${assignmentNo}`
+                `/academy/assignment/${assignmentNo}`
             );
 
             setAssignment(response.data);
@@ -58,7 +55,7 @@ export default function AssignmentDetail() {
 
         try {
             const response = await apiClient.get(
-                `/assignment-submit/assignment/${assignmentNo}/students`
+                `/employee/assignment-submit/assignment/${assignmentNo}/students`
             );
 
             setStudentList(response.data);
@@ -155,32 +152,6 @@ export default function AssignmentDetail() {
         });
     }, [studentList, filter]);
 
-    // 체크 가능한(제출한) 학생의 제출 번호 목록
-    const checkableSubmitNos = useMemo(() => {
-        return filteredStudentList
-            .filter(student => student.submitNo != null)
-            .map(student => student.submitNo);
-    }, [filteredStudentList]);
-
-    // 전체 선택 여부
-    const isAllChecked =
-        checkableSubmitNos.length > 0 &&
-        checkableSubmitNos.every(no => checkedSubmitNos.includes(no));
-
-    // 개별 체크 토글
-    const toggleCheck = (submitNo) => {
-        setCheckedSubmitNos(prev =>
-            prev.includes(submitNo)
-                ? prev.filter(no => no !== submitNo)
-                : [...prev, submitNo]
-        );
-    };
-
-    // 전체 체크 토글
-    const toggleCheckAll = () => {
-        setCheckedSubmitNos(isAllChecked ? [] : checkableSubmitNos);
-    };
-
     // 과제 수정 페이지 이동
     const moveToEdit = () => {
         navigate(`/employee/assignment/${assignmentNo}/edit`);
@@ -204,7 +175,7 @@ export default function AssignmentDetail() {
 
         try {
             await apiClient.put(
-                `/assignment/${assignmentNo}/close`
+                `/employee/assignment/${assignmentNo}/close`
             );
 
             await Swal.fire({
@@ -245,7 +216,7 @@ export default function AssignmentDetail() {
         }
 
         try {
-            await apiClient.delete(`/assignment/${assignmentNo}`);
+            await apiClient.delete(`/employee/assignment/${assignmentNo}`);
 
             await Swal.fire({
                 title: "삭제 완료",
@@ -265,29 +236,6 @@ export default function AssignmentDetail() {
                 icon: "error",
                 confirmButtonText: "확인"
             });
-        }
-    };
-
-    // 선택한 항목 일괄 확인완료
-    const applyBulkCheck = async () => {
-
-        if (checkedSubmitNos.length === 0) {
-            toast.error("확인완료할 항목을 선택해주세요.");
-            return;
-        }
-
-        try {
-            await apiClient.put(
-                `/assignment-submit/check`,
-                { submitNoList: checkedSubmitNos }
-            );
-
-            toast.success("선택한 항목을 확인완료로 변경했습니다.");
-            setCheckedSubmitNos([]);
-            loadStudentList();
-        }
-        catch (err) {
-            console.error("일괄 확인완료 실패", err);
         }
     };
 
@@ -484,21 +432,6 @@ export default function AssignmentDetail() {
                         </div>
                     </div>
 
-                    <div className="d-flex justify-content-end mb-2">
-                        <Button
-                            size="sm"
-                            variant="success"
-                            disabled={checkedSubmitNos.length === 0}
-                            onClick={applyBulkCheck}>
-                            <FaCheck className="me-1" />
-                            <span>
-                                선택한 항목 일괄 확인완료
-                                {checkedSubmitNos.length > 0 &&
-                                    ` (${checkedSubmitNos.length})`}
-                            </span>
-                        </Button>
-                    </div>
-
                     <Table
                         bordered
                         hover
@@ -506,14 +439,6 @@ export default function AssignmentDetail() {
                         className="align-middle text-center">
                         <thead>
                             <tr>
-                                <th style={{ width: "48px" }}>
-                                    <Form.Check
-                                        type="checkbox"
-                                        checked={isAllChecked}
-                                        onChange={toggleCheckAll}
-                                        disabled={checkableSubmitNos.length === 0}
-                                    />
-                                </th>
                                 <th>이름</th>
                                 <th>제출 일시</th>
                                 <th>상태</th>
@@ -543,22 +468,6 @@ export default function AssignmentDetail() {
                                             student.submitNo ??
                                             index
                                         }>
-                                        <td>
-                                            <Form.Check
-                                                type="checkbox"
-                                                checked={
-                                                    submitted &&
-                                                    checkedSubmitNos.includes(
-                                                        student.submitNo
-                                                    )
-                                                }
-                                                disabled={!submitted}
-                                                onChange={() =>
-                                                    toggleCheck(student.submitNo)
-                                                }
-                                            />
-                                        </td>
-
                                         <td>
                                             {student.accountName ??
                                                 student.studentName ??

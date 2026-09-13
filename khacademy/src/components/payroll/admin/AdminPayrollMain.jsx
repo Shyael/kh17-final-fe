@@ -216,7 +216,7 @@ const AdminPayrollMain = () => {
 
             const response =
                 await apiClient.get(
-                    `/employee/admin/payroll/monthly/${year}/${month}`
+                    `/admin/payroll/monthly/${year}/${month}`
                 );
 
 

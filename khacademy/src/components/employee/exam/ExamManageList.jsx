@@ -55,7 +55,7 @@ export default function ExamManageList() {
     //시험 목록 조회
     const loadExamList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/exam/manage", {
+            const response = await apiClient.get("/employee/exam", {
                 params: {
                     page: params.page,
                     size: PAGE_SIZE,

@@ -105,7 +105,7 @@ export default function StudentAssignmentManage() {
 
         for (const attachNo of attachNumbers) {
             await apiClient.delete(
-                `/assignment-submit/${submit.submitNo}/file/${attachNo}`
+                `/academy/assignment-submit/${submit.submitNo}/file/${attachNo}`
             );
         }
 
@@ -119,7 +119,7 @@ export default function StudentAssignmentManage() {
     const loadAssignment = useCallback(async () => {
         try {
             const response = await apiClient.get(
-                `/assignment/${assignmentNo}`
+                `/academy/assignment/${assignmentNo}`
             );
 
             setAssignment(response.data);
@@ -133,7 +133,7 @@ export default function StudentAssignmentManage() {
     const loadSubmit = useCallback(async () => {
         try {
             const response = await apiClient.get(
-                `/assignment-submit/assignment/${assignmentNo}/me`
+                `/academy/assignment-submit/assignment/${assignmentNo}/me`
             );
 
             //이미 제출한 과제
@@ -214,7 +214,7 @@ export default function StudentAssignmentManage() {
             });
 
             const response = await apiClient.post(
-                "/assignment-submit/",
+                "/academy/assignment-submit",
                 form
             );
 
@@ -266,7 +266,7 @@ export default function StudentAssignmentManage() {
             });
 
             await apiClient.put(
-                `/assignment-submit/${submit.submitNo}`,
+                `/academy/assignment-submit/${submit.submitNo}`,
                 form
             );
 

@@ -89,7 +89,7 @@ export default function TutorManage() {
                         //api한번에 하는 처리인거 같음
                         await Promise.all([
                             apiClient.get("/academy/"),
-                            apiClient.get(`/tutor/${tutorNo}`)
+                            apiClient.get(`/academy/tutor/${tutorNo}`)
                         ]);
 
                     // 학원 과목가져와서 리스트에 넣기
@@ -149,7 +149,7 @@ export default function TutorManage() {
                     const [academyResponse, employeeResponse] =
                         await Promise.all([
                             apiClient.get("/academy/"),
-                            apiClient.get("/tutor/available-employee")
+                            apiClient.get("/employee/tutor/available-employee")
                         ]);
 
                     // 학원 등록 과목(수정이랑 동일한 작업)
@@ -313,14 +313,14 @@ export default function TutorManage() {
                 form.append("image", image);
             }
 
-            const response = await apiClient.post("/tutor/", form);
+            const response = await apiClient.post("/employee/tutor", form);
 
             // 백엔드에서 방금 생성한 tutorNo 반환(위쪽 진행됨 그럼 no 생성완료)
             const newTutorNo = response.data.tutorNo;
 
             // 2. 경력/학력 등록
             for (const career of tutor.careerList) {
-                await apiClient.post("/tutor/career",
+                await apiClient.post("/employee/tutor/career",
                     {
                         tutorNo: newTutorNo,
                         tutorCareerType: career.tutorCareerType,
@@ -333,7 +333,7 @@ export default function TutorManage() {
             // 3. 담당과목 등록
             for (const subject of tutor.subjectList) {
 
-                await apiClient.post("/tutor/subject",
+                await apiClient.post("/employee/tutor/subject",
                     {
                         tutorNo: newTutorNo,
                         academySubjectNo: subject.academySubjectNo
@@ -377,13 +377,13 @@ export default function TutorManage() {
                 form.append("image", image);
             }
 
-            await apiClient.put(`/tutor/${tutorNo}`, form);
+            await apiClient.put(`/employee/tutor/${tutorNo}`, form);
 
             // 2. 경력/학력
             for (const career of tutor.careerList) {
                 // 기존 경력(데이터에 careerNo 존재하면 수정)
                 if (career.tutorCareerNo) {
-                    await apiClient.put(`/tutor/career/${career.tutorCareerNo}`,
+                    await apiClient.put(`/employee/tutor/career/${career.tutorCareerNo}`,
                         {
                             tutorCareerType:career.tutorCareerType,
                             tutorCareerContent:career.tutorCareerContent
@@ -393,7 +393,7 @@ export default function TutorManage() {
 
                 // 새 경력
                 else {
-                    await apiClient.post("/tutor/career",
+                    await apiClient.post("/employee/tutor/career",
                         {
                             tutorNo: Number(tutorNo),
                             tutorCareerType: career.tutorCareerType,
@@ -407,7 +407,7 @@ export default function TutorManage() {
             for (const subject of tutor.subjectList) {
                 // 기존 담당과목
                 if (subject.tutorSubjectNo) {
-                    await apiClient.put(`/tutor/subject/${subject.tutorSubjectNo}`,
+                    await apiClient.put(`/employee/tutor/subject/${subject.tutorSubjectNo}`,
                         {
                             academySubjectNo: subject.academySubjectNo
                         }
@@ -416,7 +416,7 @@ export default function TutorManage() {
 
                 // 새 담당과목
                 else {
-                    await apiClient.post("/tutor/subject",
+                    await apiClient.post("/employee/tutor/subject",
                         {
                             tutorNo: Number(tutorNo),
                             academySubjectNo:subject.academySubjectNo
@@ -427,7 +427,7 @@ export default function TutorManage() {
             toast.success("강사 정보가 수정되었습니다.");
 
             // 새로 추가된 경력/과목 PK 다시 받아오기
-            const response = await apiClient.get(`/tutor/${tutorNo}`);
+            const response = await apiClient.get(`/academy/tutor/${tutorNo}`);
             const data = response.data;
 
             const subjectList =
@@ -481,7 +481,7 @@ export default function TutorManage() {
             // DB에 이미 등록된 경력
             if (career.tutorCareerNo) {
                 await apiClient.delete(
-                    `/tutor/career/${career.tutorCareerNo}`
+                    `/employee/tutor/career/${career.tutorCareerNo}`
                 );
             }
 
@@ -508,7 +508,7 @@ export default function TutorManage() {
             // DB에 이미 등록된 담당과목
             if (subject.tutorSubjectNo) {
                 await apiClient.delete(
-                    `/tutor/subject/${subject.tutorSubjectNo}`
+                    `/employee/tutor/subject/${subject.tutorSubjectNo}`
                 );
             }
 
@@ -530,7 +530,7 @@ export default function TutorManage() {
     // 기존 강사 이미지 삭제
     const deleteBeforeImage = useCallback(async () => {
         try {
-            await apiClient.delete(`/tutor/${tutorNo}/image`);
+            await apiClient.delete(`/employee/tutor/${tutorNo}/image`);
 
             setBeforeImage(null);
 

@@ -38,7 +38,7 @@ export default function AssignmentList() {
     // 내가 등록한 과제 목록 조회
     const loadAssignmentList = useCallback(async () => {
         try {
-            const response = await apiClient.get("/assignment/manage", {
+            const response = await apiClient.get("/employee/assignment", {
                 params: {
                     page: params.page,
                     size: PAGE_SIZE,

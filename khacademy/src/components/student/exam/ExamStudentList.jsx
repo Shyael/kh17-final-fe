@@ -74,12 +74,12 @@ export default function ExamStudentList() {
                 }
 
                 response = await apiClient.get(
-                    `/exam/parent/student/${selectedChildNo}`,
+                    `/academy/exam/parent/student/${selectedChildNo}`,
                     query
                 );
             }
             else {
-                response = await apiClient.get("/exam/student", query);
+                response = await apiClient.get("/academy/exam/student", query);
             }
 
             setPageResponse(response.data);

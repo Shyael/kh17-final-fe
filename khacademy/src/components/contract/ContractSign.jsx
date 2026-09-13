@@ -135,7 +135,7 @@ export default function ContractSign() {
             setSending(true);
 
             await apiClient.patch(
-                `/employee/admin/contract/${contractNo}/employerSign`,
+                `/admin/contract/${contractNo}/employerSign`,
                 {
                     contractNo,
                     employerSignature
