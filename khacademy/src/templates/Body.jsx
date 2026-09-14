@@ -57,6 +57,8 @@ import ParentMyInfo from "@components/parent/ParentMyInfo";
 
 import StudentList from "@components/student/StudentList";
 import StudentDetail from "@components/student/StudentDetail";
+import StudentAttendanceList from "@components/student/StudentAttendanceList";
+
 import PaymentList from "@components/payment/PaymentList";
 import DiscountList from "@components/payment/DiscountList";
 import PaymentDetail from '@components/payment/PaymentDetail';
@@ -64,6 +66,7 @@ import PaymentDetail from '@components/payment/PaymentDetail';
 import EmployeeAttendance from "@components/employeeAttendance/EmployeeAttendance";
 import AdminAttendance from "@components/attendance/admin/AdminAttendance";
 import KioskAttendance from "@components/attendance/admin/KioskAttendance";
+import EmployeeAttendanceList from "@components/attendance/employee/EmployeeAttendanceList";
 
 import ContractAdd from "@components/contract/admin/ContractAdd";
 import ContractEditBeforeSigned from "@components/contract/admin/ContractEditBeforeSigned";
@@ -185,6 +188,7 @@ export default function Body() {
 
             {/* 직원 - 근태 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance />} />
+            <Route path="/employee/attendance" element={<EmployeeAttendanceList />} />
             {/* 직원 - 학생근태 */}
             <Route path="/employee/kiosk/" element={<KioskAttendance />} />
 
@@ -231,7 +235,12 @@ export default function Body() {
             <Route path="/student/myInfo" element={<Member><StudentMyInfo /></Member>} />
             <Route path="/student/list" element={<Employee><StudentList /></Employee>} />
             <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail /></Employee>} />
-          
+            {/* 강좌번호 없이 메뉴에서 처음 진입할 때 */}
+            <Route path="/student/attendance/list" element={<StudentAttendanceList />} />
+            {/* 강좌번호가 파라미터로 붙어있을 때 */}
+            <Route path="/student/attendance/list/:courseNo" element={<StudentAttendanceList />} />
+
+
             {/* 학생 - 과제 */}
             <Route path="/student/assignment" element={<StudentAssignmentList />} />
             <Route path="/student/assignment/:assignmentNo/submit" element={<StudentAssignmentManage />} />
@@ -245,10 +254,10 @@ export default function Body() {
 
             {/* 학부모 - 내 정보 */}
             <Route path="/parent/myInfo" element={<Member><ParentMyInfo /></Member>} />
-            
+
             {/* 학부모 - 자녀 과제 상세 */}
             <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />} />
-            
+
             {/* 학부모 - 자녀 시험 결과 */}
             <Route path="/parent/exam/result/:attemptNo" element={<ExamStudentResult />} />
 
