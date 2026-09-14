@@ -3,7 +3,7 @@ import { Button, Col, Row } from "react-bootstrap";
 import { FaRightFromBracket, FaUserPlus } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 
-export default function memberJoinSuccess() {
+export default function MemberJoinSuccess() {
     
     return(<>
         <Jumbotron title="회원가입 완료"/>
