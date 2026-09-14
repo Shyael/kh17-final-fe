@@ -3,7 +3,7 @@ import { Button, Col, Row } from "react-bootstrap";
 import { FaUserPlus } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 
-export default function memberJoinFail() {
+export default function MemberJoinFail() {
     
     return(<>
         <Jumbotron title="회원가입 오류 발생" content="일시적인 오류가 발생했습니다"/>
