@@ -49,7 +49,7 @@ export default function ContractEditBeforeSigned() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/admin/contract/detail/${contractNo}`
+                `/admin/contract/detail/${contractNo}`
             );
 
             setContract({
@@ -196,7 +196,7 @@ export default function ContractEditBeforeSigned() {
             setSending(true);
 
             await apiClient.patch(
-                `/employee/admin/contract/editBefore/${contractNo}`,
+                `/admin/contract/editBefore/${contractNo}`,
                 request
             );
 

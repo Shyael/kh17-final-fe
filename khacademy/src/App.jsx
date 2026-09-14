@@ -66,7 +66,7 @@ function App() {
       ) : (
         <Container fluid>
           {/* 메뉴 */}
-          {/* 시험 응시 화면이 아닐 때만 메뉴 */}
+          {/* 시험 응시 화면이 아닐 때만 메뉴 (Container fluid 좌우 여백은 menu.css 에서 상쇄) */}
           {!isExamAttempt && <Menu />}
 
           {/* 본문 */}
@@ -77,7 +77,7 @@ function App() {
                 <Body />
               </Col>
             ) : (
-              <Col sm={{ span: 10, offset: 1 }} md={{ span: 8, offset: 2 }}>
+              <Col xs={12}>
                 <Body />
               </Col>
             )}

@@ -1,5 +1,5 @@
 import Jumbotron from "@templates/Jumbotron";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstrap";
@@ -26,6 +26,7 @@ export default function StudentAssignmentDetail() {
         assignmentTitle: "",
         assignmentContent: "",
         assignmentStatus: "",
+        assignmentPhase: "",
         assignmentDueDate: null,
         assignmentWtime: null,
         fileList: []
@@ -48,7 +49,7 @@ export default function StudentAssignmentDetail() {
     //과제 상세 조회
     const loadAssignment = useCallback(async () => {
         try {
-            const response = await apiClient.get(`/assignment/${assignmentNo}`);
+            const response = await apiClient.get(`/academy/assignment/${assignmentNo}`);
             setAssignment(response.data);
         }
         catch (err) {
@@ -56,12 +57,16 @@ export default function StudentAssignmentDetail() {
         }
     }, [assignmentNo]);
 
-    //제출 상세 조회
+    //제출 상세 조회 (학생은 본인 제출, 직원은 submitNo로 조회)
     const loadSubmit = useCallback(async () => {
         try {
-            const response = await apiClient.get(
-                `/assignment-submit/${submitNo}`
-            );
+            const response = isStudent
+                ? await apiClient.get(
+                    `/academy/assignment-submit/assignment/${assignmentNo}/me`
+                )
+                : await apiClient.get(
+                    `/employee/assignment-submit/${submitNo}`
+                );
 
             setSubmit({
                 ...response.data,
@@ -71,7 +76,7 @@ export default function StudentAssignmentDetail() {
         catch (err) {
             console.error("과제 제출 상세 조회 실패", err);
         }
-    }, [submitNo]);
+    }, [isStudent, assignmentNo, submitNo]);
 
     //화면 진입 시 조회
     useEffect(() => {
@@ -95,7 +100,7 @@ export default function StudentAssignmentDetail() {
         }
         try {
             await apiClient.put(
-                `/assignment-submit/${submitNo}/comment`,
+                `/employee/assignment-submit/${submitNo}/comment`,
                 {
                     submitComment: submit.submitComment
                 }
@@ -158,13 +163,8 @@ export default function StudentAssignmentDetail() {
     // 제출 상태 (피드백 있으면 채점완료)
     const submitStatus = hasComment ? "채점완료" : "제출완료";
 
-    // 마감 지남 여부 (지나면 수정하기 숨김)
-    const isDueOver = useMemo(() => {
-        if (!assignment.assignmentDueDate) {
-            return false;
-        }
-        return new Date(assignment.assignmentDueDate) < new Date();
-    }, [assignment.assignmentDueDate]);
+    // 마감 지남 여부 (지나면 수정하기 숨김) - assignmentPhase 기준
+    const isDueOver = assignment.assignmentPhase === "마감";
 
     return (<>
         <Jumbotron title="과제 제출 상세" />

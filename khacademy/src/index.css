@@ -1,3 +1,56 @@
+/* =========================================================
+   부트스트랩 primary 팔레트를 menu.css의 --kh- 토큰으로 오버라이드
+   - .kh-* 커스텀 클래스가 아니라 variant="primary" 처럼 부트스트랩
+     기본 클래스를 쓰는 모든 곳(버튼/뱃지/텍스트/보더/링크)에 적용됨
+   - --bs-primary(-rgb) 는 badge/text/border 유틸리티가 참조하지만
+     .btn-primary/.btn-outline-primary는 부트스트랩 빌드에서 색상이
+     고정 값으로 박혀있어 별도로 재정의해야 함
+   ========================================================= */
+:root {
+  --bs-primary: var(--kh-primary);
+  --bs-primary-rgb: var(--kh-primary-rgb);
+  --bs-primary-text-emphasis: var(--kh-primary-dark);
+  --bs-primary-bg-subtle: var(--kh-primary-light);
+  --bs-primary-border-subtle: var(--kh-primary);
+  --bs-link-color: var(--kh-primary);
+  --bs-link-color-rgb: var(--kh-primary-rgb);
+  --bs-link-hover-color: var(--kh-primary-hover);
+  --bs-link-hover-color-rgb: var(--kh-primary-rgb);
+}
+
+body {
+  background-color: var(--kh-bg);
+}
+
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--kh-primary);
+  --bs-btn-border-color: var(--kh-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--kh-primary-hover);
+  --bs-btn-hover-border-color: var(--kh-primary-hover);
+  --bs-btn-focus-shadow-rgb: var(--kh-primary-rgb);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--kh-primary-active);
+  --bs-btn-active-border-color: var(--kh-primary-active);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--kh-primary);
+  --bs-btn-disabled-border-color: var(--kh-primary);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--kh-primary);
+  --bs-btn-border-color: var(--kh-primary);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--kh-primary);
+  --bs-btn-hover-border-color: var(--kh-primary);
+  --bs-btn-focus-shadow-rgb: var(--kh-primary-rgb);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--kh-primary);
+  --bs-btn-active-border-color: var(--kh-primary);
+  --bs-btn-disabled-color: var(--kh-primary);
+  --bs-btn-disabled-border-color: var(--kh-primary);
+}
 
 /* 반응형 폭 스타일 */
 .w-md-25,

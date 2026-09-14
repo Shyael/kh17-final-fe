@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import {useEffect, useMemo, useState } from "react";
 
 import {
     Badge,
@@ -8,7 +8,7 @@ import {
     Form,
     Modal,
     Row,
-    Spinner
+    
 } from "react-bootstrap";
 
 import { toast } from "react-toastify";
@@ -27,8 +27,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
     const [summary, setSummary] =
         useState(null);
 
-    const [loading, setLoading] =
-        useState(false);
+
 
 
     // =========================================================
@@ -220,7 +219,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
         try {
 
-            setLoading(true);
+          
 
 
             const response =
@@ -258,11 +257,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
             );
 
         }
-        finally {
-
-            setLoading(false);
-
-        }
+        
     };
 
 
@@ -1421,23 +1416,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                     }
 
 
-                    {
-                        loading
-                        ? (
-
-                            <div
-                                className="
-                                    text-center
-                                    py-5
-                                "
-                            >
-
-                                <Spinner />
-
-                            </div>
-
-                        )
-                        : (
+                    
 
                             <>
 
@@ -1921,8 +1900,8 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                             </>
 
-                        )
-                    }
+                        
+                    
 
 
                 </Card.Body>

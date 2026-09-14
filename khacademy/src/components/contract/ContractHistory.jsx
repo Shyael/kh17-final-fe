@@ -30,7 +30,7 @@ export default function ContractHistory() {
             setLoading(true);
 
             const {data} = await apiClient.get(
-                `/employee/contract/${employeeNo}`
+                `/employee/contract/detail/${employeeNo}`
             );
 
             setContractList(data ?? []);

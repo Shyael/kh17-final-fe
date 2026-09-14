@@ -61,7 +61,7 @@ export default function ContractAdd() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/admin/contract/${employeeType}/${employeeNo}`
+                `/admin/contract/${employeeType}/${employeeNo}`
             );
 
             setEmployee(data);
@@ -195,7 +195,7 @@ export default function ContractAdd() {
             setSending(true);
 
             const { data } = await apiClient.post(
-                "/employee/admin/contract/add",
+                "/admin/contract/add",
                 request
             );
 

@@ -292,14 +292,14 @@ export default function AcademyManage() {
             form.append("images", image);
         });
 
-        await apiClient.post("/academy/", form);
+        await apiClient.post("/employee/academy", form);
 
         for (const history of academy.historyList) {
-            await apiClient.post("/academy/history", history);
+            await apiClient.post("/employee/academy/history", history);
         }
 
         for (const subject of academy.subjectList) {
-            await apiClient.post("/academy/subject", subject);
+            await apiClient.post("/employee/academy/subject", subject);
         }
 
         toast.success("학원 정보가 등록되었습니다.");
@@ -327,19 +327,19 @@ export default function AcademyManage() {
         });
 
         // 학원 기본정보 수정 + 신규 이미지 추가
-        await apiClient.put("/academy/", form);
+        await apiClient.put("/employee/academy", form);
 
         for (const history of academy.historyList) {
             if (history.academyHistoryNo) {
                 //기존 값 있으면 수정
                 await apiClient.put(
-                    `/academy/history/${history.academyHistoryNo}`,
+                    `/employee/academy/history/${history.academyHistoryNo}`,
                     history
                 );
             }
             else {
                 //없으면 등록
-                await apiClient.post("/academy/history", history);
+                await apiClient.post("/employee/academy/history", history);
             }
         }
 
@@ -347,13 +347,13 @@ export default function AcademyManage() {
             if (subject.academySubjectNo) {
                 //기존 값 있으면 수정
                 await apiClient.put(
-                    `/academy/subject/${subject.academySubjectNo}`,
+                    `/employee/academy/subject/${subject.academySubjectNo}`,
                     subject
                 );
             }
             else {
                 //없으면 등록
-                await apiClient.post("/academy/subject", subject);
+                await apiClient.post("/employee/academy/subject", subject);
             }
         }
 
@@ -370,7 +370,7 @@ export default function AcademyManage() {
         if (history.academyHistoryNo) {
             //데이터베이스에서 삭제
             await apiClient.delete(
-                `/academy/history/${history.academyHistoryNo}`
+                `/employee/academy/history/${history.academyHistoryNo}`
             );
         }
 
@@ -387,7 +387,7 @@ export default function AcademyManage() {
 
         if (subject.academySubjectNo) {
             await apiClient.delete(
-                `/academy/subject/${subject.academySubjectNo}`
+                `/employee/academy/subject/${subject.academySubjectNo}`
             );
         }
 
@@ -403,7 +403,7 @@ export default function AcademyManage() {
 
         try {
             await apiClient.delete(
-                `/academy/${academy.academy.academyNo}/image/${image.attachNo}`
+                `/employee/academy/${academy.academy.academyNo}/image/${image.attachNo}`
             );
 
             //화면에서도 삭제
@@ -465,7 +465,7 @@ export default function AcademyManage() {
         // 벌크 삭제 API가 없으므로 단건 삭제 API를 반복 호출
         for (const attachNo of detailNumbers) {
             await apiClient.delete(
-                `/academy/${academy.academy.academyNo}/image/${attachNo}`
+                `/employee/academy/${academy.academy.academyNo}/image/${attachNo}`
             );
         }
 

@@ -32,7 +32,7 @@ export default function TutorList() {
 
     //callback
     const loadData = useCallback(async () => {
-        const response = await apiClient.get("/tutor", {
+        const response = await apiClient.get("/academy/tutor", {
             params: {
                 page: params.page,
                 size: PAGE_SIZE,

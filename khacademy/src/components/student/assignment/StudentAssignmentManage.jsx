@@ -24,6 +24,7 @@ export default function StudentAssignmentManage() {
         assignmentTitle: "",
         assignmentContent: "",
         assignmentStatus: "",
+        assignmentPhase: "",
         assignmentDueDate: null,
         fileList: []
     });
@@ -104,7 +105,7 @@ export default function StudentAssignmentManage() {
 
         for (const attachNo of attachNumbers) {
             await apiClient.delete(
-                `/assignment-submit/${submit.submitNo}/file/${attachNo}`
+                `/academy/assignment-submit/${submit.submitNo}/file/${attachNo}`
             );
         }
 
@@ -118,7 +119,7 @@ export default function StudentAssignmentManage() {
     const loadAssignment = useCallback(async () => {
         try {
             const response = await apiClient.get(
-                `/assignment/${assignmentNo}`
+                `/academy/assignment/${assignmentNo}`
             );
 
             setAssignment(response.data);
@@ -132,7 +133,7 @@ export default function StudentAssignmentManage() {
     const loadSubmit = useCallback(async () => {
         try {
             const response = await apiClient.get(
-                `/assignment-submit/assignment/${assignmentNo}/me`
+                `/academy/assignment-submit/assignment/${assignmentNo}/me`
             );
 
             //이미 제출한 과제
@@ -213,7 +214,7 @@ export default function StudentAssignmentManage() {
             });
 
             const response = await apiClient.post(
-                "/assignment-submit/",
+                "/academy/assignment-submit",
                 form
             );
 
@@ -265,7 +266,7 @@ export default function StudentAssignmentManage() {
             });
 
             await apiClient.put(
-                `/assignment-submit/${submit.submitNo}`,
+                `/academy/assignment-submit/${submit.submitNo}`,
                 form
             );
 
@@ -322,7 +323,8 @@ export default function StudentAssignmentManage() {
         return `${diffDay}일 남음`;
     }, [assignment.assignmentDueDate]);
 
-    const isOverdue = remainText === "마감 지남";
+    // 제출/수정/삭제 가능 여부는 백엔드가 내려주는 assignmentPhase로 판단 (실제 마감 차단은 서버 checkDueDate가 담당)
+    const isOverdue = assignment.assignmentPhase === "마감";
 
     // 제출 상태 배지
     const submitStatusBadge = () => {
@@ -477,8 +479,8 @@ export default function StudentAssignmentManage() {
                                         checked={isAllFilesChecked}
                                         onChange={checkAllFiles}/>
 
-                                    <Button variant="danger" onClick={deleteCheckedFiles}>
-                                        체크된 항목 삭제   
+                                    <Button variant="danger" disabled={isOverdue} onClick={deleteCheckedFiles}>
+                                        체크된 항목 삭제
                                     </Button>
 
                                     <ListGroup>

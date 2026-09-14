@@ -27,7 +27,7 @@ export default function ContractDetail() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/admin/contract/detail/${contractNo}`
+                `/admin/contract/detail/${contractNo}`
             );
 
             setContract(data);
@@ -92,7 +92,7 @@ export default function ContractDetail() {
         if(result.isConfirmed === false) return;
 
         try {
-            await apiClient.patch(`/employee/admin/contract/${contractNo}/exit`);
+            await apiClient.patch(`/admin/contract/${contractNo}/exit`);
 
             toast.success("근로계약이 종료되었습니다");
             loadData();
