@@ -7,6 +7,8 @@ import AttendanceButton from "@templates/AttendanceButton";
 import useLogout from "@templates/menu/useLogout";
 import useAcademyName from "@templates/menu/useAcademyName";
 import "@templates/menu/menu.css";
+    
+import Alarm from "@components/employee/alarm/Alarm";
 
 /* 직원 사이드바 메뉴 구성 (기존 Menu.jsx 직원 메뉴와 동일한 경로) */
 const MENU = [
@@ -86,7 +88,10 @@ export default function EmployeeLayout({ children }) {
     const toggle = (label) =>
         setOpen(prev => ({ ...prev, [label]: !prev[label] }));
 
-    return (
+    return (<>
+        {isAdmin && (
+            <Alarm />
+        )}
         <div className="kh-gw-layout">
             {/* ===== 좌측 사이드바 ===== */}
             <aside className="kh-gw-sidebar">
@@ -178,5 +183,5 @@ export default function EmployeeLayout({ children }) {
                 </main>
             </div>
         </div>
-    );
+    </>);
 }

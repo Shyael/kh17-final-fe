@@ -131,7 +131,7 @@ export default function ConsultReservation() {
 
     return (<>
         <Jumbotron title="상담 예약 목록" content="고객이 신청한 상담 예약 목록" />
-        <Container className="p-4">
+        <Container fluid className="p-4">
             {/* 1. 상단 검색 및 필터 영역 */}
             <Row className="mb-4 align-items-end">
                 <Col xs="auto" className="pe-0">

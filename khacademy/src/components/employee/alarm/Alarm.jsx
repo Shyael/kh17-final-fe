@@ -1,20 +1,25 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Client } from "@stomp/stompjs";
 import { toast } from "react-toastify";
 import SockJS from "sockjs-client";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 export default function Alarm() {
     const [client, setClient] = useState(null);//서버와의 연결정보를 가진 객체
+    const location = useLocation();
+
+    const pathRef = useRef(location.pathname);
+
+    useEffect(() => {
+        pathRef.current = location.pathname;
+    }, [location.pathname]);
 
     //연결 함수
     const connectToServer = useCallback(()=>{
-        //연결(socket) 생성
-        const socket = new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`);
 
         //연결을 관리할 도구(client) 생성하여 반환
         const client = new Client({
-            webSocketFactory : () => socket , 
+            webSocketFactory : () => new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`), 
             heartbeatIncoming: 10000, // 서버로부터 10초마다 하트비트를 수신할 것으로 기대
             heartbeatOutgoing: 10000, // 서버로 10초마다 하트비트를 발송
 
@@ -23,18 +28,20 @@ export default function Alarm() {
                 //신규채팅방 체크
                 client.subscribe(`/public/room/check`, (message)=>{
                     const json = JSON.parse(message.body);
-                    //toast.success('신규 상담 채팅이 도착했습니다'); 
-                    toast.info(
-                        <div>
-                            신규 상담 채팅
-                            <Link to="/employee/consult/chat">
-                                <span class="fs-6 badge rounded-pill bg-primary ms-2">확인하기</span>
-                            </Link>
-                        </div>,
-                        {
-                            autoClose: false
-                        }
-                    );
+                    
+                    if (pathRef.current !== "/employee/consult/chat") {
+                        toast.info(
+                            <div>
+                                신규 채팅
+                                <Link to="/employee/consult/chat">
+                                    <span class="fs-6 badge rounded-pill bg-primary ms-2">확인하기</span>
+                                </Link>
+                            </div>,
+                            {
+                                autoClose: 60000
+                            }
+                        );
+                    }
                 });
             },
             onDisconnect: () => {

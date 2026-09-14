@@ -1,7 +1,6 @@
 import { useAtomValue } from "jotai";
 import AcademyChat from "@components/academy/AcademyChat";
 import Student from "@guard/Student";
-import Alarm from "@components/employee/alarm/Alarm";
 import { isLoginState, isEmployeeState } from "@utils/storage";
 import { Link } from "react-router-dom";
 import { useAcademy } from "@templates/menu/useAcademyName";
@@ -16,9 +15,6 @@ const FALLBACK = {
 };
 
 export default function Footer() {
-    const isLogin = useAtomValue(isLoginState);
-    const isEmployee = useAtomValue(isEmployeeState);
-    
     const academy = useAcademy();
 
     const name = academy?.academyName || FALLBACK.name;
@@ -27,9 +23,6 @@ export default function Footer() {
     const year = new Date().getFullYear();
 
     return (<>
-        {isLogin && isEmployee && (
-            <Alarm />
-        )}
         <Student><AcademyChat/></Student>
         <footer className="kh-footer">
             <div className="kh-footer-main">

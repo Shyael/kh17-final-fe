@@ -12,6 +12,8 @@ import dayjs from "dayjs";
 import "dayjs/locale/ko";
 dayjs.locale("ko");//한국어로 설정
 
+import './ConsultChat.css'
+
 export default function ConsultChat() {
 
     // 메시지 입력 상태
@@ -56,12 +58,9 @@ export default function ConsultChat() {
 
     //연결 함수
     const connectToServer = useCallback(()=>{
-        //연결(socket) 생성
-        const socket = new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`);
-
         //연결을 관리할 도구(client) 생성하여 반환
         const client = new Client({
-            webSocketFactory : () => socket , 
+            webSocketFactory : () => new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`), 
             heartbeatIncoming: 10000, // 서버로부터 10초마다 하트비트를 수신할 것으로 기대
             heartbeatOutgoing: 10000, // 서버로 10초마다 하트비트를 발송
 
@@ -292,15 +291,15 @@ export default function ConsultChat() {
     }, []);
 
     return(<>
-        <Jumbotron title="상담 채팅 관리" />
+        {/* <Jumbotron title="채팅 관리" /> */}
 
         <Container fluid className="p-3 bg-light">
             <Row className="bg-white shadow-sm rounded overflow-hidden">
                 
                 {/* 좌측: 채팅방 목록 */}
-                <Col xs={12} md={5} lg={4} className="p-0 border-end d-flex flex-column " style={{ height: "550px" }}>
+                <Col xs={12} md={5} lg={4} className="p-0 border-end d-flex flex-column chat-col-height">
                 <div className="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">상담 채팅 목록</h5>
+                    <h5 className="mb-0">채팅 목록</h5>
                     {totalUnreadCount > 0 && (
                         <Badge bg="danger" pill className="fs-6">
                             새 메시지 {totalUnreadCount}
@@ -343,7 +342,7 @@ export default function ConsultChat() {
                 </Col>
 
                 {/* 우측: 채팅 내용 */}
-                <Col xs={12} md={7} lg={8} className="p-0 d-flex flex-column bg-light" style={{ height: "550px" }}>
+                <Col xs={12} md={7} lg={8} className="p-0 d-flex flex-column bg-light chat-col-height">
                 {activeRoomNo ? (
                     <>
                     <div className="p-3 bg-white border-bottom shadow-sm">
