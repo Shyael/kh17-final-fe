@@ -128,7 +128,7 @@ export default function ExamStudentDetail() {
         try {
             setStarting(true);
 
-            const response = await apiClient.post("/academy/attempt", { examNo: Number(examNo) });
+            const response = await apiClient.post("/academy/attempt/", { examNo: Number(examNo) });
 
             const attemptNo = response.data;
 

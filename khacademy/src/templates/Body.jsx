@@ -2,8 +2,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAtomValue } from "jotai";
 import { isLoginState } from "@utils/storage";
 
-import EmployeeHome from "@components/EmployeeHome";
-import MemberHome from "@components/MemberHome";
+import EmployeeDashboard from "@components/EmployeeDashBoard";
+import MemberDashboard from "@components/MemberDashboard";
 
 import AccountFind from "@components/account/AccountFind";
 import EmployeeLogin from "@components/employee/EmployeeLogin";
@@ -105,6 +105,7 @@ import CourseCreate from "@components/course/CourseCreate";
 import CourseList from "@components/course/CourseList";
 import CourseDetail from "@components/course/CourseDetail";
 
+
 export default function Body() {
 
     const isLogin = useAtomValue(isLoginState);
@@ -167,11 +168,11 @@ export default function Body() {
             <Route path="/payment/discount" element={<Employee><DiscountList /></Employee>} />
             <Route path="/payment/detail/:paymentNo" element={<Employee><PaymentDetail /></Employee>} />
 
-            {/* 직원 홈페이지(대시보드) */}
-            <Route path="/employeeHome" element={<Employee><EmployeeHome /></Employee>} />
+            {/* 직원 대시보드 */}
+            <Route path="/employeeDashboard" element={<Employee><EmployeeDashboard /></Employee>} />
 
-            {/* 멤버 홈페이지(대시보드) */}
-            <Route path="/" element={<Member><MemberHome /></Member>} />
+            {/* 멤버 대시보드 */}
+            <Route path="/" element={<Member><MemberDashboard /></Member>} />
 
             {/* 상담 */}
             <Route path="/employee/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />

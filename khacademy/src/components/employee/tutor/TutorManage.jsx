@@ -313,7 +313,7 @@ export default function TutorManage() {
                 form.append("image", image);
             }
 
-            const response = await apiClient.post("/employee/tutor", form);
+            const response = await apiClient.post("/employee/tutor/", form);
 
             // 백엔드에서 방금 생성한 tutorNo 반환(위쪽 진행됨 그럼 no 생성완료)
             const newTutorNo = response.data.tutorNo;

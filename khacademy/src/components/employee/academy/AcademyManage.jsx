@@ -292,7 +292,7 @@ export default function AcademyManage() {
             form.append("images", image);
         });
 
-        await apiClient.post("/employee/academy", form);
+        await apiClient.post("/employee/academy/", form);
 
         for (const history of academy.historyList) {
             await apiClient.post("/employee/academy/history", history);
@@ -327,7 +327,7 @@ export default function AcademyManage() {
         });
 
         // 학원 기본정보 수정 + 신규 이미지 추가
-        await apiClient.put("/employee/academy", form);
+        await apiClient.put("/employee/academy/", form);
 
         for (const history of academy.historyList) {
             if (history.academyHistoryNo) {
