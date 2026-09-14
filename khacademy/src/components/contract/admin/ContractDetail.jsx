@@ -27,7 +27,7 @@ export default function ContractDetail() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/contract/detail/${contractNo}`
+                `/employee/admin/contract/detail/${contractNo}`
             );
 
             setContract(data);
@@ -92,7 +92,7 @@ export default function ContractDetail() {
         if(result.isConfirmed === false) return;
 
         try {
-            await apiClient.patch(`/employee/contract/${contractNo}/exit`);
+            await apiClient.patch(`/employee/admin/contract/${contractNo}/exit`);
 
             toast.success("근로계약이 종료되었습니다");
             loadData();
@@ -162,20 +162,20 @@ export default function ContractDetail() {
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary"
-                        onClick={()=>navigate(`/contract/history/${contract.employeeNo}`)}>
+                        onClick={()=>navigate(`/admin/contract/history/${contract.employeeNo}`)}>
                     계약 이력
                 </Button>
 
                 {contract.contractStatus === "pending" && (
                 <>
                     <Button variant="warning" className="ms-2"
-                            onClick={()=>navigate(`/contract/edit/${contractNo}`)}>
+                            onClick={()=>navigate(`/admin/contract/before/${contractNo}`)}>
                         <FaSquarePen/>
                         <span className="ms-2">서명 전 수정</span>
                     </Button>
 
                     <Button variant="success" className="ms-2"
-                            onClick={()=>navigate(`/contract/sign/${contractNo}`)}>
+                            onClick={()=>navigate(`/employee/contract/sign/${contractNo}`)}>
                         <FaLock/>
                         <span className="ms-2">계약 서명</span>
                     </Button>
@@ -184,14 +184,14 @@ export default function ContractDetail() {
 
                 {contract.signedTime !== null && contract.signedTime !== undefined && (
                 <Button variant="outline-dark" className="ms-2"
-                        onClick={()=>navigate(`/contract/sign/${contractNo}`)}>
+                        onClick={()=>navigate(`/employee/contract/sign/${contractNo}`)}>
                     서명 보기
                 </Button>
                 )}
 
                 {contract.contractStatus === "active" && contract.contractEnd !== null && (
                 <Button variant="info" className="ms-2"
-                        onClick={()=>navigate(`/contract/extend/${contractNo}`)}>
+                        onClick={()=>navigate(`/admin/contract/extend/${contractNo}`)}>
                     기간 연장
                 </Button>
                 )}
@@ -199,7 +199,7 @@ export default function ContractDetail() {
                 {contract.contractStatus === "active" && (
                 <>
                     <Button variant="warning" className="ms-2"
-                            onClick={()=>navigate(`/contract/change-condition/${contractNo}`)}>
+                            onClick={()=>navigate(`/admin/contract/change-condition/${contractNo}`)}>
                         <FaSquarePen/>
                         <span className="ms-2">근로조건 변경</span>
                     </Button>

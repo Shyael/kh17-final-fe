@@ -1,14 +1,12 @@
-import Jumbotron from "@templates/Jumbotron";
-import axios from "axios";
-import { useAtom, useSetAtom } from "jotai";
+import { useSetAtom } from "jotai";
 import { useCallback, useState } from "react";
-import { Button, Col, Form, Row } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
 import { FaRightToBracket } from "react-icons/fa6";
 import Swal from "sweetalert2";
-import { loginUserState } from "@utils/storage";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginActionState } from "@utils/storage";
 import { authClient } from "@utils/reaxios";
+import "@templates/menu/menu.css";
 
 export default function AccountLogin() {
     //state
@@ -85,55 +83,55 @@ export default function AccountLogin() {
         }
     }, [account]);
 
-    return (<>
-        <Jumbotron title="회원 로그인" content="로그인을 위한 정보를 입력해주세요" />
+    const goFind = () =>
+        navigate("/account/find", { state: { loginPath: "/member/login" } });
 
-        <Row className="mt-4">
-            <Form.Label column sm={3}>아이디</Form.Label>
-            <Col sm={9}>
-                <Form.Control type="text" name="accountId" value={account.accountId}
-                    onChange={changeStringValue} placeholder="User ID"
-                    autoFocus />
-            </Col>
-        </Row>
-        <Row className="mt-4">
-            <Form.Label column sm={3}>비밀번호</Form.Label>
-            <Col sm={9}>
-                <Form.Control type="password" name="accountPassword"
-                    value={account.accountPassword}
-                    onChange={changeStringValue} placeholder="User Password" />
-            </Col>
-        </Row>
+    const onSubmit = (e) => {
+        e.preventDefault();
+        sendLogin();
+    };
 
-        <Row className="mt-5">
-            <Col className="text-end">
-                <Button variant="success" size="lg" onClick={sendLogin}>
-                    <FaRightToBracket />
-                    <span className="ms-2">로그인</span>
-                </Button>
-            </Col>
-        </Row>
+    return (
+        <div className="kh-login">
+            <div className="kh-login-card">
+                <div className="kh-login-title">회원 로그인</div>
 
-        <Row className="mt-5">
-            <Col className="text-center">
-                <Button variant="link"
-                    onClick={() => navigate("/account/find", {
-                        state: {
-                            loginPath: "/member/login"
-                        }
-                    })} >
-                    아이디 찾기
-                </Button>
-                <span className="text-muted"> | </span>
-                <Button variant="link"
-                    onClick={() => navigate("/account/find", {
-                        state: {
-                            loginPath: "/member/login"
-                        }
-                    })} >
-                    비밀번호 찾기
-                </Button>
-            </Col>
-        </Row>
-    </>)
+                <Form onSubmit={onSubmit}>
+                    <Form.Control
+                        type="text"
+                        name="accountId"
+                        value={account.accountId}
+                        onChange={changeStringValue}
+                        placeholder="아이디"
+                        autoFocus
+                    />
+                    <Form.Control
+                        type="password"
+                        name="accountPassword"
+                        value={account.accountPassword}
+                        onChange={changeStringValue}
+                        placeholder="비밀번호"
+                        className="mt-3 mb-3"
+                    />
+
+                    <Button
+                        type="submit"
+                        variant="success"
+                        className="w-100 mt-5 kh-login-submit"
+                    >
+                        <FaRightToBracket />
+                        <span className="ms-2">로그인</span>
+                    </Button>
+                </Form>
+
+                <div className="kh-login-links">
+                    <button type="button" onClick={goFind}>아이디 찾기</button>
+                    <span className="sep">|</span>
+                    <button type="button" onClick={goFind}>비밀번호 찾기</button>
+                    <span className="sep">|</span>
+                    <Link to="/member/join">회원가입</Link>
+                </div>
+            </div>
+        </div>
+    );
 }

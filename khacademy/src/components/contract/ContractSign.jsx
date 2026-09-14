@@ -7,7 +7,7 @@ import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
-import ContractDocument from "./ContractDocument";
+import ContractDocument from "@components/contract/admin/ContractDocument";
 
 export default function ContractSign() {
     //parameter
@@ -34,6 +34,7 @@ export default function ContractSign() {
                 `/employee/contract/recallBefore/${contractNo}`
             );
 
+            
             console.log(data);
 
             setContract(data);
@@ -98,7 +99,7 @@ export default function ContractSign() {
             setEmployeeSignature("");
             setSignatureInfo(null);
             await loadData();
-            navigate(`/contract/detail/${contractNo}`);
+            navigate(`/employee/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);
@@ -134,7 +135,7 @@ export default function ContractSign() {
             setSending(true);
 
             await apiClient.patch(
-                `/employee/contract/${contractNo}/employerSign`,
+                `/employee/admin/contract/${contractNo}/employerSign`,
                 {
                     contractNo,
                     employerSignature
@@ -145,7 +146,7 @@ export default function ContractSign() {
             setEmployerSignature("");
             setSignatureInfo(null);
             await loadData();
-            navigate(`/contract/detail/${contractNo}`);
+            navigate(`/admin/contract/detail/${contractNo}`);
         }
         catch(e) {
             console.error(e);
@@ -295,7 +296,7 @@ export default function ContractSign() {
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary"
-                        onClick={()=>navigate(`/contract/detail/${contractNo}`)}>
+                        onClick={()=>navigate(`/employee/contract/detail/${contractNo}`)}>
                     계약 상세
                 </Button>
             </Col>

@@ -13,6 +13,7 @@ import EmployeeRegisterFail from "@components/employee/EmployeeRegisterFail";
 import EmployeePassword from "@components/employee/EmployeePassword";
 import EmployeeMyInfo from "@components/employee/EmployeeMyInfo";
 
+
 import MemberLogin from "@components/member/MemberLogin";
 import MemberJoin from "@components/member/MemberJoin";
 import MemberJoinSuccess from "@components/member/MemberJoinSuccess";
@@ -22,7 +23,8 @@ import ConsultReservation from "@components/employee/consult/ConsultReservation"
 import ConsultManage from "@components/employee/consult/ConsultManage";
 import ConsultChat from "@components/employee/consult/ConsultChat";
 
-import AdminEmployeeList from "@components/admin/employee/AdminEmployeeList";
+import EmployeeSearch from "@components/employee/EmployeeSearch";
+import EmployeeSearchDetail from "@components/employee/EmployeeSearchDetail";
 import AdminEmployeeDetail from "@components/admin/employee/AdminEmployeeDetail";
 
 import NotFound from "@error/NotFound";
@@ -62,13 +64,36 @@ import PaymentDetail from '@components/payment/PaymentDetail';
 import EmployeeAttendance from "@components/employeeAttendance/EmployeeAttendance";
 import AdminAttendance from "@components/attendance/admin/AdminAttendance";
 
-import ContractAdd from "@components/contract/ContractAdd";
-import ContractEditBeforeSigned from "@components/contract/ContractEditBeforeSigned";
+import ContractAdd from "@components/contract/admin/ContractAdd";
+import ContractEditBeforeSigned from "@components/contract/admin/ContractEditBeforeSigned";
 import ContractSign from "@components/contract/ContractSign";
-import ContractDetail from "@components/contract/ContractDetail";
+import ContractDetail from "@components/contract/admin/ContractDetail";
 import ContractHistory from "@components/contract/ContractHistory";
-import ContractExtend from "@components/contract/ContractExtend";
-import ContractChangeCondition from "@components/contract/ContractChangeCondition";
+
+import ContractExtend from "@components/contract/admin/ContractExtend";
+import ContractChangeCondition from "@components/contract/admin/ContractChangeCondition";
+import ContractList from "@components/contract/admin/ContractList";
+import EmployeeContractDetail from "@components/contract/EmployeeContractDetail";
+
+
+import AdminPayrollList from "@components/payroll/admin/AdminPayrollList";
+import AdminPayrollMain from "@components/payroll/admin/AdminPayrollMain";
+import AdminPayrollDetail from "@components/payroll/admin/AdminPayrollDetail";
+import AdminPayrollCalculate from "@components/payroll/admin/AdminPayrollCalculate";
+
+import EmployeePayrollList from "@components/payroll/EmployeePayrollList";
+import EmployeePayrollDetail from "@components/payroll/EmployeePayrollDetail";
+
+
+import ExamManageList from "@components/employee/exam/ExamManageList";
+import ExamManage from "@components/employee/exam/ExamManage";
+import ExamResult from "@components/employee/exam/ExamResult";
+
+import ExamStudentList from "@components/student/exam/ExamStudentList";
+import ExamStudentDetail from "@components/student/exam/ExamStudentDetail";
+import ExamStudentAttempt from "@components/student/exam/ExamStudentAttempt";
+import ExamStudentResult from "@components/student/exam/ExamStudentResult";
+
 import ScoreManagement from "@components/score/ScoreManagement";
 
 export default function Body() {
@@ -90,31 +115,32 @@ export default function Body() {
                 }
             />
             {/* 관리자(원장, 데스크) */}
-            <Route path="/admin/employee/list" element={<AdminEmployeeList />} />
+            <Route path="/employee/search" element={<EmployeeSearch />} />
             <Route path="/admin/employee/detail/:employeeNo" element={<AdminEmployeeDetail />} />
+            <Route path="/employee/search/detail/:employeeNo" element={<EmployeeSearchDetail/>}/>
 
             {/* 직원(원장, 데스크) */}
             <Route path="/employee/register" element={<EmployeeRegister />} />
             <Route path="/employee/registerSuccess" element={<EmployeeRegisterSuccess />} />
             <Route path="/employee/registerFail" element={<EmployeeRegisterFail />} />
-            
+
             {/* 직원(원장, 데스크, 강사) */}
             <Route path="/employee/password" element={<EmployeePassword />} />
-            <Route path="/employee/myInfo"element={<Employee><EmployeeMyInfo /></Employee>}/>
-            
+            <Route path="/employee/myInfo" element={<Employee><EmployeeMyInfo /></Employee>} />
+
             {/* 회원 가입(학생, 학부모) */}
-            <Route 
-                path="/member/login" 
+            <Route
+                path="/member/login"
                 element={
                     isLogin
-                    ? <Navigate to="/memberHome" replace />
-                    : <MemberLogin />
-                } 
+                        ? <Navigate to="/memberHome" replace />
+                        : <MemberLogin />
+                }
             />
             {/* 학생 */}
-            <Route path="/student/myInfo"element={<Member><StudentMyInfo /></Member>}/>
+            <Route path="/student/myInfo" element={<Member><StudentMyInfo /></Member>} />
             {/* 학부모 */}
-            <Route path="/Parent/myInfo"element={<Member><ParentMyInfo /></Member>}/>
+            <Route path="/Parent/myInfo" element={<Member><ParentMyInfo /></Member>} />
             {/* 학부모 학생 */}
             <Route path="/member/join" element={<MemberJoin />} />
             <Route path="/member/joinSuccess" element={<MemberJoinSuccess />} />
@@ -123,15 +149,15 @@ export default function Body() {
             <Route path="/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />
 
             {/* 학생 */}
-            <Route path="/student/list" element={<Employee><StudentList/></Employee>} />
-            <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail/></Employee>} />
+            <Route path="/student/list" element={<Employee><StudentList /></Employee>} />
+            <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail /></Employee>} />
 
             {/* 성적 */}
             <Route path="/score" element={<Employee><ScoreManagement/></Employee>} />
 
             {/* 수납 */}
-            <Route path="/payment/list" element={<Employee><PaymentList/></Employee>} />
-            <Route path="/payment/discount" element={<Employee><DiscountList/></Employee>} />
+            <Route path="/payment/list" element={<Employee><PaymentList /></Employee>} />
+            <Route path="/payment/discount" element={<Employee><DiscountList /></Employee>} />
             <Route path="/payment/detail/:paymentNo" element={<Employee><PaymentDetail /></Employee>} />
 
             {/* 직원 홈페이지(대시보드) */}
@@ -141,22 +167,23 @@ export default function Body() {
             <Route path="/" element={<Member><MemberHome /></Member>} />
 
             {/* 상담 */}
-            <Route path="/employee/consult/reservation" element={<Employee><ConsultReservation/></Employee>} />
+            <Route path="/employee/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />
             <Route path="/employee/consult/manage" element={<Employee><ConsultManage /></Employee>} />
-            <Route path="/employee/consult/chat" element={<Employee><ConsultChat/></Employee>} />
+            <Route path="/employee/consult/chat" element={<Employee><ConsultChat /></Employee>} />
 
             {/* 외부화면 정보 관리(직원 로그인 완료 되면 employee 추가해야함) */}
             <Route path="/employee/academy" element={<AcademyManage />} />
             <Route path="/employee/tutor" element={<TutorList />} />
             <Route path="/employee/tutor/add" element={<TutorManage />} />
             <Route path="/employee/tutor/:tutorNo" element={<TutorManage />} />
+            
 
             {/* 과제(관리) */}
             <Route path="/employee/assignment" element={<AssignmentList />} />
             <Route path="/employee/assignment/add" element={<AssignmentManage />} />
             <Route path="/employee/assignment/:assignmentNo" element={<AssignmentDetail />} />
             <Route path="/employee/assignment/:assignmentNo/edit" element={<AssignmentManage />} />
-            <Route path="/employee/assignment/:assignmentNo/submit/:submitNo" element={<StudentAssignmentDetail />}/>
+            <Route path="/employee/assignment/:assignmentNo/submit/:submitNo" element={<StudentAssignmentDetail />} />
 
             {/* 비로그인 학원정보 */}
             <Route path="/academy" element={<AcademyInfo />} />
@@ -164,34 +191,59 @@ export default function Body() {
             <Route path="/academy/tutor/:tutorNo" element={<AcademyTutorDetail />} />
 
             {/* 학생 과제 */}
-            <Route path="/student/assignment" element={<StudentAssignmentList />}/>
-            <Route path="/student/assignment/:assignmentNo/submit" element={<StudentAssignmentManage />}/>
-            <Route path="/student/assignment/:assignmentNo/submit/:submitNo" element={<StudentAssignmentDetail />}/>
+            <Route path="/student/assignment" element={<StudentAssignmentList />} />
+            <Route path="/student/assignment/:assignmentNo/submit" element={<StudentAssignmentManage />} />
+            <Route path="/student/assignment/:assignmentNo/submit/:submitNo" element={<StudentAssignmentDetail />} />
 
             {/* 학부모 : 자녀 과제 상세 */}
-            <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />}/>
+            <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />} />
+
+            {/* 시험(관리) */}
+            <Route path="/employee/exam" element={<ExamManageList />}/>
+            <Route path="/employee/exam/add" element={<ExamManage />}/>
+            <Route path="/employee/exam/:examNo" element={<ExamManage />}/>
+            <Route path="/employee/exam/:examNo/result" element={<ExamResult />}/>
+            <Route path="/employee/exam/:examNo/result/:attemptNo" element={<ExamStudentResult />}/>
+
+            {/* 학생 시험 */}
+            <Route path="/student/exam" element={<ExamStudentList />}/>
+            <Route path="/student/exam/:examNo" element={<ExamStudentDetail />}/>
+            <Route path="/student/exam/:examNo/attempt/:attemptNo" element={<ExamStudentAttempt />}/>
+            <Route path="/student/exam/result/:attemptNo" element={<ExamStudentResult />}/>
 
             {/* fallback route */}
 
-            <Route path="*" element={<NotFound/>}/>
+            <Route path="*" element={<NotFound />} />
 
             {/* 계약관련 */}
-            <Route path="/contract/add/:employeeNo" element={<ContractAdd/>}/>
-            <Route path="/contract/before/:contractNo" element={<ContractEditBeforeSigned/>}/>
-            <Route path="/contract/sign/:contractNo" element={<ContractSign/>}/>
-            <Route path="/contract/detail/:contractNo" element={<ContractDetail/>}/>
-            <Route path="/contract/history/:employeeNo" element={<ContractHistory/>}/>
-            <Route path="/contract/extend/:contractNo" element={<ContractExtend/>}/>
-            <Route path="/contract/changeCondition/:contractNo" element={<ContractChangeCondition/>}/>
-
+            <Route path="/admin/contract/add/:employeeNo" element={<ContractAdd />} />
+            <Route path="/admin/contract/before/:contractNo" element={<ContractEditBeforeSigned />} />
+            <Route path="/employee/contract/sign/:contractNo" element={<ContractSign />} />
+            <Route path="/admin/contract/detail/:contractNo" element={<ContractDetail />} />
+            <Route path="/employee/contract/history/:employeeNo" element={<ContractHistory />} />
+            <Route path="/admin/contract/extend/:contractNo" element={<ContractExtend />} />
+            <Route path="/admin/contract/changeCondition/:contractNo" element={<ContractChangeCondition />} />
+            <Route path="/admin/contract/list" element={<ContractList/>}/>
+            <Route path="/employee/contract/detail/:contractNo" element={<EmployeeContractDetail/>}/>
             {/* 근태관련 */}
-            <Route path="/employeeAttendance" element={<EmployeeAttendance/>}/>
+            <Route path="/employeeAttendance" element={<EmployeeAttendance />} />
             {/* 관리자 전용 근태 */}
-            <Route path="/admin/attendance/" element={<AdminAttendance/>}/>
-            
-        </Routes>   
+            <Route path="/admin/attendance/:employeeNo/" element={<AdminAttendance />} />
 
+
+            {/* 급여 관련 관리자 기능 */}
+            <Route path="/admin/payroll" element={<AdminPayrollMain />}/>
+            <Route path="/admin/payroll/:employeeNo" element={<AdminPayrollList/>}/>
+            <Route path="/admin/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<AdminPayrollDetail/>}/>
+            <Route path="/admin/payroll/:employeeNo/calculate/:payrollYear/:payrollMonth" element={<AdminPayrollCalculate/>}/>
             
-  
+        
+            {/* 급여 관련 직원 기능 */}
+            <Route path="/employee/payroll" element={<EmployeePayrollList/>}/>
+            <Route path="/employye/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail/>}/>
+        </Routes>
+
+
+
     )
 }

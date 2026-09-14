@@ -6,7 +6,7 @@ import axios from "axios";
 import { useKakaoPostcodePopup } from "react-daum-postcode";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { apiClient, certClient } from "../../utils/reaxios";
+import { apiClient, certClient } from "@utils/reaxios";
 
 export default function MemberJoin() {
     //kakao post
@@ -97,13 +97,9 @@ export default function MemberJoin() {
             }));
             return;
         }
-        //accountType에 따라 엔드포인트 분기
-        const url = accountType === 'STUDENT'
-            ? `/student/check-id/${account.accountId}`
-            : `/parent/check-id/${account.accountId}`
-
+        
         //형식 통과 → 중복 검사
-        const { data } = await apiClient.get(url);
+        const { data } = await apiClient.get(`/account/check-id/${account.accountId}`);
         const clazz = data ? "" : "is-invalid"; //형식과 중복검사를 통과하더라도 아직 인증번호가 남아있음
         const code = data ? null : "duplicate";
         setResult(prev => ({
@@ -274,7 +270,7 @@ export default function MemberJoin() {
 
             if (accountType === 'STUDENT') {
                 //학생 회원가입 API 호출
-                response = await apiClient.post("/student/", copy);
+                response = await apiClient.post("/academy/student/", copy);
             }
             else {
                 const parentPayload = {
@@ -284,7 +280,7 @@ export default function MemberJoin() {
                     accountBirth: copy.accountBirth,
                     accountPhone: copy.accountPhone
                 };
-                response = await apiClient.post("/parent/", parentPayload);
+                response = await apiClient.post("/academy/parent/", parentPayload);
             }
 
             const msg = response.data?.message || "회원 등록 신청이 완료되었습니다.";
