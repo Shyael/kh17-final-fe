@@ -95,10 +95,12 @@ import ExamStudentDetail from "@components/student/exam/ExamStudentDetail";
 import ExamStudentAttempt from "@components/student/exam/ExamStudentAttempt";
 import ExamStudentResult from "@components/student/exam/ExamStudentResult";
 
+import StudentScoreResult from "@components/student/score/StudentScoreResult";
 
 
 
 import ScoreManagement from "@components/score/ScoreManagement";
+
 
 
 import CourseCreate from "@components/course/CourseCreate";
@@ -220,6 +222,12 @@ export default function Body() {
 
             {/* 학부모 : 자녀 시험 결과 */}
             <Route path="/parent/exam/result/:attemptNo" element={<ExamStudentResult />} />
+
+            {/* 학생 성적 */}
+            <Route path="/student/score" element={<StudentScoreResult />} />
+
+            {/* 학부모 : 자녀 성적 */}
+            <Route path="/parent/score" element={<StudentScoreResult />} />
 
             {/* fallback route */}
 

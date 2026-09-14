@@ -65,7 +65,7 @@ export default function ScoreManagement() {
     const fetchScores = useCallback(async (studentNo) => {
         try {
             // 🌟 /api 제거
-            const response = await apiClient.get(`/score/list/${studentNo}`); 
+            const response = await apiClient.get(`/employee/score/list/${studentNo}`); 
             setRawScores(response.data || []);
         } catch (error) {
             console.error("성적 로딩 실패:", error);
@@ -106,7 +106,7 @@ export default function ScoreManagement() {
 
         const isEditMode = scoreForm.scoreNo !== null; 
         // 🌟 /api 제거
-        const apiUrl = isEditMode ? "/score/edit" : "/score/add";
+        const apiUrl = isEditMode ? "/employee/score/edit" : "/employee/score/add";
         const method = isEditMode ? "put" : "post";
 
         try {
@@ -148,7 +148,7 @@ export default function ScoreManagement() {
         if (!window.confirm("이 과목 성적을 삭제하시겠습니까?")) return;
         try {
             // 🌟 /api 제거
-            await apiClient.delete(`/score/delete/${scoreNo}`);
+            await apiClient.delete(`/employee/score/delete/${scoreNo}`);
             fetchScores(student.studentNo);
             
             if (selectedExam) {

@@ -80,7 +80,7 @@ export default function StudentDetail() {
 
     const fetchDiscounts = useCallback(async () => {
         try {
-            const allRes = await apiClient.get("/payment/discount/list");
+            const allRes = await apiClient.get("/employee/payment/discount/list");
             setAllDiscounts(allRes.data.filter(d => d.discountStatus === 'Y'));
             const studentRes = await apiClient.get(`/employee/student/${studentNo}/discount`);
             setStudentDiscounts(studentRes.data);

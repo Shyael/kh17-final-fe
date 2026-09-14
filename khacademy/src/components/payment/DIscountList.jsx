@@ -21,7 +21,7 @@ export default function DiscountList() {
     // 백엔드에서 할인 목록 가져오기
     const fetchDiscounts = useCallback(async () => {
         try {
-            const response = await apiClient.get("/payment/discount/list");
+            const response = await apiClient.get("/employee/payment/discount/list");
             setDiscounts(response.data);
         } catch (error) {
             console.error("할인 목록 로딩 실패:", error);
@@ -39,7 +39,7 @@ export default function DiscountList() {
             return;
         }
         try {
-            const response = await apiClient.post("/payment/discount/add", newDiscount);
+            const response = await apiClient.post("/employee/payment/discount/add", newDiscount);
             alert(response.data);
             setNewDiscount({ discountName: "", discountType: "비율", discountValue: 0 });
             setShowAddForm(false);
@@ -55,7 +55,7 @@ export default function DiscountList() {
         const updateData = { ...discount, discountStatus: updatedStatus };
 
         try {
-            await apiClient.put("/payment/discount/edit", updateData);
+            await apiClient.put("/employee/payment/discount/edit", updateData);
             fetchDiscounts(); 
         } catch (error) {
             console.error("할인 정보 변경 실패:", error);
@@ -88,7 +88,7 @@ export default function DiscountList() {
             return alert("올바른 값을 입력해 주세요.");
         }
         try {
-            await apiClient.put("/payment/discount/edit", editDiscount);
+            await apiClient.put("/employee/payment/discount/edit", editDiscount);
             alert("성공적으로 수정되었습니다.");
             setExpandedRow(null); // 패널 닫기
             fetchDiscounts(); // 목록 갱신
@@ -103,7 +103,7 @@ export default function DiscountList() {
         if (!window.confirm("정말 이 할인을 삭제하시겠습니까?")) return;
         try {
             // params로 넘기면 URL 뒤에 ?discountNo=값 형태로 붙어서 전송됩니다.
-            await apiClient.delete("/payment/discount/delete", {
+            await apiClient.delete("/employee/payment/discount/delete", {
                 params: { discountNo }
             });
             alert("삭제되었습니다.");

@@ -121,6 +121,9 @@ export default function TopMenu() {
                                 <NavDropdown.Item as={Link} to="/student/exam">
                                     내 시험
                                 </NavDropdown.Item>
+                                <NavDropdown.Item as={Link} to="/student/score">
+                                    내 성적
+                                </NavDropdown.Item>
                             </NavDropdown>
 
                             {/* 학부모: 자녀 선택 드롭다운 */}

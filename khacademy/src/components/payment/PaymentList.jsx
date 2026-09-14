@@ -31,7 +31,7 @@ export default function PaymentList() {
     // 🌟 데이터 가져오기 로직 
     const fetchPayments = useCallback(async () => {
         try {
-            const response = await apiClient.get("/payment/list", {
+            const response = await apiClient.get("/employee/payment/list", {
                 params: filters
             });
             
