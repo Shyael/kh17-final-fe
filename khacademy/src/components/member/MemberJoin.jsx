@@ -125,7 +125,6 @@ export default function MemberJoin() {
         }));
     }, [account]);
 
-    
     //[3] 이름
     const checkAccountName = useCallback(() => {
         const valid = account.accountName.trim() !== "";
