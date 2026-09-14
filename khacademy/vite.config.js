@@ -27,7 +27,6 @@ export default defineConfig({
     //   ".trycloudflare.com"
     // ]
   },
-  base: '/khedu/',
   plugins: [react()],
   resolve: {
     alias: {
