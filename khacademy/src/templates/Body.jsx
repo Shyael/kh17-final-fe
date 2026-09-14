@@ -266,10 +266,8 @@ export default function Body() {
 
             {/* 학부모 - 자녀 과제 상세 */}
             <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />} />
-
             {/* 학부모 - 자녀 시험 결과 */}
             <Route path="/parent/exam/result/:attemptNo" element={<ExamStudentResult />} />
-
         </Routes >
     )
 }
