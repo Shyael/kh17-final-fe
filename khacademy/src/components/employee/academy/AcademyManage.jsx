@@ -767,12 +767,6 @@ export default function AcademyManage() {
 
             <Row className="mt-4">
                 <Col className="text-end">
-                    {/* 위치 나중에 생기면 수정 */}
-                    <Button as={Link} to={`/employee/login/`} variant="danger" className="ms-2">
-                        <FaXmark className="me-2" />
-                        <span>취소하기</span>
-                    </Button>
-
                     <Button type="button" variant="success" className="ms-2"
                         onClick={isRegistered ? updateAcademy : insertAcademy}>
                         <FaCheck className="me-2" />
