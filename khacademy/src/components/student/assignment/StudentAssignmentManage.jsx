@@ -214,7 +214,7 @@ export default function StudentAssignmentManage() {
             });
 
             const response = await apiClient.post(
-                "/academy/assignment-submit",
+                "/academy/assignment-submit/",
                 form
             );
 

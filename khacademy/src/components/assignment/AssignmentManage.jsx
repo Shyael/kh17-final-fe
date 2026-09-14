@@ -211,7 +211,7 @@ export default function AssignmentManage() {
                 form.append("files", file);
             });
 
-            const response = await apiClient.post("/employee/assignment", form);
+            const response = await apiClient.post("/employee/assignment/", form);
 
             const assignmentNo = response.data;
             toast.success("과제 등록이 완료되었습니다.");

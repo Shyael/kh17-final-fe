@@ -207,7 +207,7 @@ export default function ExamManage() {
                 examLimit: exam.examLimit === "" ? null : Number(exam.examLimit)
             };
 
-            const response = await apiClient.post("/employee/exam", data);
+            const response = await apiClient.post("/employee/exam/", data);
 
             //생성된 시험번호 보관
             setExamNo(response.data);
