@@ -58,7 +58,7 @@ const AdminAttendance = () => {
 
 
             const response = await apiClient.get(
-                "/employee/searchName",
+               `/employee/worker/searchName/${keyword.trim()}` ,
                 {
                     params: {
                         accountName: keyword.trim()

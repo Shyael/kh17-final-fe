@@ -10,7 +10,7 @@ import "@templates/menu/menu.css";
 
 /* 직원 사이드바 메뉴 구성 (기존 Menu.jsx 직원 메뉴와 동일한 경로) */
 const MENU = [
-    { type: "link", icon: "📊", label: "대시보드", to: "/employeeHome" },
+    { type: "link", icon: "📊", label: "대시보드", to: "/employeeDashboard" },
     {
         type: "group", icon: "🎓", label: "학생·수업관리", children: [
             { label: "학생 목록", to: "/student/list" },
@@ -101,7 +101,7 @@ export default function EmployeeLayout({ children }) {
             {/* ===== 좌측 사이드바 ===== */}
             <aside className={"kh-gw-sidebar" + (sidebarOpen ? " open" : "")}>
                 <div className="kh-gw-sidebar-head">
-                    <Link to="/employeeHome" className="brand">{academyName}</Link>
+                    <Link to="/employeeDashboard" className="brand">{academyName}</Link>
                     <span className="sub">ACADEMY ADMIN</span>
                 </div>
 

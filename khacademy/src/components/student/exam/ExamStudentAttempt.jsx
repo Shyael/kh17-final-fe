@@ -211,7 +211,7 @@ export default function ExamStudentAttempt() {
             //최초 답안
             // -> 등록
             else {
-                await apiClient.post("/academy/attempt-answer", {
+                await apiClient.post("/academy/attempt-answer/", {
                     attemptNo: Number(attemptNo),
                     questionNo: Number(questionNo),
                     optionNo: Number(optionNo)
