@@ -233,7 +233,7 @@ export default function Body() {
             <Route path="/employee/contract/sign/:contractNo" element={<ContractSign />} />
             <Route path="/admin/contract/detail/:contractNo" element={<ContractDetail />} />
             <Route path="/employee/contract/history/:employeeNo" element={<ContractHistory />} />
-            <Route path="/admin/contract/extend/:contractNo" element={<ContractExtend />} />
+            <Route path="/admin/contract/extend/:contractNo" element={<ContractExtend/>} />
             <Route path="/admin/contract/changeCondition/:contractNo" element={<ContractChangeCondition />} />
             <Route path="/admin/contract/list" element={<ContractList />} />
             <Route path="/employee/contract/detail/:contractNo" element={<EmployeeContractDetail />} />
@@ -246,7 +246,7 @@ export default function Body() {
 
 
             {/* 근태관련 */}
-            <Route path="/employeeAttendance" element={<EmployeeAttendance />} />
+            <Route path="/employee/Attendance" element={<EmployeeAttendance />} />
             {/* 관리자 전용 근태 */}
 
 
@@ -265,7 +265,7 @@ export default function Body() {
 
             {/* 급여 관련 직원 기능 */}
             <Route path="/employee/payroll" element={<EmployeePayrollList />} />
-            <Route path="/employye/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail />} />
+            <Route path="/employee/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail />} />
         </Routes>
 
 

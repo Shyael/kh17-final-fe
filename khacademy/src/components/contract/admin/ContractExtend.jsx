@@ -34,7 +34,7 @@ export default function ContractExtend() {
             setLoading(true);
 
             const { data } = await apiClient.get(
-                `/employee/admin/contract/detail/${contractNo}`
+                `/admin/contract/detail/${contractNo}`
             );
 
             setContract(data);
