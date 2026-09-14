@@ -40,9 +40,9 @@ export default function ScoreManagement() {
                 }
             });
             
-            if (response.data && response.data.length > 0) {
+            if (response.data && response.data.list && response.data.list.length > 0) {
                 // 검색 결과가 있으면 모달을 열고 데이터를 채워줍니다.
-                setSearchResults(response.data);
+                setSearchResults(response.data.list);
                 setShowSearchModal(true); 
             } else {
                 alert("검색된 학생이 없습니다.");
