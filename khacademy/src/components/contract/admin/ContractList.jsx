@@ -3,6 +3,7 @@ import Jumbotron from "@templates/Jumbotron";
 import {
     useCallback,
     useEffect,
+    useMemo,
     useState
 } from "react";
 
@@ -653,7 +654,6 @@ export default function ContractList() {
 
     }, []);
 
-
     return (
         <>
 
@@ -774,6 +774,9 @@ export default function ContractList() {
                             name="contractStatus"
                             value={condition.contractStatus}
                             onChange={changeCondition}>
+                            <option value="">
+                                전체
+                            </option>
 
                             <option value="pending">
                                 서명 대기
@@ -1037,17 +1040,24 @@ export default function ContractList() {
                                     )
                                 }
 
+                                
 
                                 {/* =========================
                                     계약 목록
                                 ========================= */}
 
                                 {
+                                    
                                     loading === false
                                     &&
                                     contractList.map(
                                         contract => (
-
+                                             
+                                                        
+                                             
+                                                    
+                                                    
+                                                
 
                                             <tr
                                                 key={contract.contractNo}
@@ -1136,7 +1146,7 @@ export default function ContractList() {
 
                                                 <td>
 
-
+                                               
                                                     <Badge
                                                         bg={
                                                             statusColor(
@@ -1152,7 +1162,7 @@ export default function ContractList() {
                                                         }
 
                                                     </Badge>
-
+                                                    
 
                                                 </td>
 
@@ -1194,11 +1204,12 @@ export default function ContractList() {
 
 
                                             </tr>
-
-
-                                        )
-                                    )
-                                }
+                                                    
+                                                    )        
+                                                )
+                                            }
+                                    
+                                
 
 
                             </tbody>
