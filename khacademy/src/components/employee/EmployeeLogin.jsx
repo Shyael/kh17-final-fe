@@ -4,7 +4,7 @@ import { useSetAtom } from "jotai";
  
 import { useCallback, useState } from "react";
 import { Button, Form } from "react-bootstrap";
-import { FaRightToBracket } from "react-icons/fa6";
+import { FaRightToBracket, FaEye, FaEyeSlash } from "react-icons/fa6";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { loginActionState } from "@utils/storage";
@@ -17,6 +17,9 @@ export default function AccountLogin() {
         accountId: "",
         accountPassword: ""
     });
+
+    // 비밀번호 표시 여부
+    const [showPassword, setShowPassword] = useState(false);
 
     //쓰기 전용 atom
     const loginAction = useSetAtom(loginActionState);
@@ -95,14 +98,26 @@ export default function AccountLogin() {
                         placeholder="아이디"
                         autoFocus
                     />
-                    <Form.Control
-                        type="password"
-                        name="accountPassword"
-                        value={account.accountPassword}
-                        onChange={changeStringValue}
-                        placeholder="비밀번호"
-                        className="mt-3 mb-3"
-                    />
+                    <div className="kh-login-password-wrap mt-3 mb-3">
+                        <Form.Control
+                            type={showPassword ? "text" : "password"}
+                            name="accountPassword"
+                            value={account.accountPassword}
+                            onChange={changeStringValue}
+                            placeholder="비밀번호"
+                        />
+                        {showPassword ? (
+                            <FaEyeSlash
+                                className="kh-login-password-toggle"
+                                onClick={() => setShowPassword(false)}
+                            />
+                        ) : (
+                            <FaEye
+                                className="kh-login-password-toggle"
+                                onClick={() => setShowPassword(true)}
+                            />
+                        )}
+                    </div>
 
                     <Button
                         type="submit"

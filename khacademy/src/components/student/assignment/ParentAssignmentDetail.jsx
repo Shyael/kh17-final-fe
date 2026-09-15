@@ -6,6 +6,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { useAtomValue } from "jotai";
 import { selectedChildState, selectedChildNoState } from "@utils/storage";
+import { formatDateTime } from "@utils/format";
 
 export default function ParentAssignmentDetail() {
 
@@ -81,11 +82,6 @@ export default function ParentAssignmentDetail() {
         loadAssignment();
         loadSubmit();
     }, [loadAssignment, loadSubmit]);
-
-    // 날짜 포맷
-    const formatDateTime = (value) => {
-        return value ? new Date(value).toLocaleString() : "-";
-    };
 
     // 첨부파일 목록 렌더링
     const renderFileList = (fileList) => (

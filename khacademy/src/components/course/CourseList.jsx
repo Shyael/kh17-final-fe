@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom"; // <-- 추가
 import { Button, Col, Form, Row, Table } from "react-bootstrap";
-import { FaMagnifyingGlass, FaRotate } from "react-icons/fa6";
+import { FaMagnifyingGlass, FaPlus, FaRotate } from "react-icons/fa6";
 import Swal from "sweetalert2";
 
 import { apiClient } from "@utils/reaxios";
@@ -16,7 +17,7 @@ const initialSearchState = {
 };
 
 export default function CourseList() {
-
+    const navigate = useNavigate();
     // 검색 조건
     const [search, setSearch] = useState(initialSearchState);
 
@@ -281,23 +282,35 @@ export default function CourseList() {
 
                 {/* 검색 / 초기화 버튼 */}
                 <Row>
-                    <Col className="text-end">
+                    <Col className="d-flex justify-content-between align-items-center">
+                        {/* 왼쪽: 강좌 등록 버튼 */}
                         <Button
-                            variant="secondary"
-                            className="me-2"
-                            onClick={resetSearch}
+                            variant="success"
+                            onClick={() => navigate("/employee/course/create")} // 보통 등록 페이지는 insert/add 등을 사용합니다.
                         >
-                            <FaRotate />
-                            <span className="ms-2">초기화</span>
+                            <FaPlus />
+                            <span className="ms-2">강좌 등록</span>
                         </Button>
 
-                        <Button
-                            variant="primary"
-                            onClick={searchCourse}
-                        >
-                            <FaMagnifyingGlass />
-                            <span className="ms-2">검색</span>
-                        </Button>
+                        {/* 오른쪽: 초기화 및 검색 버튼 */}
+                        <div>
+                            <Button
+                                variant="secondary"
+                                className="me-2"
+                                onClick={resetSearch}
+                            >
+                                <FaRotate />
+                                <span className="ms-2">초기화</span>
+                            </Button>
+
+                            <Button
+                                variant="primary"
+                                onClick={searchCourse}
+                            >
+                                <FaMagnifyingGlass />
+                                <span className="ms-2">검색</span>
+                            </Button>
+                        </div>
                     </Col>
                 </Row>
             </div>
@@ -325,11 +338,11 @@ export default function CourseList() {
             </Row>
 
             {/* 강좌 목록 테이블 */}
+            {/* 강좌 목록 테이블 */}
             <Table
-                bordered
                 hover
                 responsive
-                className="mt-2 text-center align-middle"
+                className="kh-table mt-2 text-center align-middle"
             >
                 <thead>
                     <tr>
@@ -353,10 +366,13 @@ export default function CourseList() {
                         </tr>
                     ) : (
                         pageData.list.map((course, index) => (
-                            <tr key={course.courseNo}>
+                            <tr
+                                key={course.courseNo}
+                                style={{ cursor: "pointer" }}
+                                onClick={() => navigate(`/employee/course/detail/${course.courseNo}`)}
+                            >
                                 <td>{pageData.totalCount - ((pageData.page - 1) * pageData.size) - index}</td>
-                                {/* courseTitle -> courseTitle 수정 */}
-                                <td className="text-start">{course.courseTitle}</td>
+                                <td className="text-start fw-semibold text-primary">{course.courseTitle}</td>
                                 <td>{course.courseSubject}</td>
                                 <td>{course.gradeLevel}</td>
                                 <td>{course.tutorName}</td>

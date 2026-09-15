@@ -656,49 +656,24 @@ export default function CourseCreate() {
         // 서버 등록
         // ----------------------------------------------------
         try {
-
             const request = {
-
                 ...course,
-
-                employeeNo:
-                    Number(course.employeeNo),
-
-                academySubjectNo:
-                    Number(course.academySubjectNo),
-
-                gradeNo:
-                    Number(course.gradeNo),
-
-                courseLimit:
-                    Number(course.courseLimit),
-
-                courseFee:
-                    Number(course.courseFee),
-
-                schedules:
-                    course.schedules.map(schedule => ({
-
+                employeeNo: Number(course.employeeNo),
+                academySubjectNo: Number(course.academySubjectNo),
+                gradeNo: Number(course.gradeNo),
+                courseLimit: Number(course.courseLimit),
+                courseFee: Number(course.courseFee),
+                schedules: course.schedules.map(schedule => (
+                    {
                         ...schedule,
-
-                        classroomNo:
-                            Number(schedule.classroomNo)
-
+                        classroomNo: Number(schedule.classroomNo)
                     }))
-
             };
 
-
-            console.log(
-                "강좌 등록 요청",
-                request
-            );
+            console.log("강좌 등록 요청", request);
 
 
-            await apiClient.post(
-                "/employee/course/",
-                request
-            );
+            await apiClient.post("/employee/course/", request);
 
 
             await Swal.fire({
@@ -719,7 +694,7 @@ export default function CourseCreate() {
 
 
             navigate(
-                "/employee/course"
+                "/employee/course/detail/{"
             );
 
         }
@@ -1792,15 +1767,10 @@ export default function CourseCreate() {
                     <Button
                         variant="outline-secondary"
                         size="lg"
-                        onClick={() =>
-                            navigate(
-                                "/employee/course"
-                            )
-                        }
+                        onClick={() => navigate("/employee/course")}
                     >
                         취소
                     </Button>
-
 
                     <Button
                         size="lg"

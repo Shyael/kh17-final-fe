@@ -438,7 +438,7 @@ export default function EmployeeSearch() {
                 <Table
                     hover
                     responsive
-                    className="align-middle"
+                    className="kh-table align-middle"
                 >
 
 

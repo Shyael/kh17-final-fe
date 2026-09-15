@@ -4,6 +4,7 @@ import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Col, Form, InputGroup, Row, Table } from "react-bootstrap";
 import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
 import PaginationBar from "@templates/PaginationBar";
+import { formatDate, formatDateTime } from "@utils/format";
 
 const PAGE_SIZE = 10;
 const PHASE_FILTERS = ["제출가능", "마감"];
@@ -192,10 +193,9 @@ export default function AssignmentList() {
             </div>
 
             <Table
-                bordered
                 hover
                 responsive
-                className="align-middle text-center"
+                className="kh-table align-middle text-center"
                 style={{ minWidth: 720 }}
             >
                 <thead>
@@ -240,21 +240,11 @@ export default function AssignmentList() {
                             </td>
 
                             <td className="text-nowrap">
-                                {assignment.assignmentDueDate
-                                    ? new Date(
-                                        assignment.assignmentDueDate
-                                    ).toLocaleString()
-                                    : "-"
-                                }
+                                {formatDateTime(assignment.assignmentDueDate)}
                             </td>
 
                             <td className="text-nowrap">
-                                {assignment.assignmentWtime
-                                    ? new Date(
-                                        assignment.assignmentWtime
-                                    ).toLocaleDateString()
-                                    : "-"
-                                }
+                                {formatDate(assignment.assignmentWtime)}
                             </td>
 
                             <td className="text-nowrap">

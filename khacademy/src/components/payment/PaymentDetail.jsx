@@ -118,8 +118,8 @@ export default function PaymentDetail() {
                             <h6 className="fw-bold text-secondary mb-0">청구 상세 항목</h6>
                         </Card.Header>
                         <Card.Body className="p-0">
-                            <Table hover responsive className="align-middle text-center mb-0">
-                                <thead className="bg-light">
+                            <Table hover responsive className="kh-table kh-table-flat align-middle text-center">
+                                <thead>
                                     <tr>
                                         <th>상세 번호</th>
                                         <th>과정 번호 (내용)</th>
@@ -153,7 +153,7 @@ export default function PaymentDetail() {
                             <h6 className="fw-bold text-secondary mb-0">적용된 할인 내역</h6>
                         </Card.Header>
                         <Card.Body className="p-0">
-                            <Table responsive className="align-middle text-center mb-0 border-transparent">
+                            <Table responsive className="kh-table kh-table-flat align-middle text-center bg-transparent">
                                 <tbody>
                                     {discounts && discounts.length > 0 ? (
                                         discounts.map((discount, idx) => (
@@ -201,8 +201,8 @@ export default function PaymentDetail() {
                             )}
                         </Card.Header>
                         <Card.Body className="p-0">
-                            <Table responsive className="align-middle text-center mb-0">
-                                <thead className="bg-light">
+                            <Table responsive className="kh-table kh-table-flat align-middle text-center">
+                                <thead>
                                     <tr>
                                         <th>납부 번호</th>
                                         <th>납부 일시</th>

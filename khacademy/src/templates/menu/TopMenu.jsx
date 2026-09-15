@@ -115,6 +115,9 @@ export default function TopMenu() {
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <NavDropdown title="학습관리" id="student-nav-dropdown">
+                                <NavDropdown.Item as={Link} to="/student/attendance/list">
+                                    내 출결
+                                </NavDropdown.Item>
                                 <NavDropdown.Item as={Link} to="/student/assignment">
                                     내 과제
                                 </NavDropdown.Item>
@@ -149,7 +152,7 @@ export default function TopMenu() {
                             <Nav.Link as={Link} to={isParent ? "/Parent/myInfo" : "/student/myInfo"}>
                                 내정보
                             </Nav.Link>
-                            <Nav.Link onClick={logout}>
+                            <Nav.Link onClick={() => logout(`/academy/`)}>
                                 로그아웃
                             </Nav.Link>
                         </Nav>
