@@ -140,7 +140,7 @@ export default function TutorList() {
 
         <Row className="mt-2">
             <Col>
-                <Table responsive striped hover className="text-nowrap">
+                <Table responsive hover className="kh-table text-nowrap">
                     <thead>
                         <tr>
                             <th>강사번호</th>

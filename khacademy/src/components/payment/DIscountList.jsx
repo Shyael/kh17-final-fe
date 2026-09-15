@@ -128,8 +128,8 @@ export default function DiscountList() {
 
             <Card className="shadow-sm border-0">
                 <Card.Body className="p-0">
-                    <Table hover responsive className="align-middle text-center mb-0">
-                        <thead className="bg-light">
+                    <Table hover responsive className="kh-table align-middle text-center">
+                        <thead>
                             <tr>
                                 <th>할인번호</th>
                                 <th>할인명</th>

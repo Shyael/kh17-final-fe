@@ -128,8 +128,8 @@ export default function StudentList() {
                             </Row>
 
                             <div className="table-responsive flex-grow-1">
-                                <Table hover className="align-middle text-center border-top mb-0">
-                                    <thead className="table-light">
+                                <Table hover className="kh-table align-middle text-center">
+                                    <thead>
                                         <tr>
                                             <th>이름</th>
                                             <th>학교</th>

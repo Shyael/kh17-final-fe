@@ -7,6 +7,7 @@ import { FaPlay, FaArrowRotateRight, FaClipboardCheck, FaClock } from "react-ico
 import { toast } from "react-toastify";
 import { useAtomValue } from "jotai";
 import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
+import { formatDateTime as formatDate } from "@utils/format";
 
 export default function ExamStudentDetail() {
 
@@ -53,24 +54,6 @@ export default function ExamStudentDetail() {
     useEffect(() => {
         loadExam();
     }, [loadExam]);
-
-    // 날짜 출력
-    const formatDate = useCallback((date) => {
-        if (!date) {
-            return "-";
-        }
-
-        return new Date(date).toLocaleString(
-            "ko-KR",
-            {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-    }, []);
 
     // 현재 시험 단계 - 백엔드 examPhase(예정/응시가능/종료) 사용
     const phase = exam?.examPhase ?? null;
@@ -181,7 +164,7 @@ export default function ExamStudentDetail() {
             return <Badge bg="secondary">종료</Badge>;
         }
 
-        return <Badge bg="warning" text="dark">미응시</Badge>;
+        return <Badge bg="danger">미응시</Badge>;
 
     }, [exam, phase]);
 

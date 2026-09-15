@@ -6,6 +6,7 @@ import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row } from "r
 import { FaCheck, FaPen, FaPaperclip, FaDownload } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { isEmployeeState } from "@utils/storage";
+import { formatDateTime, formatShortDate } from "@utils/format";
 import { toast } from "react-toastify";
 
 export default function StudentAssignmentDetail() {
@@ -113,21 +114,12 @@ export default function StudentAssignmentDetail() {
         }
     };
 
-    // 마감일 표시 (예: 8/26 까지)
+    // 마감일 표시 (예: 08.26 까지)
     const formatDueDate = (value) => {
         if (!value) {
             return "-";
         }
-        const date = new Date(value);
-        return `${date.getMonth() + 1}/${date.getDate()} 까지`;
-    };
-
-    // 날짜 표시
-    const formatDateTime = (value) => {
-        if (!value) {
-            return "-";
-        }
-        return new Date(value).toLocaleString();
+        return `${formatShortDate(value)} 까지`;
     };
 
     // 첨부파일 목록 렌더링

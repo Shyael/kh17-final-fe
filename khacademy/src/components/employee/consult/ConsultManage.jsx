@@ -420,8 +420,8 @@ export default function ConsultManage() {
         <div>
             <h6 className="fw-bold mb-2">상담내역</h6>
             <div className="overflow-auto" style={{maxHeight:'400px'}}>
-                <Table bordered responsive className="text-center align-middle">
-                    <thead className="table-light">
+                <Table responsive className="kh-table text-center align-middle">
+                    <thead>
                         <tr>
                             <th style={{ minWidth: '50px', width: '10%' }}>No</th>
                             <th style={{ minWidth: '120px', width: '20%' }}>상담시각</th>
@@ -469,8 +469,8 @@ export default function ConsultManage() {
             </Modal.Header>
             <Modal.Body>
                 <div className="overflow-auto" style={{maxHeight:'600px'}}>
-                    <Table hover responsive className="text-center align-middle mb-0">
-                        <thead className="table-light">
+                    <Table hover responsive className="kh-table text-center align-middle">
+                        <thead>
                             <tr>
                                 <th>번호</th>
                                 <th>이름</th>

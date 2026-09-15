@@ -899,12 +899,11 @@ export default function ContractList() {
 
                         <Table
                             hover
-                            bordered
-                            className="align-middle text-center"
+                            className="kh-table align-middle text-center"
                         >
 
 
-                            <thead className="table-light">
+                            <thead>
 
 
                                 <tr>

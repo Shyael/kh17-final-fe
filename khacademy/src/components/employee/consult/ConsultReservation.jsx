@@ -187,7 +187,7 @@ export default function ConsultReservation() {
             </Row>
 
             {/* 2. 데이터 테이블 영역 */}
-            <Table bordered hover responsive>
+            <Table hover responsive className="kh-table">
                 <thead>
                 <tr>
                     <th className="py-3" style={{ minWidth: '50px', width: '10%' }}>No.</th>

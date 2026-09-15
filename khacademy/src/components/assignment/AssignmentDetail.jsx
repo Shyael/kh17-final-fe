@@ -5,6 +5,7 @@ import { FaPen, FaTrash, FaLock, FaPaperclip, FaDownload, FaListUl } from "react
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import Swal from "sweetalert2";
 
 export default function AssignmentDetail() {
@@ -130,7 +131,7 @@ export default function AssignmentDetail() {
                 return <Badge bg="warning" text="dark">미확인</Badge>;
 
             default:
-                return <Badge bg="secondary">미제출</Badge>;
+                return <Badge bg="danger">미제출</Badge>;
         }
     };
 
@@ -249,11 +250,6 @@ export default function AssignmentDetail() {
         navigate(
             `/employee/assignment/${assignmentNo}/submit/${student.submitNo}`
         );
-    };
-
-    // 날짜 포맷
-    const formatDateTime = (value) => {
-        return value ? new Date(value).toLocaleString() : "-";
     };
 
     // 마감일이 지났는데도 백엔드가 아직 assignmentPhase를 "마감"으로 안 바꿔주는 경우가 있어
@@ -442,10 +438,9 @@ export default function AssignmentDetail() {
                     </div>
 
                     <Table
-                        bordered
                         hover
                         responsive
-                        className="align-middle text-center">
+                        className="kh-table align-middle text-center">
                         <thead>
                             <tr>
                                 <th>이름</th>

@@ -283,7 +283,7 @@ export default function EmployeeAttendanceList() {
                             조회된 수강생 출결 내역이 없습니다.
                         </div>
                     ) : (
-                        <Table hover responsive className="text-center align-middle mb-0">
+                        <Table hover responsive className="kh-table text-center align-middle">
                             <thead>
                                 <tr className="table-light text-secondary small">
                                     <th style={{ width: "60px" }}>No</th>
