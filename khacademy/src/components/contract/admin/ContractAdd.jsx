@@ -13,7 +13,7 @@ import {
     Form,
     Row
 } from "react-bootstrap";
- 
+
 import {
     FaCheck,
     FaMagnifyingGlass,
@@ -351,6 +351,8 @@ export default function ContractAdd() {
                 if (
                     employee.employeeStatus
                     !== "대기"
+                    &&
+                    employee.employeeStatus !== "종료"
                 ) {
 
                     toast.warning(
@@ -659,7 +661,7 @@ export default function ContractAdd() {
 
                     contractEnd:
                         contract.contractEnd
-                        === ""
+                            === ""
                             ? null
                             : contract.contractEnd
 
@@ -952,8 +954,9 @@ export default function ContractAdd() {
 
 
                         {
-                            employee.employeeStatus
-                            !== "대기"
+                            employee.employeeStatus !== "대기"
+                            &&
+                            employee.employeeStatus !== "종료"
                             && (
 
                                 <Row className="mt-4">
@@ -962,7 +965,7 @@ export default function ContractAdd() {
 
                                         <Alert variant="warning">
 
-                                            대기 상태의 직원만 신규 근로계약을 작성할 수 있습니다.
+                                            대기 또는 퇴사 상태의 직원만 신규 근로계약을 작성할 수 있습니다.
                                             재직 중인 직원은 근로조건 변경 기능을 이용해주세요.
 
                                         </Alert>
@@ -974,7 +977,6 @@ export default function ContractAdd() {
                             )
                         }
 
-
                     </>
 
                 )
@@ -982,12 +984,15 @@ export default function ContractAdd() {
 
 
             {/* =====================================================
-                대기 직원만 계약 입력
+                대기 / 퇴사 직원 계약 입력
             ===================================================== */}
 
             {
-                employee?.employeeStatus
-                === "대기"
+                (
+                    employee?.employeeStatus === "대기"
+                    ||
+                    employee?.employeeStatus === "종료"
+                )
                 && (
 
                     <>
@@ -1479,7 +1484,7 @@ export default function ContractAdd() {
 
                                         {
                                             sending
-                                            === true
+                                                === true
                                                 ? "작성중..."
                                                 : "근로계약 작성"
                                         }

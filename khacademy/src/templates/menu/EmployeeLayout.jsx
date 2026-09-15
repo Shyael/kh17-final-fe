@@ -61,7 +61,7 @@ export default function EmployeeLayout({ children }) {
     const academyName = useAcademyName();
 
     const isAdmin =
-    loginUser?.roleNames?.includes("ADMIN") ?? false;
+        loginUser?.roleNames?.includes("ADMIN") ?? false;
 
     const userName = loginUser?.accountName ?? loginUser?.name ?? "직원";
     const userDept = loginUser?.department ?? loginUser?.deptName ?? "";
@@ -130,18 +130,38 @@ export default function EmployeeLayout({ children }) {
 
                             {open[m.label] && (
                                 <ul className="kh-gw-submenu">
-                                    {m.children.map(c => (
-                                        <li key={c.to}>
-                                            <NavLink
-                                                to={c.to}
-                                                className={({ isActive }) =>
-                                                    "item-link" + (isActive ? " active" : "")
-                                                }
-                                            >
-                                                {c.label}
-                                            </NavLink>
-                                        </li>
-                                    ))}
+                                    {m.children
+                                        
+                                        // 계약관리와 급여 관리는 원장 일때만 보이게
+                                        .filter(c => {
+
+                                            if (
+                                                c.label === "계약 관리"
+                                                ||
+                                                c.label === "급여 관리"
+                                                ||
+                                                c.label === "직원 등록"
+                                            ) {
+                                                return isAdmin;
+                                            }
+
+                                            return true;
+                                        })
+                                        //
+
+
+                                        .map(c => (
+                                            <li key={c.to}>
+                                                <NavLink
+                                                    to={c.to}
+                                                    className={({ isActive }) =>
+                                                        "item-link" + (isActive ? " active" : "")
+                                                    }
+                                                >
+                                                    {c.label}
+                                                </NavLink>
+                                            </li>
+                                        ))}
                                 </ul>
                             )}
                         </li>
@@ -164,8 +184,8 @@ export default function EmployeeLayout({ children }) {
 
                     <div className="kh-gw-topbar-right">
                         {!isAdmin && (
-                             <AttendanceButton />
-                            )}
+                            <AttendanceButton />
+                        )}
                         <div className="kh-gw-user">
                             {/* <div className="kh-gw-avatar">{avatarText}</div> */}
                             <div>

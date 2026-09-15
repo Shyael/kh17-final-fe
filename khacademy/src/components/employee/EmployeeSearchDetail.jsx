@@ -104,7 +104,7 @@ export default function EmployeeSearchDetail() {
 
                         const response =
                             await apiClient.get(
-                                `/admin/employee/${employeeNo}`
+                                `/employee/worker/detail/${employeeNo}`
                             );
 
 
@@ -827,7 +827,7 @@ export default function EmployeeSearchDetail() {
             {/* =====================================================
                 관련 업무
             ===================================================== */}
-
+        {isAdmin&&(<>
             <Card>
 
 
@@ -911,7 +911,7 @@ export default function EmployeeSearchDetail() {
 
             </Card>
 
-
+            
             {/* =====================================================
                 근무일정 Modal
             ===================================================== */}
@@ -957,7 +957,7 @@ export default function EmployeeSearchDetail() {
 
 
             </Modal>
-
+        </>)}
 
         </Container>
 
