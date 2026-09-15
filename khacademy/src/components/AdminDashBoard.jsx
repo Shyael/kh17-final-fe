@@ -67,29 +67,6 @@ export default function AdminDashBoard({ dashboard }) {
                             </div>
 
                             <Badge
-                                onClick={() => {
-                                    const date = new Date();
-                                    date.setDate(date.getDate() + 5);
-
-                                    const contractEnd = [
-                                        date.getFullYear(),
-                                        String(date.getMonth() + 1).padStart(2, "0"),
-                                        String(date.getDate()).padStart(2, "0")
-                                    ].join("-");
-
-                                    navigate("/admin/contract/list", {
-                                        state: {
-                                            initialCondition: {
-                                                contractEnd
-                                            }
-                                        }
-                                    })
-                                }
-                                }
-
-
-
-
                                 bg={
                                     dashboard.pendingContractList?.length > 0
                                         ? "warning"
@@ -160,19 +137,6 @@ export default function AdminDashBoard({ dashboard }) {
                             </div>
 
                             <Badge
-                                style={{ cursor: "pointer" }}
-                                onClick={() => {
-                                    const date = new Date();
-                                    date.setDate(date.getDate() + 5);
-
-                                    navigate("/admin/contract/list", {
-                                        state: {
-                                            initialCondition: {
-                                                contractEnd: formatDate(date).replaceAll(".", "-")
-                                            }
-                                        }
-                                    });
-                                }}
                                 bg={
                                     dashboard.contractExpiringList?.length > 0
                                         ? "danger"
