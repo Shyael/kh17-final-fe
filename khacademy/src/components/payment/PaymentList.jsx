@@ -137,8 +137,8 @@ export default function PaymentList() {
                     </Row>
 
                     {/* 데이터 테이블 영역 */}
-                    <Table hover responsive className="align-middle text-center border-top">
-                        <thead className="table-light">
+                    <Table hover responsive className="kh-table align-middle text-center">
+                        <thead>
                             <tr>
                                 <th>No</th>
                                 <th>학생명</th>

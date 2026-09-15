@@ -302,8 +302,8 @@ export default function StudentDetail() {
                             {payments.length === 0 ? (
                                 <div className="p-4 text-center text-muted small">수납 내역이 없습니다.</div>
                             ) : (
-                                <Table hover responsive className="align-middle text-center mb-0">
-                                    <thead className="bg-light">
+                                <Table hover responsive className="kh-table align-middle text-center">
+                                    <thead>
                                         <tr>
                                             <th>청구 월</th><th>청구 금액</th><th>납부 상태</th><th>미납액</th>
                                         </tr>
@@ -377,8 +377,8 @@ export default function StudentDetail() {
                             </Button>
                         </div>
                         
-                        <Table bordered hover responsive className="text-center align-middle bg-white">
-                            <thead className="table-light">
+                        <Table hover responsive className="kh-table text-center align-middle">
+                            <thead>
                                 <tr>
                                     <th>강의명</th>
                                     <th>과목</th>

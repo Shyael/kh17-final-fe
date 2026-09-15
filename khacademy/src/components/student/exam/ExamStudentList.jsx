@@ -8,6 +8,7 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { useAtomValue } from "jotai";
 import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
+import { formatDateTime } from "@utils/format";
 
 // 한 페이지에 보여줄 시험 수
 const PAGE_SIZE = 10;
@@ -156,31 +157,12 @@ export default function ExamStudentList() {
         setParams((prev) => ({ ...prev, page }));
     }, []);
 
-    // 날짜 출력
-    const formatDate = (date) => {
-
-        if (!date) {
-            return "-";
-        }
-
-        return new Date(date).toLocaleString(
-            "ko-KR",
-            {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
-    };
-
     // 응시기간(시작 ~ 종료) 출력
     const formatDateRange = (start, end) => (
         <>
-            {formatDate(start)}
+            {formatDateTime(start)}
             <span className="text-muted"> ~ </span>
-            {formatDate(end)}
+            {formatDateTime(end)}
         </>
     );
 

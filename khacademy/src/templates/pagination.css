@@ -1,0 +1,59 @@
+/* =========================================================
+   공용 페이지네이션 디자인 (kh-pagination)
+   - kh-table 과 같은 톤 : 테두리/배경 없이 숫자만, 호버 시 --kh-primary-light 원
+   - react-bootstrap 의 <Pagination> 마크업(li.page-item > button.page-link)을 그대로 쓰고
+     겉모습만 이 클래스로 덮어씀
+   ========================================================= */
+
+.kh-pagination {
+    gap: 4px;
+}
+
+.kh-pagination .page-item {
+    margin: 0;
+}
+
+.kh-pagination .page-link {
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--kh-text);
+    font-weight: 500;
+    font-size: 14px;
+    box-shadow: none;
+}
+
+.kh-pagination .page-link:hover {
+    background: var(--kh-primary-light);
+    color: var(--kh-primary-dark);
+}
+
+.kh-pagination .page-link:focus {
+    box-shadow: none;
+    background: var(--kh-primary-light);
+}
+
+/* 현재 페이지 */
+.kh-pagination .page-item.active .page-link {
+    background: var(--kh-primary);
+    color: #fff;
+    font-weight: 700;
+}
+
+/* 처음/이전/다음/끝/블록이동(...) 화살표 : 숫자보다 옅게, 위치 이동용이라는 느낌만
+   (PaginationBar.jsx 에서 해당 항목에 kh-page-arrow 클래스를 직접 붙여서 구분) */
+.kh-pagination .kh-page-arrow .page-link {
+    color: var(--kh-muted);
+    font-weight: 400;
+}
+
+.kh-pagination .page-item.disabled .page-link {
+    background: transparent;
+    color: var(--kh-border);
+}

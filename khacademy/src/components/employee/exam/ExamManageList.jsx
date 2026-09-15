@@ -5,6 +5,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Col, Form, InputGroup, Row, Table } from "react-bootstrap";
 import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
+import { formatDateTime } from "@utils/format";
 
 const PAGE_SIZE = 10;
 
@@ -182,26 +183,12 @@ export default function ExamManageList() {
         );
     };
 
-    // 날짜 출력
-    const formatDate = (date) => {
-
-        if (!date) return "-";
-
-        return new Date(date).toLocaleString("ko-KR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    };
-
     // 응시기간(시작~종료) 출력
     const formatDateRange = (start, end) => (
         <>
-            {formatDate(start)}
+            {formatDateTime(start)}
             <span className="text-muted"> ~ </span>
-            {formatDate(end)}
+            {formatDateTime(end)}
         </>
     );
 
@@ -296,7 +283,7 @@ export default function ExamManageList() {
 
         <Row>
             <Col>
-                <Table responsive striped hover className="text-nowrap">
+                <Table responsive hover className="kh-table text-nowrap">
                     <thead>
                         <tr>
                             <th className="d-none d-md-table-cell">번호</th>

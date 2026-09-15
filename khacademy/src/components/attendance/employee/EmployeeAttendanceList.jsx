@@ -10,6 +10,7 @@ import {
 import Swal from "sweetalert2";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import Jumbotron from "@templates/Jumbotron";
 
 export default function EmployeeAttendanceList() {
@@ -29,13 +30,6 @@ export default function EmployeeAttendanceList() {
     const [loading, setLoading] = useState(false);
     const [searchKeyword, setSearchKeyword] = useState("");
     const [filterState, setFilterState] = useState("ALL"); // ALL | 출석 | 지각 | 조퇴 | 결석 | 미출결
-
-    const formatDateTime = (timestamp) => {
-        if (!timestamp) return "-";
-        const d = new Date(timestamp);
-        const pad = (n) => String(n).padStart(2, "0");
-        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-    };
 
     // 1. 강좌 셀렉트 박스용 강좌 목록 로드
     useEffect(() => {
@@ -283,7 +277,7 @@ export default function EmployeeAttendanceList() {
                             조회된 수강생 출결 내역이 없습니다.
                         </div>
                     ) : (
-                        <Table hover responsive className="text-center align-middle mb-0">
+                        <Table hover responsive className="kh-table text-center align-middle">
                             <thead>
                                 <tr className="table-light text-secondary small">
                                     <th style={{ width: "60px" }}>No</th>

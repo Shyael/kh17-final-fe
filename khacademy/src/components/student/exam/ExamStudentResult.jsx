@@ -6,6 +6,7 @@ import { Badge, Button, Card } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { useAtomValue } from "jotai";
 import { selectedChildNoState } from "@utils/storage";
+import { formatDateTime as formatDate } from "@utils/format";
 
 // 응시 결과 화면 최대 폭 (가운데 정렬) - 응시 화면과 동일 규칙
 const PAGE_MAX_WIDTH = 1280;
@@ -83,24 +84,6 @@ export default function ExamStudentResult() {
             || value === "Y"
             || value === "y"
         );
-    }, []);
-
-    //날짜
-    const formatDate = useCallback((date) => {
-        if (!date) {
-            return "-";
-        }
-        return new Date(date)
-            .toLocaleString(
-                "ko-KR",
-                {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit"
-                }
-            );
     }, []);
 
     //문제 목록 (order 정렬)

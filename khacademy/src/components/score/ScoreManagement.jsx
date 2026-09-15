@@ -326,8 +326,8 @@ export default function ScoreManagement() {
                             <span className="small text-muted">총 {examList.length}건의 시험</span>
                         </Card.Header>
                         <Card.Body>
-                            <Table hover responsive className="align-middle text-center border-top">
-                                <thead className="bg-light">
+                            <Table hover responsive className="kh-table align-middle text-center">
+                                <thead>
                                     <tr>
                                         <th>시험일</th>
                                         <th>유형</th>
@@ -370,8 +370,8 @@ export default function ScoreManagement() {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-0">
-                    <Table hover responsive className="align-middle text-center mb-0">
-                        <thead className="bg-white border-bottom">
+                    <Table hover responsive className="kh-table kh-table-flat align-middle text-center">
+                        <thead>
                             <tr>
                                 <th>과목</th>
                                 <th>점수</th>
@@ -414,8 +414,8 @@ export default function ScoreManagement() {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                    <Table hover responsive className="align-middle text-center mb-0">
-                        <thead className="bg-white border-bottom sticky-top">
+                    <Table hover responsive className="kh-table kh-table-flat align-middle text-center">
+                        <thead className="sticky-top">
                             <tr>
                                 <th>번호</th>
                                 <th>이름</th>

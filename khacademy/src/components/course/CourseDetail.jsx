@@ -440,9 +440,9 @@ export default function CourseDetail() {
                                 <Col xs={4} md={2}><div className="p-3 bg-light rounded border"><div className="text-muted small">미출결</div><div className="fs-5 fw-bold text-muted">{attendanceDetail.uncheckedCount}명</div></div></Col>
                             </Row>
 
-                            <Table bordered hover responsive className="text-center align-middle mb-0">
+                            <Table hover responsive className="kh-table text-center align-middle">
                                 <thead>
-                                    <tr className="table-light">
+                                    <tr>
                                         <th>학생명 (학번)</th>
                                         <th>연락처</th>
                                         <th>태그 시각</th>
@@ -504,7 +504,7 @@ export default function CourseDetail() {
                             </div>
                         </div>
 
-                        <Table bordered hover responsive size="sm" className="text-center align-middle mb-0">
+                        <Table hover responsive size="sm" className="kh-table text-center align-middle">
                             <thead>
                                 <tr className="table-light text-secondary small">
                                     <th style={{ width: "70px" }}>회차</th>
@@ -577,9 +577,9 @@ export default function CourseDetail() {
                             강좌 등록 수강생 목록 ({studentList?.length || 0}명)
                         </h6>
                     </div>
-                    <Table bordered hover responsive className="text-center align-middle mb-0">
+                    <Table hover responsive className="kh-table text-center align-middle">
                         <thead>
-                            <tr className="table-light">
+                            <tr>
                                 <th style={{ width: "60px" }}>No</th>
                                 <th style={{ width: "90px" }}>학번</th>
                                 <th>이름</th>
@@ -631,9 +631,9 @@ export default function CourseDetail() {
                             과제 전체 목록 가기 &rarr;
                         </Button>
                     </div>
-                    <Table bordered hover responsive className="text-center align-middle mb-0">
+                    <Table hover responsive className="kh-table text-center align-middle">
                         <thead>
-                            <tr className="table-light">
+                            <tr>
                                 <th>번호</th>
                                 <th>과제 제목</th>
                                 <th>출제자</th>
@@ -675,9 +675,9 @@ export default function CourseDetail() {
             {activeTab === "exam" && (
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
                     <h6 className="fw-bold mb-3">등록된 시험 목록 ({examList?.length || 0}건)</h6>
-                    <Table bordered hover responsive className="text-center align-middle mb-0">
+                    <Table hover responsive className="kh-table text-center align-middle">
                         <thead>
-                            <tr className="table-light">
+                            <tr>
                                 <th>번호</th>
                                 <th>시험명</th>
                                 <th>출제자</th>
@@ -706,7 +706,7 @@ export default function CourseDetail() {
                                         <td className="text-muted small">{formatDateTime(item.examWtime)}</td>
                                         <td>
                                             <Badge bg={
-                                                item.examStatus === "공개" ? "danger" :
+                                                item.examStatus === "공개" ? "success" :
                                                     item.examStatus === "마감" ? "secondary" : "warning"
                                             }>
                                                 {item.examStatus}

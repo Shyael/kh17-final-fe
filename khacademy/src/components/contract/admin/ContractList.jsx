@@ -23,6 +23,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDate } from "@utils/format";
 
 import { toast } from "react-toastify";
 
@@ -38,7 +39,8 @@ const initialCondition = {
     accountName: "",
     contractStart: "",
     contractEnd: "",
-    employeeStatus: ""
+    employeeStatus: "",
+    contractStatus:""
 
 };
 
@@ -585,36 +587,6 @@ export default function ContractList() {
 
 
     // =========================
-    // 날짜 출력
-    // =========================
-
-    const toDate =
-            useCallback(value => {
-
-
-        if (
-            value === null
-            ||
-            value === undefined
-            ||
-            value === ""
-        ) {
-
-            return "-";
-
-        }
-
-
-        return value.substring(
-                0,
-                10
-        );
-
-
-    }, []);
-
-
-    // =========================
     // 계약 종료일 출력
     // =========================
 
@@ -635,10 +607,7 @@ export default function ContractList() {
         }
 
 
-        return value.substring(
-                0,
-                10
-        );
+        return formatDate(value);
 
 
     }, []);
@@ -899,12 +868,11 @@ export default function ContractList() {
 
                         <Table
                             hover
-                            bordered
-                            className="align-middle text-center"
+                            className="kh-table align-middle text-center"
                         >
 
 
-                            <thead className="table-light">
+                            <thead>
 
 
                                 <tr>
@@ -1100,7 +1068,7 @@ export default function ContractList() {
                                                 <td>
 
                                                     {
-                                                        toDate(
+                                                        formatDate(
                                                             contract.contractStart
                                                         )
                                                     }
@@ -1158,7 +1126,7 @@ export default function ContractList() {
                                                     {
                                                         contract.signedTime
                                                         ?
-                                                        toDate(
+                                                        formatDate(
                                                             contract.signedTime
                                                         )
                                                         :

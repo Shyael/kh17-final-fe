@@ -58,7 +58,7 @@ function App() {
         <Container fluid>
           {showAuthLogo && (
             <div className="kh-auth-bar">
-              <Link to="/" className="kh-auth-logo">{academyName}</Link>
+              <Link to="/academy" className="kh-auth-logo">{academyName}</Link>
             </div>
           )}
           <Body />

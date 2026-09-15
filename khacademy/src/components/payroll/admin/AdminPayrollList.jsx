@@ -109,12 +109,6 @@ const changePayrollYear = (e) => {
         );
     };
 
-    const formatDateTime = (value) => {
-        if (!value) return "-";
-
-        return new Date(value).toLocaleString("ko-KR");
-    };
-
     // =========================
     // 급여 상태 한글 표시
     // =========================

@@ -5,6 +5,7 @@ import { FaPen, FaTrash, FaLock, FaPaperclip, FaDownload, FaListUl } from "react
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import Swal from "sweetalert2";
 
 export default function AssignmentDetail() {
@@ -130,7 +131,7 @@ export default function AssignmentDetail() {
                 return <Badge bg="warning" text="dark">미확인</Badge>;
 
             default:
-                return <Badge bg="secondary">미제출</Badge>;
+                return <Badge bg="danger">미제출</Badge>;
         }
     };
 
@@ -251,12 +252,13 @@ export default function AssignmentDetail() {
         );
     };
 
-    // 날짜 포맷
-    const formatDateTime = (value) => {
-        return value ? new Date(value).toLocaleString() : "-";
-    };
+    // 마감일이 지났는데도 백엔드가 아직 assignmentPhase를 "마감"으로 안 바꿔주는 경우가 있어
+    // 프론트에서 마감일 경과 여부도 같이 확인 (백엔드 자동마감 처리되면 이 보강 로직은 제거 가능)
+    const isPastDue =
+        assignment.assignmentDueDate != null &&
+        new Date(assignment.assignmentDueDate) <= new Date();
 
-    const isClosed = assignment.assignmentPhase === "마감";
+    const isClosed = assignment.assignmentPhase === "마감" || isPastDue;
 
     return (
         <>
@@ -289,23 +291,26 @@ export default function AssignmentDetail() {
                                 </div>
 
                                 <div className="text-nowrap">
-                                    <Button
-                                        variant="outline-primary"
-                                        size="sm"
-                                        className="ms-2"
-                                        onClick={moveToEdit}>
-                                        <FaPen className="me-1" />
-                                        <span>수정</span>
-                                    </Button>
-                                    <Button
-                                        variant="outline-secondary"
-                                        size="sm"
-                                        className="ms-2"
-                                        disabled={isClosed}
-                                        onClick={closeAssignment}>
-                                        <FaLock className="me-1" />
-                                        <span>마감</span>
-                                    </Button>
+                                    {!isClosed && (
+                                        <>
+                                            <Button
+                                                variant="outline-primary"
+                                                size="sm"
+                                                className="ms-2"
+                                                onClick={moveToEdit}>
+                                                <FaPen className="me-1" />
+                                                <span>수정</span>
+                                            </Button>
+                                            <Button
+                                                variant="outline-secondary"
+                                                size="sm"
+                                                className="ms-2"
+                                                onClick={closeAssignment}>
+                                                <FaLock className="me-1" />
+                                                <span>마감</span>
+                                            </Button>
+                                        </>
+                                    )}
                                     <Button
                                         variant="outline-danger"
                                         size="sm"
@@ -433,10 +438,9 @@ export default function AssignmentDetail() {
                     </div>
 
                     <Table
-                        bordered
                         hover
                         responsive
-                        className="align-middle text-center">
+                        className="kh-table align-middle text-center">
                         <thead>
                             <tr>
                                 <th>이름</th>

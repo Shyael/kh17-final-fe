@@ -419,6 +419,23 @@
   height: 48px;
   font-weight: 700;
 }
+.kh-login-password-wrap {
+  position: relative;
+}
+.kh-login-password-wrap .form-control {
+  padding-right: 44px;
+}
+.kh-login-password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 14px;
+  transform: translateY(-50%);
+  color: var(--kh-muted);
+  cursor: pointer;
+}
+.kh-login-password-toggle:hover {
+  color: var(--kh-primary);
+}
 .kh-login-links {
   margin-top: 18px;
   text-align: center;

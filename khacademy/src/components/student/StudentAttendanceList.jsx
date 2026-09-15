@@ -273,7 +273,7 @@ export default function StudentAttendanceList() {
                                     해당 조건에 일치하는 출결 내역이 없습니다.
                                 </div>
                             ) : (
-                                <Table hover responsive className="text-center align-middle mb-0">
+                                <Table hover responsive className="kh-table text-center align-middle">
                                     <thead>
                                         <tr className="table-light text-secondary small">
                                             <th style={{ width: "80px" }}>회차</th>

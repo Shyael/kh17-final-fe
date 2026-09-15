@@ -8,6 +8,8 @@ import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
 import { loginUserState } from "@utils/storage";
 import { assignmentDdayLabel, examDdayLabel } from "@utils/dday";
+import { isAdminState } from "@utils/storage";
+import AdminDashBoard from "@components/AdminDashBoard";
 
 export default function EmployeeDashboard() {
 
@@ -18,11 +20,13 @@ export default function EmployeeDashboard() {
     // 대시보드 요약 정보 (과제 / 시험) - 원장·데스크는 전체, 강사는 본인 등록분만 서버가 내려줌
     const [dashboard, setDashboard] = useState(null);
 
+    const isAdmin = useAtomValue(isAdminState);
     // 대시보드 조회
     const loadDashboard = useCallback(async () => {
         try {
             const response = await apiClient.get("/employee/dashboard");
             setDashboard(response.data);
+            console.log(isAdmin);
         }
         catch (err) {
             console.error("대시보드 조회 실패", err);
@@ -35,16 +39,32 @@ export default function EmployeeDashboard() {
     }, [loadDashboard]);
 
     return (<>
+
+        
+        
+
         <Jumbotron
             title={`${loginUser?.accountName ?? "직원"}님, 안녕하세요`}
             content="진행중인 과제와 다가오는 시험을 확인해보세요."
         />
+        
 
         {!dashboard ? (
             <p className="text-center text-muted py-5">
                 대시보드 정보를 불러오는 중입니다...
             </p>
         ) : (
+            <>
+            {/* =========================
+                        원장 전용 대시보드
+                       ========================= */}
+                    {isAdmin && (
+                        
+                        <AdminDashBoard
+                        dashboard={dashboard}
+                        />
+                        
+                    )}
             <Row className="g-3 mt-1">
                 {/* 과제 요약 */}
                 <Col xs={12} md={6}>
@@ -164,7 +184,16 @@ export default function EmployeeDashboard() {
                         </Card.Body>
                     </Card>
                 </Col>
-            </Row>
+            </Row> 
+            </>
+            
         )}
+
+        
+
+
     </>);
+
+
+        
 }

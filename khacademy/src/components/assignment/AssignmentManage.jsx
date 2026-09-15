@@ -17,6 +17,9 @@ export default function AssignmentManage() {
     // 과제 번호가 있으면 수정, 없으면 등록
     const isEdit = assignmentNo !== undefined;
 
+    // 마감된 과제 → 상세로 돌려보내는 처리가 중복 실행(중복 토스트)되지 않도록 가드
+    const redirectedRef = useRef(false);
+
     // 과제 입력정보
     const [assignment, setAssignment] = useState({
         courseNo: "",
@@ -138,6 +141,21 @@ export default function AssignmentManage() {
 
             const data = response.data;
 
+            // 마감된 과제는 수정 화면에 못 들어오게 상세로 돌려보냄
+            // (스케줄러 반영 전 공백 구간까지 커버하기 위해 마감일도 같이 확인)
+            const isPastDue =
+                data.assignmentDueDate != null &&
+                new Date(data.assignmentDueDate) <= new Date();
+
+            if (data.assignmentPhase === "마감" || isPastDue) {
+                if (!redirectedRef.current) {
+                    redirectedRef.current = true;
+                    toast.error("마감된 과제는 수정할 수 없습니다.");
+                    navigate(`/employee/assignment/${assignmentNo}`);
+                }
+                return;
+            }
+
             setAssignment({
                 courseNo: data.courseNo,
                 courseTitle: data.courseTitle,
@@ -153,7 +171,7 @@ export default function AssignmentManage() {
         catch (err) {
             console.error("과제 상세 조회 실패", err);
         }
-    }, [assignmentNo]);
+    }, [assignmentNo, navigate]);
 
     // 화면 진입 시 조회
     useEffect(() => {
