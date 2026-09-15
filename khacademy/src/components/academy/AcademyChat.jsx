@@ -115,10 +115,10 @@ export default function AcademyChat() {
                         updateLastReadTime();
                     }
                 });
-                client.subscribe(`/public/${room.roomNo}/system`, (message)=>{
-                    const json = JSON.parse(message.body);
-                    setHistory(prev=>[...(prev || []), json]);
-                });
+                // client.subscribe(`/public/${room.roomNo}/system`, (message)=>{
+                //     const json = JSON.parse(message.body);
+                //     setHistory(prev=>[...(prev || []), json]);
+                // });
             },
             onDisconnect: () => {
                 console.log('연결 끊김');

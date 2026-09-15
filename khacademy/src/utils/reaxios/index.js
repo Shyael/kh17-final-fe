@@ -94,8 +94,16 @@ apiClient.interceptors.response.use(
 //- origin 제외하고 /부터 작성
 //- HashRouter는 처리가 안됨
 function moveToLoginPage() {
+    // 이미 로그인 페이지에 있다면 루프 방지를 위해 중단
+    if (window.location.pathname.includes("/login")) {
+        return;
+    }
     store.set(logoutAction);//jotai의 logoutActionState를 호출
 
-    const url = "/account/login";
-    window.location.replace(url);
+    // 현재 관리자/직원 상태인지 여부에 따라 경로 분기
+    // (jotai의 isEmployeeState 값을 읽어오거나 상황에 맞게 설정 가능합니다)
+    const storeState = store.get(isEmployeeState); // 필요 시 상태 참조
+    const loginUrl = storeState ? "/employee/login" : "/member/login";
+
+    window.location.replace(loginUrl);
 }

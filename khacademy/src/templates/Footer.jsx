@@ -5,11 +5,6 @@ import { isLoginState, isEmployeeState } from "@utils/storage";
 import { Link } from "react-router-dom";
 import { useAcademy } from "@templates/menu/useAcademyName";
 import "@templates/menu/menu.css";
-import { useAtomValue } from "jotai";
-import AcademyChat from "@components/academy/AcademyChat";
-import Student from "@guard/Student";
-import Alarm from "@components/employee/alarm/Alarm";
-import { isLoginState, isEmployeeState } from "@utils/storage";
 // API에 없는 항목은 하드코딩 폴백 유지
 const FALLBACK = {
     name: "KH정보교육원",

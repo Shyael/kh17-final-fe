@@ -9,6 +9,10 @@ import dayjs from 'dayjs';
 import ko from 'dayjs/locale/ko';
 dayjs.locale(ko);
 
+import PaginationBar from "@templates/PaginationBar";
+
+const PAGE_SIZE = 10;
+
 export default function ConsultReservation() {
 
     const [search, setSearch] = useState({
@@ -18,15 +22,51 @@ export default function ConsultReservation() {
         searchStatus : "",
     });
 
-    const [reservationList, setReservationList] = useState([]);
+    // 백엔드 PageResponseVO 응답
+    const [pageResponse, setPageResponse] = useState({
+        list: [],
+        totalCount: 0,
+        page: 1,
+        size: PAGE_SIZE,
+        totalPages: 0,
+        startBlock: 1,
+        endBlock: 0,
+        prev: false,
+        next: false,
+    });
+
+    const [params, setParams] = useState({
+        page: 1,
+        size: PAGE_SIZE,
+        searchName : "",
+        searchPhone : "",
+        searchType : "",
+        searchStatus : "",
+    });
 
     const loadList = useCallback(async ()=>{
-        const { data } = await apiClient.post("/employee/consult/reservation", search);
-        setReservationList(data.items);
+        const response = await apiClient.post("/employee/consult/reservation", params);
+        setPageResponse(response.data);
+    }, [search, params]);
+
+    const handleSearch = useCallback(() => {
+        setParams({
+            ...search,
+            page: 1,
+            size: PAGE_SIZE
+        });
     }, [search]);
+
     useEffect(()=>{
         loadList();
+    }, [params]);
+
+    // 페이지 이동
+    const handlePageChange = useCallback((page) => {
+        setParams((prev) => ({ ...prev, page }));
     }, []);
+
+    const reservationList = pageResponse.list ?? [];
 
     const changeStringValue = useCallback((e)=>{
         const { name, value } = e.target;
@@ -180,7 +220,7 @@ export default function ConsultReservation() {
                 </Col>
                 <Col xs="auto">
                 <Button variant="info"
-                    onClick={loadList}>
+                    onClick={handleSearch}>
                     조회
                 </Button>
                 </Col>
@@ -221,6 +261,16 @@ export default function ConsultReservation() {
                     )})}
                 </tbody>
             </Table>
+
+            <PaginationBar
+                page={pageResponse.page}
+                totalPages={pageResponse.totalPages}
+                startBlock={pageResponse.startBlock}
+                endBlock={pageResponse.endBlock}
+                prev={pageResponse.prev}
+                next={pageResponse.next}
+                onChange={handlePageChange}
+            />
         </Container>
     </>)
 }
