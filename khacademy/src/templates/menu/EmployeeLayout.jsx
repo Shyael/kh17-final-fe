@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAtomValue } from "jotai";
 
+import { FaUser, FaRightFromBracket } from "react-icons/fa6";
+
 import { loginUserState } from "@utils/storage";
 import AttendanceButton from "@templates/AttendanceButton";
 import useLogout from "@templates/menu/useLogout";
@@ -180,15 +182,22 @@ export default function EmployeeLayout({ children }) {
                             </div>
                         </div>
 
-                        <Link to="/employee/myInfo" className="btn btn-outline-secondary btn-sm">
-                            내정보
+                        <Link
+                            to="/employee/myInfo"
+                            className="btn btn-outline-secondary btn-sm"
+                            title="내정보"
+                        >
+                            <FaUser className="d-md-none" />
+                            <span className="d-none d-md-inline">내정보</span>
                         </Link>
                         <button
                             type="button"
                             className="btn btn-outline-secondary btn-sm"
                             onClick={() => logout(`/employee/login`)}
+                            title="로그아웃"
                         >
-                            로그아웃
+                            <FaRightFromBracket className="d-md-none" />
+                            <span className="d-none d-md-inline">로그아웃</span>
                         </button>
                     </div>
                 </header>

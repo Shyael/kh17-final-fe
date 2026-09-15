@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstrap";
-import { FaCheck, FaDownload, FaListUl, FaPaperclip, FaXmark } from "react-icons/fa6";
+import { FaCheck, FaDownload, FaListUl, FaPaperclip, FaTrash, FaXmark } from "react-icons/fa6";
 
 // 제출 내용 최대 글자 수
 const MAX_CONTENT_LENGTH = 1000;
@@ -450,7 +450,7 @@ export default function StudentAssignmentManage() {
                                         ref={filesRef}
                                         onInput={changeFiles}/>
                                     {files.length > 0 && (
-                                        <Button variant="danger" onClick={clearFiles} className="ms-2">
+                                        <Button variant="outline-secondary" onClick={clearFiles} className="ms-2">
                                             <FaXmark/>
                                         </Button>
                                     )}
@@ -479,8 +479,9 @@ export default function StudentAssignmentManage() {
                                         checked={isAllFilesChecked}
                                         onChange={checkAllFiles}/>
 
-                                    <Button variant="danger" disabled={isOverdue} onClick={deleteCheckedFiles}>
-                                        체크된 항목 삭제
+                                    <Button variant="outline-danger" disabled={isOverdue} onClick={deleteCheckedFiles}>
+                                        <FaTrash className="me-2" />
+                                        <span>체크된 항목 삭제</span>
                                     </Button>
 
                                     <ListGroup>

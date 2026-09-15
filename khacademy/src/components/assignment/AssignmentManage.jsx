@@ -4,7 +4,7 @@ import { Button, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstra
 import { Link, useNavigate, useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FaCheck, FaXmark } from "react-icons/fa6";
+import { FaCheck, FaTrash, FaXmark } from "react-icons/fa6";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 
@@ -402,7 +402,7 @@ export default function AssignmentManage() {
                         ref={filesRef}
                         onInput={changeFiles} />
                     {files.length > 0 && (
-                        <Button variant="danger" onClick={clearFiles} className="ms-2">
+                        <Button variant="outline-secondary" onClick={clearFiles} className="ms-2">
                             <FaXmark />
                         </Button>
                     )}
@@ -431,8 +431,9 @@ export default function AssignmentManage() {
                         checked={isAllFilesChecked}
                         onChange={checkAllFiles} />
 
-                    <Button variant="danger" onClick={deleteCheckedFiles}>
-                        체크된 항목 삭제
+                    <Button variant="outline-danger" onClick={deleteCheckedFiles}>
+                        <FaTrash className="me-2" />
+                        <span>체크된 항목 삭제</span>
                     </Button>
 
                     <ListGroup>
@@ -466,14 +467,14 @@ export default function AssignmentManage() {
                             ? `/employee/assignment/${assignmentNo}`
                             : `/employee/assignment`
                     }
-                    variant="danger"
+                    variant="outline-secondary"
                     className="ms-2">
                     <FaXmark className="me-2" />
                     <span>취소하기</span>
                 </Button>
                 <Button
                     type="button"
-                    variant="success"
+                    variant="primary"
                     className="ms-2"
                     onClick={
                         isEdit

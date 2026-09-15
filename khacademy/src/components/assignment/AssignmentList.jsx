@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Col, Form, InputGroup, Row, Table } from "react-bootstrap";
 import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
@@ -12,13 +12,18 @@ const PHASE_FILTERS = ["제출가능", "마감"];
 export default function AssignmentList() {
     const navigate = useNavigate();
 
+    // 대시보드 등에서 넘어올 때 필터를 미리 선택해서 진입할 수 있도록
+    // (예: /employee/assignment?assignmentPhase=제출가능)
+    const [searchParams] = useSearchParams();
+    const initialPhase = searchParams.get("assignmentPhase") ?? "";
+
     // 과제 제목 입력값(draft)
     const [assignmentTitle, setAssignmentTitle] = useState("");
     // 실제 조회에 사용하는 파라미터 (검색/필터/페이지 이동 시에만 변경)
     const [params, setParams] = useState({
         page: 1,
         assignmentTitle: "",
-        assignmentPhase: "",
+        assignmentPhase: initialPhase,
         courseNo: null,
     });
     // 강의 필터 목록

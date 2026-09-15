@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import { Button, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
-import { FaCheck, FaPlus, FaRegImage, FaXmark } from "react-icons/fa6";
+import { FaCheck, FaListUl, FaPlus, FaRegImage, FaTrash } from "react-icons/fa6";
 import { Link, useParams } from "react-router-dom";
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -971,7 +971,7 @@ export default function ExamManage() {
                                         variant="outline-danger"
                                         size="sm"
                                         onClick={() => removeQuestion(question.tempId)}>
-                                        <FaXmark className="me-1" />
+                                        <FaTrash className="me-1" />
                                         <span>문항 삭제</span>
                                     </Button>
                                 </div>
@@ -1020,12 +1020,12 @@ export default function ExamManage() {
                                                         objectFit: "cover"
                                                     }} />
                                                 <Button
-                                                    variant="danger"
+                                                    variant="outline-danger"
                                                     size="sm"
                                                     className="position-absolute top-0 end-0 py-0 px-1"
                                                     onClick={() =>
                                                         removeBeforeFile(question.tempId, question.questionNo, attach.attachNo)}>
-                                                    <FaXmark />
+                                                    <FaTrash />
                                                 </Button>
                                             </div>
                                         ))}
@@ -1053,7 +1053,7 @@ export default function ExamManage() {
                                             variant="outline-danger"
                                             onClick={() =>
                                                 removeOption(question.tempId, option.tempId)}>
-                                            <FaXmark />
+                                            <FaTrash />
                                         </Button>
                                     </InputGroup>
                                 ))}
@@ -1090,13 +1090,15 @@ export default function ExamManage() {
 
             <Row className="mt-4 mb-4">
                 <Col className="text-end">
-                    <Button variant="primary" as={Link} to={`/employee/exam`} className="ms-2">
+                    <Button variant="outline-secondary" as={Link} to={`/employee/exam`} className="ms-2">
+                        <FaListUl className="me-2" />
                         <span>목록으로</span>
                     </Button>
                     <Button variant="secondary" onClick={saveQuestions} className="ms-2">
                         <span>임시저장</span>
                     </Button>
-                    <Button variant="success" className="ms-2" onClick={completeExam}>
+                    <Button variant="primary" className="ms-2" onClick={completeExam}>
+                        <FaCheck className="me-2" />
                         <span>출제완료</span>
                     </Button>
                 </Col>

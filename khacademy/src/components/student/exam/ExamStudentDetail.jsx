@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Card, Col, Row } from "react-bootstrap";
-import { FaPlay, FaArrowRotateRight, FaClipboardCheck, FaClock } from "react-icons/fa6";
+import { FaPlay, FaArrowRotateRight, FaClipboardCheck, FaClock, FaListUl } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { useAtomValue } from "jotai";
 import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
@@ -400,7 +400,8 @@ export default function ExamStudentDetail() {
                 <Button
                     variant="outline-secondary"
                     onClick={() => navigate("/student/exam")}>
-                    목록으로
+                    <FaListUl className="me-2" />
+                    <span>목록으로</span>
                 </Button>
             </Col>
         </Row>

@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { Container, Card, Form, Button, CloseButton, Modal } from 'react-bootstrap';
+import { FaCheck } from "react-icons/fa6";
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -169,13 +170,14 @@ export default function AcademyConsultReservation({ show, handleClose }) {
                 </Form.Group>
 
                 {/* 신청하기 버튼 */}
-                <Button 
+                <Button
                     type="button"
-                    variant="success"
-                    className="w-100 py-2 fw-bold border-0 rounded-2" 
+                    variant="primary"
+                    className="btn-kh-accent w-100 py-2 fw-bold border-0 rounded-2"
                     onClick={() => saveReservation()}
                 >
-                    신청하기
+                    <FaCheck className="me-2" />
+                    <span>신청하기</span>
                 </Button>
                 </Form>
             </Modal.Body>

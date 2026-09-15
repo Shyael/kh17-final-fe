@@ -722,7 +722,7 @@ export default function ExamStudentAttempt() {
                         {/* 6. 답안 제출 */}
                         <Card.Footer className="bg-white">
                             <Button
-                                variant="success"
+                                variant="primary"
                                 className="w-100"
                                 onClick={() => submitExam(false)}
                                 disabled={submitting}>

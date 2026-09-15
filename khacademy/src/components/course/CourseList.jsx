@@ -6,6 +6,7 @@ import Swal from "sweetalert2";
 
 import { apiClient } from "@utils/reaxios";
 import Jumbotron from "@templates/Jumbotron";
+import PaginationBar from "@templates/PaginationBar";
 
 const initialSearchState = {
     courseTitle: "",
@@ -385,51 +386,16 @@ export default function CourseList() {
                 </tbody>
             </Table>
 
-            {/* 페이지네이션 버튼 */}
-            {pageData.totalPages > 0 && (
-                <div className="d-flex justify-content-center mt-4">
-                    {/* 이전 버튼 */}
-                    {pageData.prev && (
-                        <Button
-                            variant="outline-secondary"
-                            className="me-1"
-                            disabled={!pageData.prev}
-                            onClick={() => changePage(pageData.startBlock - 1)}
-                        >
-                            이전
-                        </Button>
-                    )}
-
-                    {/* 페이지 번호 */}
-                    {Array.from(
-                        { length: pageData.endBlock - pageData.startBlock + 1 },
-                        (_, index) => {
-                            const pageNum = pageData.startBlock + index;
-                            return (
-                                <Button
-                                    key={pageNum}
-                                    variant={pageNum === pageData.page ? "primary" : "outline-primary"}
-                                    className="me-1"
-                                    onClick={() => changePage(pageNum)}
-                                >
-                                    {pageNum}
-                                </Button>
-                            );
-                        }
-                    )}
-
-                    {/* 다음 버튼 */}
-                    {pageData.next && (
-                        <Button
-                            variant="outline-secondary"
-                            disabled={!pageData.next}
-                            onClick={() => changePage(pageData.endBlock + 1)}
-                        >
-                            다음
-                        </Button>
-                    )}
-                </div>
-            )}
+            {/* 페이지네이션 */}
+            <PaginationBar
+                page={pageData.page}
+                totalPages={pageData.totalPages}
+                startBlock={pageData.startBlock}
+                endBlock={pageData.endBlock}
+                prev={pageData.prev}
+                next={pageData.next}
+                onChange={changePage}
+            />
         </>
     );
 }

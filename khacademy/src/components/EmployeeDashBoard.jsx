@@ -55,7 +55,10 @@ export default function EmployeeDashboard() {
                                     <FaPen className="text-primary" />
                                     <span className="fw-bold">진행중인 과제</span>
                                 </div>
-                                <Badge bg={dashboard.activeAssignmentCount > 0 ? "primary" : "secondary"}>
+                                <Badge
+                                    bg={dashboard.activeAssignmentCount > 0 ? "primary" : "secondary"}
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => navigate("/employee/assignment?assignmentPhase=제출가능")}>
                                     {dashboard.activeAssignmentCount}건
                                 </Badge>
                             </div>
@@ -113,10 +116,16 @@ export default function EmployeeDashboard() {
                                     <span className="fw-bold">응시중 · 예정 시험</span>
                                 </div>
                                 <div className="d-flex gap-1">
-                                    <Badge bg={dashboard.availableExamCount > 0 ? "success" : "secondary"}>
+                                    <Badge
+                                        bg={dashboard.availableExamCount > 0 ? "success" : "secondary"}
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => navigate("/employee/exam?examPhase=응시가능")}>
                                         응시가능 {dashboard.availableExamCount}
                                     </Badge>
-                                    <Badge bg="info">
+                                    <Badge
+                                        bg="info"
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => navigate("/employee/exam?examPhase=예정")}>
                                         예정 {dashboard.upcomingExamCount}
                                     </Badge>
                                 </div>
