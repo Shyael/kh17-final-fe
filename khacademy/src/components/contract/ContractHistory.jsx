@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
+import { formatDate, formatDateTime } from "@utils/format";
 import { toast } from "react-toastify";
 
 
@@ -102,7 +103,7 @@ export default function ContractHistory() {
             return "기간의 정함 없음";
         }
 
-        return value.substring(0, 10);
+        return formatDate(value);
 
     }, []);
 
@@ -322,7 +323,8 @@ export default function ContractHistory() {
 
                         {
                             contract.signedTime
-                            ?? "미체결"
+                            ? formatDateTime(contract.signedTime)
+                            : "미체결"
                         }
 
                     </Col>

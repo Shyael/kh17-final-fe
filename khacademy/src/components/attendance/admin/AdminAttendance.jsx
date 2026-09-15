@@ -13,6 +13,7 @@ import {
 import { toast } from "react-toastify";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDate, formatTime } from "@utils/format";
 
 
 const AdminWorkScheduleCalendar = ({ employeeNo }) => {
@@ -110,19 +111,6 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
         return value.substring(
             0,
-            16
-        );
-    };
-
-
-    const timeText = (value) => {
-
-        if (!value) {
-            return null;
-        }
-
-        return value.substring(
-            11,
             16
         );
     };
@@ -1887,7 +1875,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                     예정{" "}
 
                                                                     {
-                                                                        timeText(
+                                                                        formatTime(
                                                                             schedule
                                                                                 .scheduledClockIn
                                                                         )
@@ -1896,7 +1884,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                     {" ~ "}
 
                                                                     {
-                                                                        timeText(
+                                                                        formatTime(
                                                                             schedule
                                                                                 .scheduledClockOut
                                                                         )
@@ -1930,7 +1918,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                 >
 
                                                                     {
-                                                                        timeText(
+                                                                        formatTime(
                                                                             schedule
                                                                                 .clockIn
                                                                         )
@@ -1939,12 +1927,11 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                     {" ~ "}
 
                                                                     {
-                                                                        timeText(
-                                                                            schedule
-                                                                                .clockOut
+                                                                        schedule.clockOut
+                                                                        ? formatTime(
+                                                                            schedule.clockOut
                                                                         )
-                                                                        ??
-                                                                        "미퇴근"
+                                                                        : "미퇴근"
                                                                     }
 
                                                                 </div>
@@ -2076,7 +2063,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                     <Modal.Title>
 
-                        {selectedDate}{" "}
+                        {formatDate(selectedDate)}{" "}
                         근태 관리
 
                     </Modal.Title>
@@ -2110,7 +2097,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                     "
                                 >
 
-                                    {selectedDate}의{" "}
+                                    {formatDate(selectedDate)}의{" "}
                                     근무 일정을 등록합니다.
 
                                 </div>

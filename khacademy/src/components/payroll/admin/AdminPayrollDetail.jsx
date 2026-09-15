@@ -15,6 +15,7 @@ import {
 import { toast } from "react-toastify";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import Jumbotron from "@templates/Jumbotron";
 
 
@@ -119,12 +120,6 @@ const AdminPayrollDetail = () => {
         }
 
         return Math.round(Number(value) * 100) / 100;
-    };
-
-    const formatDateTime = (value) => {
-        if (!value) return "-";
-
-        return new Date(value).toLocaleString("ko-KR");
     };
 
     // =========================
@@ -644,8 +639,7 @@ const AdminPayrollDetail = () => {
 
                                     {
                                         formatDateTime(
-                                        payroll.calculatedAt
-                                        ?? "-")
+                                        payroll.calculatedAt)
                                     }
 
                                 </Col>
@@ -662,8 +656,7 @@ const AdminPayrollDetail = () => {
                                 <Col>
 
                                     {   formatDateTime(
-                                        payroll.confirmedAt
-                                        ?? "-")
+                                        payroll.confirmedAt)
                                     }
 
                                 </Col>
@@ -1298,8 +1291,7 @@ const AdminPayrollDetail = () => {
                                                 <Col md={3}>
 
                                                     {formatDateTime(
-                                                        payment.paymentAt
-                                                        ?? "-")
+                                                        payment.paymentAt)
                                                     }
 
                                                 </Col>

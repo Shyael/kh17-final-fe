@@ -5,6 +5,7 @@ import { Badge, Button, Col, Row } from "react-bootstrap";
 import { FaLock, FaSquarePen, FaXmark } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -144,7 +145,9 @@ export default function ContractDetail() {
         <Row className="mt-4">
             <Col sm={3} className="fw-bold text-info">체결일시</Col>
             <Col sm={9} className="text-secondary">
-                {contract.signedTime ?? "양측 서명 전"}
+                {contract.signedTime
+                    ? formatDateTime(contract.signedTime)
+                    : "양측 서명 전"}
             </Col>
         </Row>
 

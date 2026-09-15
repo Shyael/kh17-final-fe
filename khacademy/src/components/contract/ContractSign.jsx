@@ -4,6 +4,7 @@ import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 import { FaCheck, FaLock } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -520,8 +521,9 @@ export default function ContractSign() {
 
                                 체결일시 :{" "}
                                 {
-                                    contract
-                                        .signedTime
+                                    formatDateTime(
+                                        contract.signedTime
+                                    )
                                 }
 
                             </Alert>

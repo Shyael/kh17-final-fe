@@ -4,6 +4,7 @@ import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 import { FaCheck, FaXmark } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
+import { formatDate } from "@utils/format";
 import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
@@ -89,7 +90,7 @@ export default function ContractExtend() {
 
         const result = await Swal.fire({
             title: "계약기간을 연장하시겠습니까?",
-            text: `${toDateInput(contract.contractEnd)} → ${contractEnd}`,
+            text: `${formatDate(contract.contractEnd)} → ${formatDate(contractEnd)}`,
             icon: "question",
             showCancelButton: true,
             confirmButtonText: "연장",

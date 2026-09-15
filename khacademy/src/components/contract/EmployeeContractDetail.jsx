@@ -18,6 +18,7 @@ import {
 } from "react-router-dom";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import { toast } from "react-toastify";
 
 import ContractDocument from "@components/contract/admin/ContractDocument.jsx";
@@ -328,7 +329,8 @@ export default function EmployeeContractDetail() {
 
                 {
                     contract.signedTime
-                    ?? "양측 서명 전"
+                    ? formatDateTime(contract.signedTime)
+                    : "양측 서명 전"
                 }
 
             </Col>

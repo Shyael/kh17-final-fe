@@ -10,6 +10,7 @@ import {
 import { toast } from "react-toastify";
 
 import { apiClient } from "@utils/reaxios";
+import { formatTime } from "@utils/format";
 
 const WorkScheduleCalendar = ({ employeeNo }) => {
 
@@ -271,16 +272,6 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
     };
 
 
-    // 시간 표시
-    const timeText = (value) => {
-
-        if (!value) return null;
-
-        // 2026-09-02T09:00:00...
-        return value.substring(11, 16);
-    };
-
-
     return (
         <Card>
             <Card.Body>
@@ -525,13 +516,13 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                                                             <div className="small mt-2">
                                                                 예정{" "}
                                                                 {
-                                                                    timeText(
+                                                                    formatTime(
                                                                         schedule.scheduledClockIn
                                                                     )
                                                                 }
                                                                 {" ~ "}
                                                                 {
-                                                                    timeText(
+                                                                    formatTime(
                                                                         schedule.scheduledClockOut
                                                                     )
                                                                 }
@@ -547,16 +538,17 @@ const WorkScheduleCalendar = ({ employeeNo }) => {
                                                             <div className="small mt-1">
                                                                 실제{" "}
                                                                 {
-                                                                    timeText(
+                                                                    formatTime(
                                                                         schedule.clockIn
                                                                     )
                                                                 }
                                                                 {" ~ "}
                                                                 {
-                                                                    timeText(
+                                                                    schedule.clockOut
+                                                                    ? formatTime(
                                                                         schedule.clockOut
                                                                     )
-                                                                    ?? "미퇴근"
+                                                                    : "미퇴근"
                                                                 }
                                                             </div>
                                                         )

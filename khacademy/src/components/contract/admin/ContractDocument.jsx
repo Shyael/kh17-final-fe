@@ -1,6 +1,7 @@
 
 import { Col, Row } from "react-bootstrap";
 import { useMemo } from "react";
+import { formatDate } from "@utils/format";
 
 export default function ContractDocument({ contract }) {
 
@@ -31,7 +32,7 @@ export default function ContractDocument({ contract }) {
         if(contract?.contractStart === null || contract?.contractStart === undefined || contract?.contractStart === "") {
             return "________________";
         }
-        return contract.contractStart.substring(0, 10);
+        return formatDate(contract.contractStart);
     }, [contract]);
 
     const endDate = useMemo(()=>{
@@ -41,7 +42,7 @@ export default function ContractDocument({ contract }) {
         if(contract.contractEnd === "") {
             return "기간의 정함 없음";
         }
-        return contract.contractEnd.substring(0, 10);
+        return formatDate(contract.contractEnd);
     }, [contract]);
 
     //금액 출력용
