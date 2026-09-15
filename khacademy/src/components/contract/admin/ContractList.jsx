@@ -140,6 +140,7 @@ export default function ContractList() {
 
         }));
 
+        
 
     }, []);
 
@@ -200,6 +201,10 @@ export default function ContractList() {
                 params.employeeStatus =
                         searchCondition.employeeStatus;
 
+            }
+
+            if(searchCondition.contractStatus!==""){
+                params.contractStatus = searchCondition.contractStatus;
             }
 
 
@@ -673,7 +678,7 @@ export default function ContractList() {
 
                     {/* 이름 */}
 
-                    <Col md={3}>
+                    <Col md={2}>
 
                         <Form.Label>
                             직원 이름
@@ -692,7 +697,7 @@ export default function ContractList() {
 
                     {/* 계약 시작일 */}
 
-                    <Col md={3}>
+                    <Col md={2}>
 
                         <Form.Label>
                             계약 시작일
@@ -710,7 +715,7 @@ export default function ContractList() {
 
                     {/* 계약 종료일 */}
 
-                    <Col md={3}>
+                    <Col md={2}>
 
                         <Form.Label>
                             계약 종료일
@@ -758,6 +763,37 @@ export default function ContractList() {
 
                         </Form.Select>
 
+                    </Col>
+
+                    <Col md={3}>
+                        <Form.Label>
+                            계약 상태
+                        </Form.Label>
+
+                        <Form.Select
+                            name="contractStatus"
+                            value={condition.contractStatus}
+                            onChange={changeCondition}>
+
+                            <option value="pending">
+                                서명 대기
+                            </option>
+
+                            <option value="active">
+                                계약 이행중
+                            </option>
+
+                            <option value="scheduled">
+                                근무 예정
+                            </option>
+
+                            <option value="ended">
+                                계약 종료
+                            </option>
+
+                            </Form.Select>
+
+                    
                     </Col>
 
 

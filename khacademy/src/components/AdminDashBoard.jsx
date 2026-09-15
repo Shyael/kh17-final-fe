@@ -1,4 +1,4 @@
-import { Badge, Card, Col, Row } from "react-bootstrap";
+import { Badge, Button, Card, Col, Row } from "react-bootstrap";
 import {
     FaFileSignature,
     FaCalendarXmark,
@@ -14,6 +14,44 @@ export default function AdminDashBoard({ dashboard }) {
     const navigate = useNavigate();
     return (
         <Row className="g-3 mt-3">
+            <div className="d-flex align-items-center gap-2 ms-auto">
+            <Button 
+
+                onClick={() => {
+
+                    navigate("/admin/contract/list")
+
+                }}
+
+                variant="info"
+            >
+
+                계약 관리
+
+
+
+            </Button>
+
+
+
+            <Button 
+                
+                onClick={() => {
+
+                    navigate("/admin/payroll")
+
+                }}
+
+                variant="info"
+            >
+
+                급여 관리
+
+
+
+            </Button>
+
+                </div>
 
             {/* 서명 대기 계약 */}
             <Col xs={12} lg={4}>
@@ -29,14 +67,24 @@ export default function AdminDashBoard({ dashboard }) {
                             </div>
 
                             <Badge
-                                onClick={() =>
+                                onClick={() => {
+                                    const date = new Date();
+                                    date.setDate(date.getDate() + 5);
+
+                                    const contractEnd = [
+                                        date.getFullYear(),
+                                        String(date.getMonth() + 1).padStart(2, "0"),
+                                        String(date.getDate()).padStart(2, "0")
+                                    ].join("-");
+
                                     navigate("/admin/contract/list", {
                                         state: {
                                             initialCondition: {
-                                                employeeStatus: "대기"
+                                                contractEnd
                                             }
                                         }
                                     })
+                                }
                                 }
 
 
@@ -72,12 +120,7 @@ export default function AdminDashBoard({ dashboard }) {
 
                                         <div>
                                             <div className="fw-semibold"
-                                                style={{ cursor: "pointer" }}
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/admin/contract/detail/${contract.contractNo}`
-                                                    )
-                                                }>
+                                            >
 
                                                 {contract.employeeName}
                                             </div>
@@ -117,6 +160,19 @@ export default function AdminDashBoard({ dashboard }) {
                             </div>
 
                             <Badge
+                                style={{ cursor: "pointer" }}
+                                onClick={() => {
+                                    const date = new Date();
+                                    date.setDate(date.getDate() + 5);
+
+                                    navigate("/admin/contract/list", {
+                                        state: {
+                                            initialCondition: {
+                                                contractEnd: formatDate(date).replaceAll(".", "-")
+                                            }
+                                        }
+                                    });
+                                }}
                                 bg={
                                     dashboard.contractExpiringList?.length > 0
                                         ? "danger"
