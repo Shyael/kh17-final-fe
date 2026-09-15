@@ -1600,7 +1600,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                                 bg="secondary"
                                                                                 className="me-1"
                                                                             >
-                                                                                휴일
+                                                                                주휴일
                                                                             </Badge>
 
                                                                         )
@@ -1618,7 +1618,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                                                         && (
 
                                                                             <Badge bg="secondary">
-                                                                                휴무일
+                                                                                
                                                                             </Badge>
 
                                                                         )
@@ -1997,7 +1997,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                     {
                                         scheduledDayType
-                                        !== "dayOff"
+                                        === "workday"
                                         && (
 
                                             <>
@@ -2201,9 +2201,8 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
 
                                     {
-                                        scheduledDayType
-                                        !== "dayOff"
-                                        && (
+                                       scheduledDayType!=="dayOff"&&
+                                        (
 
                                             <>
 
@@ -2301,7 +2300,7 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
 
                                 {
                                     scheduledDayType
-                                    === "dayOff"
+                                    !== "workday"
                                     && (
 
                                         <div
@@ -2311,13 +2310,15 @@ const AdminWorkScheduleCalendar = ({ employeeNo }) => {
                                             "
                                         >
 
-                                            휴무일은 근태 관리 대상이 아닙니다.
+                                            휴일, 휴무일은 기본적으로 출퇴근을 적지 않습니다.
 
                                         </div>
 
                                     )
                                 }
 
+
+                               
 
                                 {/* =================================================
                                     근태 미등록
