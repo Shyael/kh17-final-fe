@@ -39,7 +39,8 @@ const initialCondition = {
     accountName: "",
     contractStart: "",
     contractEnd: "",
-    employeeStatus: ""
+    employeeStatus: "",
+    contractStatus:""
 
 };
 

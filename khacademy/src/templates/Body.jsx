@@ -5,6 +5,7 @@ import { isLoginState } from "@utils/storage";
 import EmployeeDashboard from "@components/EmployeeDashBoard";
 import MemberDashboard from "@components/MemberDashboard";
 
+
 import AccountFind from "@components/account/AccountFind";
 import EmployeeLogin from "@components/employee/EmployeeLogin";
 import EmployeeRegister from "@components/employee/EmployeeRegister";
@@ -32,6 +33,8 @@ import NotFound from "@error/NotFound";
 import Employee from "@guard/Employee";
 
 import Member from "@guard/Member";
+
+import Admin from "@guard/Admin";
 
 import AcademyManage from "@components/employee/academy/AcademyManage";
 import TutorManage from "@components/employee/tutor/TutorManage";
@@ -104,9 +107,15 @@ import CourseList from "@components/course/CourseList";
 import CourseDetail from "@components/course/CourseDetail";
 
 
+
+
+
 export default function Body() {
 
     const isLogin = useAtomValue(isLoginState);
+
+    
+    
 
     return (
         <Routes>
@@ -133,6 +142,7 @@ export default function Body() {
             />
             {/* 직원 대시보드 */}
             <Route path="/employeeDashboard" element={<Employee><EmployeeDashboard /></Employee>} />
+            
 
             {/* 직원 - 성적 */}
             <Route path="/score" element={<Employee><ScoreManagement /></Employee>} />
@@ -208,6 +218,7 @@ export default function Body() {
             <Route path="/admin/attendance/" element={<AdminAttendance />} />
 
             {/* 관리자 - 급여 */}
+            
             <Route path="/admin/payroll" element={<AdminPayrollMain />} />
             <Route path="/admin/payroll/:employeeNo" element={<AdminPayrollList />} />
             <Route path="/admin/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<AdminPayrollDetail />} />

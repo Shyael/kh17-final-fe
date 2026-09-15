@@ -77,6 +77,13 @@ export const isParentState = atom(get=>{
     return loginUser?.accountType === "학부모";
 });
 
+//[4] 원장인지 판정하여 반환하는 파생 atom
+export const isAdminState = atom(get=>{
+    const loginUser =get(loginUserState);
+
+    return loginUser?.roleNames.includes("ADMIN");
+})
+
 //atom을 변경하기 위한 파생 atom - atom(null, (get,set,파라미터...)=>{});
 // [1] 로그인 처리를 수행하는 atom
 export const loginActionState = atom(null, (get,set,data)=>{
