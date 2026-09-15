@@ -279,6 +279,10 @@ export default function Body() {
             <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />} />
             {/* 학부모 - 자녀 시험 결과 */}
             <Route path="/parent/exam/result/:attemptNo" element={<ExamStudentResult />} />
+             {/* 강좌번호 없이 메뉴에서 처음 진입할 때 */}
+            <Route path="/parent/attendance/list" element={<StudentAttendanceList />} />
+            {/* 강좌번호가 파라미터로 붙어있을 때 */}
+            <Route path="/parent/attendance/list/:courseNo" element={<StudentAttendanceList />} />
         </Routes >
     )
 }

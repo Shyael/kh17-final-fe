@@ -115,8 +115,8 @@ export default function TopMenu() {
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
                             <NavDropdown title="학습관리" id="student-nav-dropdown">
-                                <NavDropdown.Item as={Link} to="/student/attendance/list">
-                                    내 출결
+                                <NavDropdown.Item as={Link} to={isParent ? "/parent/attendance/list" : "/student/attendance/list"}>
+                                    {isParent ? "자녀 강의" : "내 강의"}
                                 </NavDropdown.Item>
                                 <NavDropdown.Item as={Link} to="/student/assignment">
                                     내 과제
