@@ -171,10 +171,11 @@ export default function CourseDetail() {
     const handleOpenEditModal = (session) => {
         setSelectedSession(session);
         setEditForm({
+            sessionNo: session.sessionNo,
             sessionStart: formatForInput(session.sessionStart),
             sessionEnd: formatForInput(session.sessionEnd),
             classroomNo: session.classroomNo || "",
-            sessionStatus: session.sessionStatus || "대기"
+            sessionStatus: session.sessionStatus || "진행중" // '대기' 제거
         });
         setShowEditModal(true);
     };
@@ -183,10 +184,17 @@ export default function CourseDetail() {
     const handleSaveSessionEdit = async () => {
         if (!selectedSession) return;
         try {
-            await apiClient.patch(`/employee/class-session/${selectedSession.sessionNo}`, editForm);
-            await Swal.fire("완료", "세션 정보가 수정되었습니다.", "success");
+            await apiClient.patch("/employee/class-session/status", {
+                sessionNo: selectedSession.sessionNo,
+                sessionStatus: editForm.sessionStatus,
+                classroomNo: editForm.classroomNo ? Number(editForm.classroomNo) : null,
+                sessionStart: editForm.sessionStart ? `${editForm.sessionStart}:00` : null,
+                sessionEnd: editForm.sessionEnd ? `${editForm.sessionEnd}:00` : null
+            });
+
+            await Swal.fire("완료", "수업 회차 정보가 수정되었습니다.", "success");
             setShowEditModal(false);
-            loadCourseDetail();
+            loadCourseDetail(); // DB 조회 후 화면 새로고침
         } catch (e) {
             await Swal.fire("오류", e.response?.data?.message || "세션 수정에 실패했습니다.", "error");
         }
@@ -291,6 +299,7 @@ export default function CourseDetail() {
                     </div>
 
                     <div>
+                        {/* 1. 세션이 아직 없는 경우 (수업 시작 버튼) */}
                         {!todaySession && (
                             <Button
                                 variant="primary"
@@ -302,6 +311,8 @@ export default function CourseDetail() {
                                 <FaPlay className="me-1" /> 수업 시작
                             </Button>
                         )}
+
+                        {/* 2. 수업 진행 중인 경우 (수업 종료 버튼) */}
                         {todaySession && todaySession.sessionStatus === "진행중" && (
                             <Button
                                 variant="danger"
@@ -314,9 +325,18 @@ export default function CourseDetail() {
                                 <FaStop className="me-1" /> 수업 종료
                             </Button>
                         )}
+
+                        {/* 3. 오늘 수업 종료된 경우 */}
                         {todaySession && todaySession.sessionStatus === "종료" && (
                             <Button variant="secondary" size="sm" className="fw-bold px-3" disabled>
                                 오늘 수업 종료됨
+                            </Button>
+                        )}
+
+                        {/* 4. 오늘 수업 취소(휴강)된 경우 */}
+                        {todaySession && todaySession.sessionStatus === "취소" && (
+                            <Button variant="outline-danger" size="sm" className="fw-bold px-3" disabled>
+                                휴강 (수업 취소)
                             </Button>
                         )}
                     </div>
@@ -738,7 +758,6 @@ export default function CourseDetail() {
                                 value={editForm.sessionStatus}
                                 onChange={(e) => setEditForm({ ...editForm, sessionStatus: e.target.value })}
                             >
-                                <option value="대기">대기</option>
                                 <option value="진행중">진행중</option>
                                 <option value="취소">취소 (휴강)</option>
                                 <option value="종료">종료</option>
