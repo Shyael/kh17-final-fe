@@ -69,7 +69,7 @@ export default function StudentDetail() {
 
     const fetchStudentPayments = useCallback(async () => {
         try {
-            const response = await apiClient.get(`/payment/student/${studentNo}`);
+            const response = await apiClient.get(`/employee/payment/student/${studentNo}`);
             setPayments(response.data);
             const unpaidSum = response.data.reduce((sum, p) => sum + (p.remainingAmount || 0), 0);
             setTotalUnpaid(unpaidSum);

@@ -13,7 +13,7 @@ export default function PaymentDetail() {
 
     const fetchPaymentDetail = useCallback(async () => {
         try {
-            const response = await apiClient.get(`/payment/detail/${paymentNo}`);
+            const response = await apiClient.get(`/employee/payment/detail/${paymentNo}`);
             setPaymentData(response.data);
         } catch (error) {
             console.error("수납 상세 정보 로딩 실패:", error);
@@ -35,7 +35,7 @@ export default function PaymentDetail() {
 
         try {
             // x-www-form-urlencoded 형식으로 쿼리 파라미터 전송
-            await apiClient.post(`/payment/pay?paymentNo=${paymentNo}&payAmount=${amount}`);
+            await apiClient.post(`/employee/payment/pay?paymentNo=${paymentNo}&payAmount=${amount}`);
             alert("수납이 완료되었습니다.");
             setPayAmount(""); // 인풋창 비우기
             fetchPaymentDetail(); // 화면 새로고침하여 바뀐 상태(완납/부분납)와 이력 표시
@@ -180,11 +180,10 @@ export default function PaymentDetail() {
                     {/* 4. 납부 이력 (Payment History) 영역 */}
                     {/* ===================================== */}
                     <Card className="shadow-sm border-0 mt-4">
-                        {/* 🌟 카드 헤더를 입력창 + 버튼 구조로 변경 */}
+                        {/* 카드 헤더 (수납 금액 직접 입력 & 납부 확인 버튼) */}
                         <Card.Header className="bg-white pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
                             <h6 className="fw-bold text-secondary mb-0">납부 이력 (결제 내역)</h6>
                             
-                            {/* 완납 상태가 아닐 때만 수납 입력창 표시 */}
                             {payment.paymentStatus !== '완납' && (
                                 <div className="d-flex gap-2" style={{ width: "250px" }}>
                                     <Form.Control 
@@ -200,6 +199,7 @@ export default function PaymentDetail() {
                                 </div>
                             )}
                         </Card.Header>
+
                         <Card.Body className="p-0">
                             <Table responsive className="align-middle text-center mb-0">
                                 <thead className="bg-light">
@@ -207,27 +207,88 @@ export default function PaymentDetail() {
                                         <th>납부 번호</th>
                                         <th>납부 일시</th>
                                         <th className="text-end pe-4">납부 금액</th>
+                                        <th>관리</th> {/* 🌟 결제 취소 버튼이 들어갈 컬럼 추가 */}
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {historys && historys.length > 0 ? (
-                                        historys.map((history, idx) => (
-                                            <tr key={idx}>
-                                                <td className="text-muted small">#{history.paymentHistoryNo}</td>
-                                                {/* 날짜 형식 예쁘게 다듬기 (T를 공백으로 바꾸고 초 단위 절삭) */}
-                                                <td>
-                                                    {history.paymentHistoryAt 
-                                                        ? history.paymentHistoryAt.replace("T", " ").substring(0, 16) 
-                                                        : '-'}
-                                                </td>
-                                                <td className="text-end pe-4 text-success fw-bold">
-                                                    + ₩{history.paymentHistoryAmount?.toLocaleString()}
-                                                </td>
-                                            </tr>
-                                        ))
+                                        historys.map((history, idx) => {
+                                            // 🌟 이미 취소된 내역인지 확인 ('결제취소' 상태 체크)
+                                            const isCanceled = history.paymentHistoryStatus === '결제취소';
+
+                                            return (
+                                                <tr key={idx} style={{ opacity: isCanceled ? 0.4 : 1 }}>
+                                                    {/* 납부 번호 */}
+                                                    <td className="text-muted small">#{history.paymentHistoryNo}</td>
+                                                    
+                                                    {/* 날짜 형식 다듬기 */}
+                                                    <td>
+                                                        {history.paymentHistoryAt 
+                                                            ? history.paymentHistoryAt.replace("T", " ").substring(0, 16) 
+                                                            : '-'}
+                                                    </td>
+                                                    
+                                                    {/* 🌟 납부 금액: 취소된 건은 회색 취소선 + 사유 렌더링 */}
+                                                    <td className={`text-end pe-4 ${isCanceled ? "text-muted text-decoration-line-through" : "text-success fw-bold"}`}>
+                                                        + ₩{history.paymentHistoryAmount?.toLocaleString()}
+                                                        {isCanceled && (
+                                                            <div className="small text-danger fw-semibold mt-1">
+                                                                (취소됨: {history.paymentHistoryCancelReason || "사유 없음"})
+                                                            </div>
+                                                        )}
+                                                    </td>
+
+                                                    {/* 🌟 관리 컬럼: 정상 건에만 '결제 취소' 버튼 노출 */}
+                                                    <td>
+                                                        {!isCanceled && (
+                                                            <Button 
+                                                                variant="outline-danger" 
+                                                                size="sm"
+                                                                className="px-2 py-0"
+                                                                style={{ fontSize: "0.85rem" }}
+                                                                onClick={async () => {
+                                                                    // 1. 취소 사유 프롬프트 띄우기
+                                                                    const reason = window.prompt("결제 취소 사유를 입력해주세요.\n(예: 금액 오입력, 단순 환불 등)");
+                                                                    
+                                                                    if (reason === null) return; // 취소 버튼 누르면 중단
+
+                                                                    try {
+                                                                        // 2. 백엔드 취소 API 호출 (카카오페이 tid와 사유 함께 전송)
+                                                                        await apiClient.post('/employee/payment/cancel', null, {
+                                                                            params: {
+                                                                                paymentHistoryNo: history.paymentHistoryNo,
+                                                                                amount: history.paymentHistoryAmount,
+                                                                                paymentNo: history.paymentNo,
+                                                                                tid: history.paymentHistoryTid, // 카카오페이 건이면 tid 전송, 수기면 null
+                                                                                cancelReason: reason || "사유 미입력"
+                                                                            }
+                                                                        });
+
+                                                                        alert("결제 취소가 완료되었습니다.");
+                                                                        
+                                                                        // 3. 화면 데이터 새로고침 (상세 페이지 전체 갱신 함수 호출)
+                                                                        if (typeof fetchPaymentDetail === 'function') {
+                                                                            fetchPaymentDetail();
+                                                                        } else {
+                                                                            window.location.reload(); // 함수가 없으면 새로고침으로 대체
+                                                                        }
+
+                                                                    } catch (error) {
+                                                                        console.error("결제 취소 실패:", error);
+                                                                        alert(error.response?.data || "결제 취소에 실패했습니다.");
+                                                                    }
+                                                                }}
+                                                            >
+                                                                결제 취소
+                                                            </Button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })
                                     ) : (
                                         <tr>
-                                            <td colSpan="3" className="text-muted py-4">납부 이력이 없습니다.</td>
+                                            <td colSpan="4" className="text-muted py-4">납부 이력이 없습니다.</td>
                                         </tr>
                                     )}
                                 </tbody>

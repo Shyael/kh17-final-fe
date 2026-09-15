@@ -96,6 +96,7 @@ import ExamStudentAttempt from "@components/student/exam/ExamStudentAttempt";
 import ExamStudentResult from "@components/student/exam/ExamStudentResult";
 
 import StudentScoreResult from "@components/student/score/StudentScoreResult";
+import ParentPaymentList from "@components/payment/ParentPaymentList";
 
 
 
@@ -106,6 +107,7 @@ import ScoreManagement from "@components/score/ScoreManagement";
 import CourseCreate from "@components/course/CourseCreate";
 import CourseList from "@components/course/CourseList";
 import CourseDetail from "@components/course/CourseDetail";
+import PaymentSuccess from "@components/payment/PaymentSuccess";
 
 export default function Body() {
 
@@ -228,6 +230,12 @@ export default function Body() {
 
             {/* 학부모 : 자녀 성적 */}
             <Route path="/parent/score" element={<StudentScoreResult />} />
+
+            {/* 학부모 : 수납 관리 */}
+            <Route path="/parent/payment/list" element={<ParentPaymentList />} />
+            <Route path="/parent/payment/success" element={<PaymentSuccess />} />
+            <Route path="/payment/cancel" element={<div>결제를 취소하셨습니다.</div>} />
+            <Route path="/payment/fail" element={<div>결제에 실패했습니다.</div>} />
 
             {/* fallback route */}
 
