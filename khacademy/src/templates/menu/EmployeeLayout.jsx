@@ -95,9 +95,10 @@ export default function EmployeeLayout({ children }) {
     //로그아웃 처리
 
     return (<>
-        {isAdmin && (
-            <Alarm />
-        )}
+        <Alarm />
+        {/* {isAdmin && (
+            <Alarm2 />
+        )} */}
         <div className={"kh-gw-layout" + (sidebarOpen ? " sidebar-open" : "")}>
             {/* 사이드바가 열려있을 때 작은 화면에서 뒤 화면을 덮는 백드롭 (클릭 시 닫힘) */}
             <div className="kh-gw-backdrop" onClick={() => setSidebarOpen(false)} />
