@@ -28,10 +28,6 @@ const AdminWorkScheduleCalendar = ({
 }) => {
 
 
-    // =========================================================
-    // 현재 달
-    // =========================================================
-
     const [
         currentDate,
         setCurrentDate
@@ -39,10 +35,6 @@ const AdminWorkScheduleCalendar = ({
         new Date()
     );
 
-
-    // =========================================================
-    // 일정 / 합계
-    // =========================================================
 
     const [
         scheduleList,
@@ -55,10 +47,6 @@ const AdminWorkScheduleCalendar = ({
         setSummary
     ] = useState(null);
 
-
-    // =========================================================
-    // 선택 날짜 / 일정
-    // =========================================================
 
     const [
         selectedDate,
@@ -77,10 +65,6 @@ const AdminWorkScheduleCalendar = ({
         setShowModal
     ] = useState(false);
 
-
-    // =========================================================
-    // 예정 근무
-    // =========================================================
 
     const [
         scheduledDayType,
@@ -102,10 +86,6 @@ const AdminWorkScheduleCalendar = ({
     ] = useState("");
 
 
-    // =========================================================
-    // 실제 근태
-    // =========================================================
-
     const [
         clockIn,
         setClockIn
@@ -124,8 +104,9 @@ const AdminWorkScheduleCalendar = ({
     ] = useState(0);
 
 
+
     // =========================================================
-    // YYYY-MM-DD
+    // 날짜 문자열
     // =========================================================
 
     const dateKey = (
@@ -158,10 +139,6 @@ const AdminWorkScheduleCalendar = ({
     };
 
 
-    // =========================================================
-    // Timestamp -> datetime-local
-    // =========================================================
-
     const dateTimeInputValue = (
         value
     ) => {
@@ -178,10 +155,6 @@ const AdminWorkScheduleCalendar = ({
         );
     };
 
-
-    // =========================================================
-    // 소수점 시간 표시
-    // =========================================================
 
     const formatHours = (
         value
@@ -206,7 +179,7 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 이번 달 시작
+    // 조회 범위
     // =========================================================
 
     const startDate =
@@ -237,10 +210,6 @@ const AdminWorkScheduleCalendar = ({
         );
 
 
-    // =========================================================
-    // 이번 달 끝
-    // =========================================================
-
     const endDate =
         useMemo(
             () => {
@@ -262,11 +231,12 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 월간 일정 조회
+    // 조회
     // =========================================================
 
     const loadSchedule =
         async () => {
+
 
             if (!employeeNo) {
 
@@ -275,6 +245,7 @@ const AdminWorkScheduleCalendar = ({
 
 
             try {
+
 
                 const response =
                     await apiClient.get(
@@ -308,6 +279,7 @@ const AdminWorkScheduleCalendar = ({
 
             catch (err) {
 
+
                 console.error(
                     err
                 );
@@ -320,12 +292,9 @@ const AdminWorkScheduleCalendar = ({
         };
 
 
-    // =========================================================
-    // 직원 / 월 변경
-    // =========================================================
-
     useEffect(
         () => {
+
 
             if (!employeeNo) {
 
@@ -351,14 +320,9 @@ const AdminWorkScheduleCalendar = ({
                 null
             );
 
-            setScheduleList([]);
-
-            setSummary(
-                null
-            );
-
 
             loadSchedule();
+
         },
         [
             employeeNo,
@@ -369,18 +333,20 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 날짜 -> 일정 Map
+    // 일정 Map
     // =========================================================
 
     const scheduleMap =
         useMemo(
             () => {
 
+
                 const map = {};
 
 
                 scheduleList.forEach(
                     schedule => {
+
 
                         const key =
                             schedule
@@ -409,12 +375,13 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 달력 날짜
+    // 달력
     // =========================================================
 
     const calendarDays =
         useMemo(
             () => {
+
 
                 const year =
                     currentDate
@@ -481,12 +448,9 @@ const AdminWorkScheduleCalendar = ({
         );
 
 
-    // =========================================================
-    // 월 이동
-    // =========================================================
-
     const previousMonth =
         () => {
+
 
             setCurrentDate(
                 previous =>
@@ -502,6 +466,7 @@ const AdminWorkScheduleCalendar = ({
     const nextMonth =
         () => {
 
+
             setCurrentDate(
                 previous =>
                     new Date(
@@ -514,37 +479,29 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 근태 표시
+    // 근태 라벨
     // =========================================================
 
     const attendanceLabel = (
         type
     ) => {
 
+
         switch (type) {
 
             case "normal":
-
                 return "출근";
 
-
             case "absent":
-
                 return "결근";
 
-
             case "paid_leave":
-
                 return "유급휴가";
 
-
             case "unpaid_leave":
-
                 return "무급휴가";
 
-
             default:
-
                 return "";
         }
     };
@@ -554,42 +511,35 @@ const AdminWorkScheduleCalendar = ({
         type
     ) => {
 
+
         switch (type) {
 
             case "normal":
-
                 return "success";
 
-
             case "absent":
-
                 return "danger";
 
-
             case "paid_leave":
-
                 return "primary";
 
-
             case "unpaid_leave":
-
                 return "secondary";
 
-
             default:
-
                 return "secondary";
         }
     };
 
 
     // =========================================================
-    // 날짜 클릭
+    // 날짜 선택
     // =========================================================
 
     const openDate = (
         date
     ) => {
+
 
         const key =
             dateKey(
@@ -613,6 +563,7 @@ const AdminWorkScheduleCalendar = ({
 
 
         if (schedule) {
+
 
             setScheduledDayType(
                 schedule.scheduledDayType
@@ -656,6 +607,7 @@ const AdminWorkScheduleCalendar = ({
 
         else {
 
+
             setScheduledDayType(
                 "workday"
             );
@@ -687,12 +639,9 @@ const AdminWorkScheduleCalendar = ({
     };
 
 
-    // =========================================================
-    // Modal 닫기
-    // =========================================================
-
     const closeModal =
         () => {
+
 
             setShowModal(
                 false
@@ -711,11 +660,12 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 신규 근무일정 등록
+    // 일정 등록
     // =========================================================
 
     const addSchedule =
         async () => {
+
 
             if (!employeeNo) {
 
@@ -733,8 +683,9 @@ const AdminWorkScheduleCalendar = ({
             }
 
 
+            // 근무일만 예정 출퇴근시간 필요
             if (
-                scheduledDayType !== "dayOff"
+                scheduledDayType === "workday"
                 &&
                 (
                     !scheduledClockIn
@@ -753,6 +704,7 @@ const AdminWorkScheduleCalendar = ({
 
             try {
 
+
                 const request = {
 
                     employeeNo,
@@ -766,7 +718,7 @@ const AdminWorkScheduleCalendar = ({
 
                 if (
                     scheduledDayType
-                    !== "dayOff"
+                    === "workday"
                 ) {
 
                     request.scheduledClockIn =
@@ -794,6 +746,7 @@ const AdminWorkScheduleCalendar = ({
             }
 
             catch (err) {
+
 
                 console.error(
                     err
@@ -834,11 +787,12 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 근무일정 수정
+    // 일정 수정
     // =========================================================
 
     const updateSchedule =
         async () => {
+
 
             if (!selectedSchedule) {
 
@@ -847,6 +801,7 @@ const AdminWorkScheduleCalendar = ({
 
 
             try {
+
 
                 const request = {
 
@@ -860,8 +815,9 @@ const AdminWorkScheduleCalendar = ({
 
                 if (
                     scheduledDayType
-                    !== "dayOff"
+                    === "workday"
                 ) {
+
 
                     if (
                         !scheduledClockIn
@@ -903,6 +859,7 @@ const AdminWorkScheduleCalendar = ({
 
             catch (err) {
 
+
                 console.error(
                     err
                 );
@@ -929,13 +886,15 @@ const AdminWorkScheduleCalendar = ({
 
 
     // =========================================================
-    // 근태 없음 -> 결근 / 휴가
+    // 비근무 근태 등록
+    // 근무일에서만 사용
     // =========================================================
 
     const addNonWorkingAttendance =
         async (
             type
         ) => {
+
 
             if (!selectedSchedule) {
 
@@ -989,6 +948,7 @@ const AdminWorkScheduleCalendar = ({
 
             try {
 
+
                 await apiClient.post(
                     url,
                     request
@@ -1006,6 +966,7 @@ const AdminWorkScheduleCalendar = ({
             }
 
             catch (err) {
+
 
                 console.error(
                     err
@@ -1025,6 +986,7 @@ const AdminWorkScheduleCalendar = ({
 
     const normalToNormal =
         async () => {
+
 
             if (
                 !selectedSchedule
@@ -1068,6 +1030,7 @@ const AdminWorkScheduleCalendar = ({
 
 
             try {
+
 
                 await apiClient.patch(
                     "/employee/attendance/normalToNormal",
@@ -1101,6 +1064,7 @@ const AdminWorkScheduleCalendar = ({
 
             catch (err) {
 
+
                 console.error(
                     err
                 );
@@ -1122,20 +1086,18 @@ const AdminWorkScheduleCalendar = ({
             attendanceType
         ) => {
 
+
             if (
                 !selectedSchedule
                     ?.empAttendanceNo
             ) {
-
-                toast.error(
-                    "수정할 근태가 없습니다."
-                );
 
                 return;
             }
 
 
             try {
+
 
                 await apiClient.patch(
                     "/employee/attendance/normalToAbsent",
@@ -1162,6 +1124,7 @@ const AdminWorkScheduleCalendar = ({
 
             catch (err) {
 
+
                 console.error(
                     err
                 );
@@ -1183,20 +1146,18 @@ const AdminWorkScheduleCalendar = ({
             attendanceType
         ) => {
 
+
             if (
                 !selectedSchedule
                     ?.empAttendanceNo
             ) {
-
-                toast.error(
-                    "수정할 근태가 없습니다."
-                );
 
                 return;
             }
 
 
             try {
+
 
                 await apiClient.patch(
                     "/employee/attendance/absentToAbsent",
@@ -1223,6 +1184,7 @@ const AdminWorkScheduleCalendar = ({
 
             catch (err) {
 
+
                 console.error(
                     err
                 );
@@ -1242,14 +1204,11 @@ const AdminWorkScheduleCalendar = ({
     const absentToNormal =
         async () => {
 
+
             if (
                 !selectedSchedule
                     ?.empAttendanceNo
             ) {
-
-                toast.error(
-                    "수정할 근태가 없습니다."
-                );
 
                 return;
             }
@@ -1285,6 +1244,7 @@ const AdminWorkScheduleCalendar = ({
 
             try {
 
+
                 await apiClient.patch(
                     "/employee/attendance/absentToNormal",
                     {
@@ -1317,6 +1277,7 @@ const AdminWorkScheduleCalendar = ({
 
             catch (err) {
 
+
                 console.error(
                     err
                 );
@@ -1328,10 +1289,6 @@ const AdminWorkScheduleCalendar = ({
             }
         };
 
-
-    // =========================================================
-    // 현재 근태
-    // =========================================================
 
     const attendanceType =
         selectedSchedule
@@ -1353,9 +1310,7 @@ const AdminWorkScheduleCalendar = ({
                 <Card.Body>
 
 
-                    {/* =================================================
-                        월 이동
-                    ================================================= */}
+                    {/* 월 이동 */}
 
                     <div
                         className="
@@ -1406,9 +1361,7 @@ const AdminWorkScheduleCalendar = ({
                     </div>
 
 
-                    {/* =================================================
-                        월 합계
-                    ================================================= */}
+                    {/* 월 합계 */}
 
                     {
                         summary
@@ -1419,10 +1372,7 @@ const AdminWorkScheduleCalendar = ({
 
                                 <Col xs={6} md={3}>
 
-                                    <Card
-                                        body
-                                        className="h-100"
-                                    >
+                                    <Card body>
 
                                         <div className="small text-muted">
                                             총 근무
@@ -1431,8 +1381,7 @@ const AdminWorkScheduleCalendar = ({
                                         <strong>
                                             {
                                                 formatHours(
-                                                    summary
-                                                        .totalWorkHours
+                                                    summary.totalWorkHours
                                                 )
                                             }
                                         </strong>
@@ -1445,10 +1394,7 @@ const AdminWorkScheduleCalendar = ({
 
                                 <Col xs={6} md={3}>
 
-                                    <Card
-                                        body
-                                        className="h-100"
-                                    >
+                                    <Card body>
 
                                         <div className="small text-muted">
                                             연장근로
@@ -1457,8 +1403,7 @@ const AdminWorkScheduleCalendar = ({
                                         <strong>
                                             {
                                                 formatHours(
-                                                    summary
-                                                        .totalOvertimeHours
+                                                    summary.totalOvertimeHours
                                                 )
                                             }
                                         </strong>
@@ -1471,10 +1416,7 @@ const AdminWorkScheduleCalendar = ({
 
                                 <Col xs={6} md={3}>
 
-                                    <Card
-                                        body
-                                        className="h-100"
-                                    >
+                                    <Card body>
 
                                         <div className="small text-muted">
                                             야간근로
@@ -1483,8 +1425,7 @@ const AdminWorkScheduleCalendar = ({
                                         <strong>
                                             {
                                                 formatHours(
-                                                    summary
-                                                        .totalNightHours
+                                                    summary.totalNightHours
                                                 )
                                             }
                                         </strong>
@@ -1497,10 +1438,7 @@ const AdminWorkScheduleCalendar = ({
 
                                 <Col xs={6} md={3}>
 
-                                    <Card
-                                        body
-                                        className="h-100"
-                                    >
+                                    <Card body>
 
                                         <div className="small text-muted">
                                             휴일근로
@@ -1509,8 +1447,7 @@ const AdminWorkScheduleCalendar = ({
                                         <strong>
                                             {
                                                 formatHours(
-                                                    summary
-                                                        .totalHolidayHours
+                                                    summary.totalHolidayHours
                                                 )
                                             }
                                         </strong>
@@ -1522,14 +1459,11 @@ const AdminWorkScheduleCalendar = ({
 
 
                             </Row>
-
                         )
                     }
 
 
-                    {/* =================================================
-                        요일
-                    ================================================= */}
+                    {/* 요일 */}
 
                     <div
                         style={{
@@ -1564,9 +1498,7 @@ const AdminWorkScheduleCalendar = ({
                                             p-2
                                         "
                                     >
-
                                         {day}
-
                                     </div>
 
                                 )
@@ -1576,9 +1508,7 @@ const AdminWorkScheduleCalendar = ({
                     </div>
 
 
-                    {/* =================================================
-                        날짜
-                    ================================================= */}
+                    {/* 날짜 */}
 
                     <div
                         style={{
@@ -1609,7 +1539,7 @@ const AdminWorkScheduleCalendar = ({
                                                 className="border"
                                                 style={{
                                                     minHeight:
-                                                        145
+                                                        150
                                                 }}
                                             />
 
@@ -1624,9 +1554,7 @@ const AdminWorkScheduleCalendar = ({
 
 
                                     const schedule =
-                                        scheduleMap[
-                                            key
-                                        ];
+                                        scheduleMap[key];
 
 
                                     return (
@@ -1635,13 +1563,10 @@ const AdminWorkScheduleCalendar = ({
                                             key={
                                                 key
                                             }
-                                            className="
-                                                border
-                                                p-2
-                                            "
+                                            className="border p-2"
                                             style={{
                                                 minHeight:
-                                                    145,
+                                                    150,
 
                                                 cursor:
                                                     "pointer"
@@ -1655,16 +1580,10 @@ const AdminWorkScheduleCalendar = ({
                                         >
 
 
-                                            <div
-                                                className="
-                                                    fw-bold
-                                                    mb-2
-                                                "
-                                            >
+                                            <div className="fw-bold mb-2">
 
                                                 {
-                                                    date
-                                                        .getDate()
+                                                    date.getDate()
                                                 }
 
                                             </div>
@@ -1677,160 +1596,95 @@ const AdminWorkScheduleCalendar = ({
                                                     <>
 
 
-                                                        {/* 주휴일 근무 */}
-
+                                                        {/* 근무일 구분 */}
                                                         {
-                                                            schedule
-                                                                .scheduledDayType
-                                                            === "holiday"
+                                                            schedule.attendanceType !== "paid_leave"
                                                             &&
-                                                            schedule
-                                                                .attendanceType
-                                                            === "normal"
+                                                            schedule.attendanceType !== "unpaid_leave"
                                                             && (
+                                                                <>
 
-                                                                <Badge
-                                                                    bg="warning"
-                                                                    text="dark"
-                                                                    className="me-1"
-                                                                >
-                                                                    주휴일 근무
-                                                                </Badge>
+                                                                    {
+                                                                        schedule.scheduledDayType === "workday"
+                                                                        && (
+                                                                            <Badge
+                                                                                bg="secondary"
+                                                                                className="me-1"
+                                                                            >
+                                                                                근무일
+                                                                            </Badge>
+                                                                        )
+                                                                    }
 
+                                                                    {
+                                                                        schedule.scheduledDayType === "holiday"
+                                                                        && (
+                                                                            <Badge
+                                                                                bg="warning"
+                                                                                text="dark"
+                                                                                className="me-1"
+                                                                            >
+                                                                                주휴일
+                                                                            </Badge>
+                                                                        )
+                                                                    }
+
+                                                                    {
+                                                                        schedule.scheduledDayType === "dayOff"
+                                                                        && (
+                                                                            <Badge
+                                                                                bg="secondary"
+                                                                                className="me-1"
+                                                                            >
+                                                                                휴무일
+                                                                            </Badge>
+                                                                        )
+                                                                    }
+
+                                                                </>
                                                             )
-                                                        }
+                                                        }   
 
-
-                                                        {/* 주휴일 */}
+                                                        {/* 근태 */}
 
                                                         {
-                                                            schedule
-                                                                .scheduledDayType
-                                                            === "holiday"
-                                                            &&
-                                                            schedule
-                                                                .attendanceType
-                                                            !== "normal"
-                                                            && (
-
-                                                                <Badge
-                                                                    bg="secondary"
-                                                                    className="me-1"
-                                                                >
-                                                                    주휴일
-                                                                </Badge>
-
-                                                            )
-                                                        }
-
-
-                                                        {/* 휴무일 */}
-
-                                                        {
-                                                            schedule
-                                                                .scheduledDayType
-                                                            === "dayOff"
-                                                            && (
-
-                                                                <Badge
-                                                                    bg="secondary"
-                                                                    className="me-1"
-                                                                >
-                                                                    휴무일
-                                                                </Badge>
-
-                                                            )
-                                                        }
-
-
-                                                        {/* 결근 / 휴가 */}
-
-                                                        {
-                                                            schedule
-                                                                .attendanceType
-                                                            &&
-                                                            schedule
-                                                                .attendanceType
-                                                            !== "normal"
-                                                            &&
-                                                            schedule
-                                                                .scheduledDayType
-                                                            !== "dayOff"
+                                                            schedule.attendanceType
                                                             && (
 
                                                                 <Badge
                                                                     bg={
                                                                         attendanceBadge(
-                                                                            schedule
-                                                                                .attendanceType
+                                                                            schedule.attendanceType
                                                                         )
                                                                     }
-                                                                    className="me-1"
                                                                 >
-
                                                                     {
                                                                         attendanceLabel(
-                                                                            schedule
-                                                                                .attendanceType
+                                                                            schedule.attendanceType
                                                                         )
                                                                     }
-
                                                                 </Badge>
 
                                                             )
                                                         }
 
 
-                                                        {/* 근태 미등록 */}
+                                                        {/* workday 예정시간 */}
 
                                                         {
-                                                            !schedule
-                                                                .attendanceType
+                                                            schedule.scheduledDayType
+                                                            === "workday"
                                                             &&
-                                                            schedule
-                                                                .scheduledDayType
-                                                            !== "dayOff"
+                                                            schedule.scheduledClockIn
                                                             && (
 
-                                                                <Badge
-                                                                    bg="light"
-                                                                    text="dark"
-                                                                >
-                                                                    근태 미등록
-                                                                </Badge>
-
-                                                            )
-                                                        }
-
-
-                                                        {/* 예정시간 */}
-
-                                                        {
-                                                            !schedule
-                                                                .attendanceType
-                                                            &&
-                                                            schedule
-                                                                .scheduledClockIn
-                                                            &&
-                                                            schedule
-                                                                .scheduledDayType
-                                                            !== "dayOff"
-                                                            && (
-
-                                                                <div
-                                                                    className="
-                                                                        small
-                                                                        mt-2
-                                                                        text-muted
-                                                                    "
-                                                                >
+                                                                <div className="small mt-2 text-muted">
 
                                                                     예정{" "}
 
                                                                     {
                                                                         formatTime(
-                                                                            schedule
-                                                                                .scheduledClockIn
+                                                                            schedule.scheduledClockIn
                                                                         )
                                                                     }
 
@@ -1838,8 +1692,7 @@ const AdminWorkScheduleCalendar = ({
 
                                                                     {
                                                                         formatTime(
-                                                                            schedule
-                                                                                .scheduledClockOut
+                                                                            schedule.scheduledClockOut
                                                                         )
                                                                     }
 
@@ -1852,41 +1705,35 @@ const AdminWorkScheduleCalendar = ({
                                                         {/* 실제 출퇴근 */}
 
                                                         {
-                                                            schedule
-                                                                .attendanceType
+                                                            schedule.attendanceType
                                                             === "normal"
                                                             &&
-                                                            schedule
-                                                                .clockIn
+                                                            schedule.clockIn
                                                             && (
 
-                                                                <div
-                                                                    className="
-                                                                        small
-                                                                        mt-2
-                                                                        fw-semibold
-                                                                    "
-                                                                >
+                                                                <div className="small mt-2 fw-semibold">
 
-                                                                    {
-                                                                        formatTime(
-                                                                            schedule
-                                                                                .clockIn
-                                                                        )
-                                                                    }
+                                                                    <div>
+                                                                        출근 :{" "}
+                                                                        {
+                                                                            formatTime(
+                                                                                schedule.clockIn
+                                                                            )
+                                                                        }
+                                                                    </div>
 
-                                                                    {" ~ "}
+                                                                    <div>
+                                                                        퇴근 :{" "}
+                                                                        {
+                                                                            schedule.clockOut
 
-                                                                    {
-                                                                        schedule.clockOut
+                                                                                ? formatTime(
+                                                                                    schedule.clockOut
+                                                                                )
 
-                                                                        ? formatTime(
-                                                                            schedule
-                                                                                .clockOut
-                                                                        )
-
-                                                                        : "미퇴근"
-                                                                    }
+                                                                                : "미퇴근"
+                                                                        }
+                                                                    </div>
 
                                                                 </div>
 
@@ -1894,15 +1741,11 @@ const AdminWorkScheduleCalendar = ({
                                                         }
 
 
-                                                        {/* 실제 근무 */}
-
                                                         {
-                                                            schedule
-                                                                .attendanceType
+                                                            schedule.attendanceType
                                                             === "normal"
                                                             &&
-                                                            schedule
-                                                                .actualWorkHours
+                                                            schedule.actualWorkHours
                                                             > 0
                                                             && (
 
@@ -1912,8 +1755,7 @@ const AdminWorkScheduleCalendar = ({
 
                                                                     {
                                                                         formatHours(
-                                                                            schedule
-                                                                                .actualWorkHours
+                                                                            schedule.actualWorkHours
                                                                         )
                                                                     }
 
@@ -1925,26 +1767,18 @@ const AdminWorkScheduleCalendar = ({
                                                         }
 
 
-                                                        {/* 연장근로 */}
-
                                                         {
-                                                            schedule
-                                                                .attendanceType
-                                                            === "normal"
-                                                            &&
-                                                            schedule
-                                                                .actualOvertimeHours
+                                                            schedule.actualOvertimeHours
                                                             > 0
                                                             && (
 
-                                                                <div className="small mt-1 text-danger">
+                                                                <div className="small text-danger">
 
                                                                     연장근로{" "}
 
                                                                     {
                                                                         formatHours(
-                                                                            schedule
-                                                                                .actualOvertimeHours
+                                                                            schedule.actualOvertimeHours
                                                                         )
                                                                     }
 
@@ -1956,26 +1790,18 @@ const AdminWorkScheduleCalendar = ({
                                                         }
 
 
-                                                        {/* 야간근로 */}
-
                                                         {
-                                                            schedule
-                                                                .attendanceType
-                                                            === "normal"
-                                                            &&
-                                                            schedule
-                                                                .actualNightHours
+                                                            schedule.actualNightHours
                                                             > 0
                                                             && (
 
-                                                                <div className="small mt-1 text-primary">
+                                                                <div className="small text-primary">
 
                                                                     야간근로{" "}
 
                                                                     {
                                                                         formatHours(
-                                                                            schedule
-                                                                                .actualNightHours
+                                                                            schedule.actualNightHours
                                                                         )
                                                                     }
 
@@ -1987,26 +1813,18 @@ const AdminWorkScheduleCalendar = ({
                                                         }
 
 
-                                                        {/* 휴일근로 */}
-
                                                         {
-                                                            schedule
-                                                                .attendanceType
-                                                            === "normal"
-                                                            &&
-                                                            schedule
-                                                                .actualHolidayHours
+                                                            schedule.actualHolidayHours
                                                             > 0
                                                             && (
 
-                                                                <div className="small mt-1 text-warning">
+                                                                <div className="small text-warning">
 
                                                                     휴일근로{" "}
 
                                                                     {
                                                                         formatHours(
-                                                                            schedule
-                                                                                .actualHolidayHours
+                                                                            schedule.actualHolidayHours
                                                                         )
                                                                     }
 
@@ -2023,9 +1841,7 @@ const AdminWorkScheduleCalendar = ({
                                                 )
                                             }
 
-
                                         </div>
-
                                     );
                                 }
                             )
@@ -2040,7 +1856,7 @@ const AdminWorkScheduleCalendar = ({
 
 
             {/* =====================================================
-                날짜 관리 Modal
+                Modal
             ===================================================== */}
 
             <Modal
@@ -2080,361 +1896,561 @@ const AdminWorkScheduleCalendar = ({
                     {
                         !selectedSchedule
 
-                        ? (
+                            ? (
 
-                            <>
-
-
-                                <h5 className="mb-3">
-                                    근무 일정 등록
-                                </h5>
+                                <>
 
 
-                                <div
-                                    className="
-                                        text-muted
-                                        mb-4
-                                    "
-                                >
-
-                                    {
-                                        formatDate(
-                                            selectedDate
-                                        )
-                                    }
-                                    의 근무 일정을 등록합니다.
-
-                                </div>
+                                    <h5 className="mb-3">
+                                        근무 일정 등록
+                                    </h5>
 
 
-                                <Row className="g-3">
+                                    <Row className="g-3">
 
 
-                                    <Col md={4}>
+                                        <Col md={4}>
 
-                                        <Form.Group>
+                                            <Form.Group>
 
-                                            <Form.Label>
-                                                근무일 구분
-                                            </Form.Label>
+                                                <Form.Label>
+                                                    근무일 구분
+                                                </Form.Label>
 
 
-                                            <Form.Select
-                                                value={
-                                                    scheduledDayType
-                                                }
-                                                onChange={
-                                                    e =>
-                                                        setScheduledDayType(
-                                                            e.target.value
-                                                        )
-                                                }
-                                            >
+                                                <Form.Select
+                                                    value={
+                                                        scheduledDayType
+                                                    }
+                                                    onChange={
+                                                        e =>
+                                                            setScheduledDayType(
+                                                                e.target.value
+                                                            )
+                                                    }
+                                                >
 
-                                                <option value="workday">
-                                                    근무일
-                                                </option>
+                                                    <option value="workday">
+                                                        근무일
+                                                    </option>
 
-                                                <option value="holiday">
-                                                    주휴일
-                                                </option>
+                                                    <option value="holiday">
+                                                        주휴일
+                                                    </option>
 
-                                                <option value="dayOff">
-                                                    휴무일
-                                                </option>
+                                                    <option value="dayOff">
+                                                        휴무일
+                                                    </option>
 
-                                            </Form.Select>
+                                                </Form.Select>
 
-                                        </Form.Group>
+                                            </Form.Group>
 
-                                    </Col>
+                                        </Col>
+
+
+                                        {
+                                            scheduledDayType
+                                            === "workday"
+                                            && (
+
+                                                <>
+
+
+                                                    <Col md={4}>
+
+                                                        <Form.Group>
+
+                                                            <Form.Label>
+                                                                예정 출근
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="datetime-local"
+                                                                value={
+                                                                    scheduledClockIn
+                                                                }
+                                                                onChange={
+                                                                    e =>
+                                                                        setScheduledClockIn(
+                                                                            e.target.value
+                                                                        )
+                                                                }
+                                                            />
+
+                                                        </Form.Group>
+
+                                                    </Col>
+
+
+                                                    <Col md={4}>
+
+                                                        <Form.Group>
+
+                                                            <Form.Label>
+                                                                예정 퇴근
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="datetime-local"
+                                                                value={
+                                                                    scheduledClockOut
+                                                                }
+                                                                onChange={
+                                                                    e =>
+                                                                        setScheduledClockOut(
+                                                                            e.target.value
+                                                                        )
+                                                                }
+                                                            />
+
+                                                        </Form.Group>
+
+                                                    </Col>
+
+
+                                                </>
+
+                                            )
+                                        }
+
+
+                                    </Row>
 
 
                                     {
                                         scheduledDayType
-                                        !== "dayOff"
+                                        === "holiday"
+                                        && (
+
+                                            <div className="small text-muted mt-3">
+
+                                                주휴일의 실제 출퇴근시간은
+                                                직원이 출근·퇴근 처리할 때 자동 기록됩니다.
+
+                                            </div>
+
+                                        )
+                                    }
+
+
+                                    {
+                                        scheduledDayType
+                                        === "dayOff"
+                                        && (
+
+                                            <div className="small text-muted mt-3">
+
+                                                휴무일은 소정근로가 예정되지 않은 날입니다.
+
+                                            </div>
+
+                                        )
+                                    }
+
+
+                                    <div className="text-end mt-4">
+
+                                        <Button
+                                            onClick={
+                                                addSchedule
+                                            }
+                                        >
+                                            일정 등록
+                                        </Button>
+
+                                    </div>
+
+
+                                </>
+
+                            )
+
+                            : (
+
+                                <>
+
+
+                                    <h5 className="mb-3">
+                                        근무 일정
+                                    </h5>
+
+
+                                    <Row className="g-3 mb-4">
+
+
+                                        <Col md={4}>
+
+                                            <Form.Group>
+
+                                                <Form.Label>
+                                                    근무일 구분
+                                                </Form.Label>
+
+
+                                                <Form.Select
+                                                    value={
+                                                        scheduledDayType
+                                                    }
+                                                    disabled={
+                                                        attendanceExist
+                                                    }
+                                                    onChange={
+                                                        e =>
+                                                            setScheduledDayType(
+                                                                e.target.value
+                                                            )
+                                                    }
+                                                >
+
+                                                    <option value="workday">
+                                                        근무일
+                                                    </option>
+
+                                                    <option value="holiday">
+                                                        주휴일
+                                                    </option>
+
+                                                    <option value="dayOff">
+                                                        휴무일
+                                                    </option>
+
+                                                </Form.Select>
+
+                                            </Form.Group>
+
+                                        </Col>
+
+
+                                        {
+                                            scheduledDayType
+                                            === "workday"
+                                            && (
+
+                                                <>
+
+
+                                                    <Col md={4}>
+
+                                                        <Form.Group>
+
+                                                            <Form.Label>
+                                                                예정 출근
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="datetime-local"
+                                                                value={
+                                                                    scheduledClockIn
+                                                                }
+                                                                onChange={
+                                                                    e =>
+                                                                        setScheduledClockIn(
+                                                                            e.target.value
+                                                                        )
+                                                                }
+                                                            />
+
+                                                        </Form.Group>
+
+                                                    </Col>
+
+
+                                                    <Col md={4}>
+
+                                                        <Form.Group>
+
+                                                            <Form.Label>
+                                                                예정 퇴근
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="datetime-local"
+                                                                value={
+                                                                    scheduledClockOut
+                                                                }
+                                                                onChange={
+                                                                    e =>
+                                                                        setScheduledClockOut(
+                                                                            e.target.value
+                                                                        )
+                                                                }
+                                                            />
+
+                                                        </Form.Group>
+
+                                                    </Col>
+
+
+                                                </>
+
+                                            )
+                                        }
+
+
+                                    </Row>
+
+
+                                    {
+                                        scheduledDayType
+                                        === "holiday"
+                                        && (
+
+                                            <div className="small text-muted mb-3">
+
+                                                이 날은 계약상 주휴일입니다.
+                                                실제 출퇴근시간은 직원의 출근·퇴근 처리로만 기록됩니다.
+
+                                            </div>
+
+                                        )
+                                    }
+
+
+                                    {
+                                        scheduledDayType
+                                        === "dayOff"
+                                        && (
+
+                                            <div className="small text-muted mb-3">
+
+                                                이 날은 휴무일입니다.
+
+                                            </div>
+
+                                        )
+                                    }
+
+
+                                    <div className="text-end mb-4">
+
+                                        <Button
+                                            variant="outline-primary"
+                                            onClick={
+                                                updateSchedule
+                                            }
+                                        >
+                                            일정 수정
+                                        </Button>
+
+                                    </div>
+
+
+                                    <hr />
+
+
+                                    <h5 className="mb-3">
+                                        실제 근태
+                                    </h5>
+
+
+                                    {/* actual 카드 */}
+
+                                    {
+                                        attendanceExist
+                                        &&
+                                        attendanceType === "normal"
+                                        && (
+
+                                            <Row className="g-2 mb-4">
+
+
+                                                <Col xs={6} md={3}>
+
+                                                    <Card body>
+
+                                                        <div className="small text-muted">
+                                                            실제 근무
+                                                        </div>
+
+                                                        <strong>
+                                                            {
+                                                                formatHours(
+                                                                    selectedSchedule.actualWorkHours
+                                                                )
+                                                            }
+                                                        </strong>
+                                                        시간
+
+                                                    </Card>
+
+                                                </Col>
+
+
+                                                <Col xs={6} md={3}>
+
+                                                    <Card body>
+
+                                                        <div className="small text-muted">
+                                                            연장근로
+                                                        </div>
+
+                                                        <strong>
+                                                            {
+                                                                formatHours(
+                                                                    selectedSchedule.actualOvertimeHours
+                                                                )
+                                                            }
+                                                        </strong>
+                                                        시간
+
+                                                    </Card>
+
+                                                </Col>
+
+
+                                                <Col xs={6} md={3}>
+
+                                                    <Card body>
+
+                                                        <div className="small text-muted">
+                                                            야간근로
+                                                        </div>
+
+                                                        <strong>
+                                                            {
+                                                                formatHours(
+                                                                    selectedSchedule.actualNightHours
+                                                                )
+                                                            }
+                                                        </strong>
+                                                        시간
+
+                                                    </Card>
+
+                                                </Col>
+
+
+                                                <Col xs={6} md={3}>
+
+                                                    <Card body>
+
+                                                        <div className="small text-muted">
+                                                            휴일근로
+                                                        </div>
+
+                                                        <strong>
+                                                            {
+                                                                formatHours(
+                                                                    selectedSchedule.actualHolidayHours
+                                                                )
+                                                            }
+                                                        </strong>
+                                                        시간
+
+                                                    </Card>
+
+                                                </Col>
+
+
+                                            </Row>
+
+                                        )
+                                    }
+
+
+                                    {/* =========================
+                                    주휴일
+                                    관리자 수정 불가
+                                ========================= */}
+
+                                    {
+                                        scheduledDayType
+                                        === "holiday"
                                         && (
 
                                             <>
 
 
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            예정 출근
-                                                        </Form.Label>
-
-
-                                                        <Form.Control
-                                                            type="datetime-local"
-                                                            value={
-                                                                scheduledClockIn
-                                                            }
-                                                            onChange={
-                                                                e =>
-                                                                    setScheduledClockIn(
-                                                                        e.target.value
-                                                                    )
-                                                            }
-                                                        />
-
-                                                    </Form.Group>
-
-                                                </Col>
-
-
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            예정 퇴근
-                                                        </Form.Label>
-
-
-                                                        <Form.Control
-                                                            type="datetime-local"
-                                                            value={
-                                                                scheduledClockOut
-                                                            }
-                                                            onChange={
-                                                                e =>
-                                                                    setScheduledClockOut(
-                                                                        e.target.value
-                                                                    )
-                                                            }
-                                                        />
-
-                                                    </Form.Group>
-
-                                                </Col>
-
-
-                                            </>
-
-                                        )
-                                    }
-
-
-                                </Row>
-
-
-                                {
-                                    scheduledDayType
-                                    === "holiday"
-                                    && (
-
-                                        <div
-                                            className="
-                                                small
-                                                text-warning
-                                                mt-3
-                                            "
-                                        >
-
-                                            주휴일에 근무하는 경우
-                                            실제 근무시간은 휴일근로시간으로 반영됩니다.
-
-                                        </div>
-
-                                    )
-                                }
-
-
-                                {
-                                    scheduledDayType
-                                    === "dayOff"
-                                    && (
-
-                                        <div
-                                            className="
-                                                small
-                                                text-muted
-                                                mt-3
-                                            "
-                                        >
-
-                                            휴무일은 소정근로가 예정되지 않은 날이므로
-                                            예정 출퇴근시간을 입력하지 않습니다.
-
-                                        </div>
-
-                                    )
-                                }
-
-
-                                <div
-                                    className="
-                                        text-end
-                                        mt-4
-                                    "
-                                >
-
-                                    <Button
-                                        variant="primary"
-                                        onClick={
-                                            addSchedule
-                                        }
-                                    >
-
-                                        일정 등록
-
-                                    </Button>
-
-                                </div>
-
-
-                            </>
-
-                        )
-
-                        : (
-
-                            <>
-
-
-                                <h5 className="mb-3">
-                                    근무 일정
-                                </h5>
-
-
-                                {
-                                    selectedSchedule
-                                        .contractNo
-                                    != null
-                                    && (
-
-                                        <div
-                                            className="
-                                                text-muted
-                                                small
-                                                mb-3
-                                            "
-                                        >
-
-                                            적용 계약번호 :{" "}
-
-                                            <strong>
                                                 {
-                                                    selectedSchedule
-                                                        .contractNo
-                                                }
-                                            </strong>
+                                                    attendanceType
+                                                        === "normal"
 
-                                        </div>
+                                                        ? (
 
-                                    )
-                                }
+                                                            <Card
+                                                                body
+                                                                className="mb-3"
+                                                            >
+
+                                                                <div className="mb-2">
+
+                                                                    <Badge
+                                                                        bg="warning"
+                                                                        text="dark"
+                                                                    >
+                                                                        주휴일
+                                                                    </Badge>
+
+                                                                    <Badge
+                                                                        bg="success"
+                                                                        className="ms-1"
+                                                                    >
+                                                                        출근
+                                                                    </Badge>
+
+                                                                </div>
 
 
-                                <Row className="g-3 mb-4">
+                                                                <div>
+
+                                                                    출근 :{" "}
+
+                                                                    <strong>
+                                                                        {
+                                                                            selectedSchedule.clockIn
+
+                                                                                ? formatTime(
+                                                                                    selectedSchedule.clockIn
+                                                                                )
+
+                                                                                : "-"
+                                                                        }
+                                                                    </strong>
+
+                                                                </div>
 
 
-                                    <Col md={4}>
+                                                                <div>
 
-                                        <Form.Group>
+                                                                    퇴근 :{" "}
 
-                                            <Form.Label>
-                                                근무일 구분
-                                            </Form.Label>
+                                                                    <strong>
+                                                                        {
+                                                                            selectedSchedule.clockOut
+
+                                                                                ? formatTime(
+                                                                                    selectedSchedule.clockOut
+                                                                                )
+
+                                                                                : "미퇴근"
+                                                                        }
+                                                                    </strong>
+
+                                                                </div>
 
 
-                                            <Form.Select
-                                                value={
-                                                    scheduledDayType
-                                                }
-                                                disabled={
-                                                    attendanceExist
-                                                }
-                                                onChange={
-                                                    e =>
-                                                        setScheduledDayType(
-                                                            e.target.value
+                                                                <div className="small text-muted mt-2">
+
+                                                                    주휴일의 실제 출퇴근시간은
+                                                                    직원 출퇴근 기록으로만 관리됩니다.
+
+                                                                </div>
+
+                                                            </Card>
+
+                                                        )
+
+                                                        : (
+
+                                                            <div className="text-muted">
+
+                                                                아직 직원의 출근 기록이 없습니다.
+
+                                                            </div>
+
                                                         )
                                                 }
-                                            >
-
-                                                <option value="workday">
-                                                    근무일
-                                                </option>
-
-                                                <option value="holiday">
-                                                    주휴일
-                                                </option>
-
-                                                <option value="dayOff">
-                                                    휴무일
-                                                </option>
-
-                                            </Form.Select>
-
-                                        </Form.Group>
-
-                                    </Col>
-
-
-                                    {
-                                        scheduledDayType
-                                        !== "dayOff"
-                                        && (
-
-                                            <>
-
-
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            예정 출근
-                                                        </Form.Label>
-
-
-                                                        <Form.Control
-                                                            type="datetime-local"
-                                                            value={
-                                                                scheduledClockIn
-                                                            }
-                                                            onChange={
-                                                                e =>
-                                                                    setScheduledClockIn(
-                                                                        e.target.value
-                                                                    )
-                                                            }
-                                                        />
-
-                                                    </Form.Group>
-
-                                                </Col>
-
-
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            예정 퇴근
-                                                        </Form.Label>
-
-
-                                                        <Form.Control
-                                                            type="datetime-local"
-                                                            value={
-                                                                scheduledClockOut
-                                                            }
-                                                            onChange={
-                                                                e =>
-                                                                    setScheduledClockOut(
-                                                                        e.target.value
-                                                                    )
-                                                            }
-                                                        />
-
-                                                    </Form.Group>
-
-                                                </Col>
 
 
                                             </>
@@ -2443,407 +2459,368 @@ const AdminWorkScheduleCalendar = ({
                                     }
 
 
-                                </Row>
+                                    {/* =========================
+                                    근무일 근태 미등록
+                                ========================= */}
+
+                                    {
+                                        scheduledDayType
+                                        === "workday"
+                                        &&
+                                        !attendanceExist
+                                        && (
+
+                                            <div>
 
 
-                                {
-                                    scheduledDayType
-                                    === "holiday"
-                                    && (
+                                                <div className="text-muted mb-3">
 
-                                        <div
-                                            className="
-                                                small
-                                                text-warning
-                                                mb-3
-                                            "
-                                        >
+                                                    아직 등록된 근태가 없습니다.
 
-                                            주휴일에 실제 근무한 시간은
-                                            휴일근로시간으로 계산됩니다.
-
-                                        </div>
-
-                                    )
-                                }
+                                                </div>
 
 
-                                {
-                                    scheduledDayType
-                                    === "dayOff"
-                                    && (
+                                                <div className="d-flex gap-2 flex-wrap">
 
-                                        <div
-                                            className="
-                                                small
-                                                text-muted
-                                                mb-3
-                                            "
-                                        >
-
-                                            휴무일은 소정근로가 예정되지 않은 날입니다.
-
-                                        </div>
-
-                                    )
-                                }
-
-
-                                <div className="text-end mb-4">
-
-                                    <Button
-                                        variant="outline-primary"
-                                        onClick={
-                                            updateSchedule
-                                        }
-                                    >
-                                        일정 수정
-                                    </Button>
-
-                                </div>
-
-
-                                <hr />
-
-
-                                <h5 className="mb-3">
-                                    실제 근태
-                                </h5>
-
-
-                                {/* =================================================
-                                    실제 근태 계산 결과
-                                ================================================= */}
-
-                                {
-                                    attendanceExist
-                                    &&
-                                    attendanceType === "normal"
-                                    && (
-
-                                        <Row className="g-2 mb-4">
-
-
-                                            <Col xs={6} md={3}>
-
-                                                <Card
-                                                    body
-                                                    className="h-100"
-                                                >
-
-                                                    <div className="small text-muted">
-                                                        실제 근무
-                                                    </div>
-
-                                                    <strong>
-                                                        {
-                                                            formatHours(
-                                                                selectedSchedule
-                                                                    .actualWorkHours
-                                                            )
+                                                    <Button
+                                                        variant="danger"
+                                                        onClick={
+                                                            () =>
+                                                                addNonWorkingAttendance(
+                                                                    "absent"
+                                                                )
                                                         }
-                                                    </strong>
-
-                                                    시간
-
-                                                </Card>
-
-                                            </Col>
+                                                    >
+                                                        결근 등록
+                                                    </Button>
 
 
-                                            <Col xs={6} md={3}>
-
-                                                <Card
-                                                    body
-                                                    className="h-100"
-                                                >
-
-                                                    <div className="small text-muted">
-                                                        연장근로
-                                                    </div>
-
-                                                    <strong>
-                                                        {
-                                                            formatHours(
-                                                                selectedSchedule
-                                                                    .actualOvertimeHours
-                                                            )
+                                                    <Button
+                                                        variant="primary"
+                                                        onClick={
+                                                            () =>
+                                                                addNonWorkingAttendance(
+                                                                    "paid_leave"
+                                                                )
                                                         }
-                                                    </strong>
-
-                                                    시간
-
-                                                </Card>
-
-                                            </Col>
+                                                    >
+                                                        유급휴가 등록
+                                                    </Button>
 
 
-                                            <Col xs={6} md={3}>
-
-                                                <Card
-                                                    body
-                                                    className="h-100"
-                                                >
-
-                                                    <div className="small text-muted">
-                                                        야간근로
-                                                    </div>
-
-                                                    <strong>
-                                                        {
-                                                            formatHours(
-                                                                selectedSchedule
-                                                                    .actualNightHours
-                                                            )
+                                                    <Button
+                                                        variant="secondary"
+                                                        onClick={
+                                                            () =>
+                                                                addNonWorkingAttendance(
+                                                                    "unpaid_leave"
+                                                                )
                                                         }
-                                                    </strong>
+                                                    >
+                                                        무급휴가 등록
+                                                    </Button>
 
-                                                    시간
-
-                                                </Card>
-
-                                            </Col>
-
-
-                                            <Col xs={6} md={3}>
-
-                                                <Card
-                                                    body
-                                                    className="h-100"
-                                                >
-
-                                                    <div className="small text-muted">
-                                                        휴일근로
-                                                    </div>
-
-                                                    <strong>
-                                                        {
-                                                            formatHours(
-                                                                selectedSchedule
-                                                                    .actualHolidayHours
-                                                            )
-                                                        }
-                                                    </strong>
-
-                                                    시간
-
-                                                </Card>
-
-                                            </Col>
-
-
-                                        </Row>
-
-                                    )
-                                }
-
-
-                                {
-                                    scheduledDayType
-                                    === "holiday"
-                                    && (
-
-                                        <div
-                                            className="
-                                                small
-                                                text-warning
-                                                mb-3
-                                            "
-                                        >
-
-                                            이 날은 계약상 주휴일입니다.
-                                            실제 근무한 시간은 휴일근로시간으로 반영됩니다.
-
-                                        </div>
-
-                                    )
-                                }
-
-
-                                {
-                                    scheduledDayType
-                                    === "dayOff"
-                                    && (
-
-                                        <div
-                                            className="
-                                                text-muted
-                                                py-2
-                                            "
-                                        >
-
-                                            이 날은 휴무일로 지정된 날입니다.
-
-                                        </div>
-
-                                    )
-                                }
-
-
-                                {/* =================================================
-                                    근태 미등록
-                                ================================================= */}
-
-                                {
-                                    scheduledDayType
-                                    !== "dayOff"
-                                    &&
-                                    !attendanceExist
-                                    && (
-
-                                        <div>
-
-
-                                            <div
-                                                className="
-                                                    text-muted
-                                                    mb-3
-                                                "
-                                            >
-
-                                                아직 등록된 근태가 없습니다.
+                                                </div>
 
                                             </div>
 
-
-                                            <div
-                                                className="
-                                                    d-flex
-                                                    gap-2
-                                                    flex-wrap
-                                                "
-                                            >
+                                        )
+                                    }
 
 
-                                                <Button
-                                                    variant="danger"
-                                                    onClick={
-                                                        () =>
-                                                            addNonWorkingAttendance(
-                                                                "absent"
+                                    {/* =========================
+                                    근무일 정상근태
+                                    원장 수정 가능
+                                ========================= */}
+
+                                    {
+                                        scheduledDayType
+                                        === "workday"
+                                        &&
+                                        attendanceExist
+                                        &&
+                                        attendanceType
+                                        === "normal"
+                                        && (
+
+                                            <>
+
+
+                                                <div className="mb-3">
+
+                                                    현재 상태 :{" "}
+
+                                                    <Badge bg="success">
+                                                        출근
+                                                    </Badge>
+
+                                                </div>
+
+
+                                                <Row className="g-3">
+
+
+                                                    <Col md={4}>
+
+                                                        <Form.Group>
+
+                                                            <Form.Label>
+                                                                실제 출근
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="datetime-local"
+                                                                value={
+                                                                    clockIn
+                                                                }
+                                                                onChange={
+                                                                    e =>
+                                                                        setClockIn(
+                                                                            e.target.value
+                                                                        )
+                                                                }
+                                                            />
+
+                                                        </Form.Group>
+
+                                                    </Col>
+
+
+                                                    <Col md={4}>
+
+                                                        <Form.Group>
+
+                                                            <Form.Label>
+                                                                실제 퇴근
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="datetime-local"
+                                                                value={
+                                                                    clockOut
+                                                                }
+                                                                onChange={
+                                                                    e =>
+                                                                        setClockOut(
+                                                                            e.target.value
+                                                                        )
+                                                                }
+                                                            />
+
+                                                        </Form.Group>
+
+                                                    </Col>
+
+
+                                                    <Col md={4}>
+
+                                                        <Form.Group>
+
+                                                            <Form.Label>
+                                                                휴게시간(분)
+                                                            </Form.Label>
+
+                                                            <Form.Control
+                                                                type="number"
+                                                                min="0"
+                                                                value={
+                                                                    breakMinutes
+                                                                }
+                                                                onChange={
+                                                                    e =>
+                                                                        setBreakMinutes(
+                                                                            e.target.value
+                                                                        )
+                                                                }
+                                                            />
+
+                                                        </Form.Group>
+
+                                                    </Col>
+
+
+                                                </Row>
+
+
+                                                <div className="d-flex gap-2 flex-wrap mt-3">
+
+
+                                                    <Button
+                                                        onClick={
+                                                            normalToNormal
+                                                        }
+                                                    >
+                                                        출근정보 수정
+                                                    </Button>
+
+
+                                                    <Button
+                                                        variant="danger"
+                                                        onClick={
+                                                            () =>
+                                                                normalToAbsent(
+                                                                    "absent"
+                                                                )
+                                                        }
+                                                    >
+                                                        결근 전환
+                                                    </Button>
+
+
+                                                    <Button
+                                                        variant="outline-primary"
+                                                        onClick={
+                                                            () =>
+                                                                normalToAbsent(
+                                                                    "paid_leave"
+                                                                )
+                                                        }
+                                                    >
+                                                        유급휴가 전환
+                                                    </Button>
+
+
+                                                    <Button
+                                                        variant="outline-secondary"
+                                                        onClick={
+                                                            () =>
+                                                                normalToAbsent(
+                                                                    "unpaid_leave"
+                                                                )
+                                                        }
+                                                    >
+                                                        무급휴가 전환
+                                                    </Button>
+
+
+                                                </div>
+
+
+                                            </>
+
+                                        )
+                                    }
+
+
+                                    {/* =========================
+                                    근무일 결근 / 휴가
+                                ========================= */}
+
+                                    {
+                                        scheduledDayType
+                                        === "workday"
+                                        &&
+                                        attendanceExist
+                                        &&
+                                        attendanceType
+                                        !== "normal"
+                                        && (
+
+                                            <>
+
+
+                                                <div className="mb-3">
+
+                                                    현재 상태 :{" "}
+
+                                                    <Badge
+                                                        bg={
+                                                            attendanceBadge(
+                                                                attendanceType
                                                             )
-                                                    }
-                                                >
-                                                    결근 등록
-                                                </Button>
-
-
-                                                <Button
-                                                    variant="primary"
-                                                    onClick={
-                                                        () =>
-                                                            addNonWorkingAttendance(
-                                                                "paid_leave"
+                                                        }
+                                                    >
+                                                        {
+                                                            attendanceLabel(
+                                                                attendanceType
                                                             )
-                                                    }
-                                                >
-                                                    유급휴가 등록
-                                                </Button>
+                                                        }
+                                                    </Badge>
+
+                                                </div>
 
 
-                                                <Button
-                                                    variant="secondary"
-                                                    onClick={
-                                                        () =>
-                                                            addNonWorkingAttendance(
-                                                                "unpaid_leave"
-                                                            )
-                                                    }
-                                                >
-                                                    무급휴가 등록
-                                                </Button>
+                                                <div className="d-flex gap-2 flex-wrap mb-4">
 
-
-                                            </div>
-
-
-                                            <div
-                                                className="
-                                                    small
-                                                    text-muted
-                                                    mt-3
-                                                "
-                                            >
-
-                                                실제 출근은 직원이 출근 처리하면
-                                                자동으로 등록됩니다.
-
-                                            </div>
-
-
-                                        </div>
-
-                                    )
-                                }
-
-
-                                {/* =================================================
-                                    정상 근태
-                                ================================================= */}
-
-                                {
-                                    attendanceExist
-                                    &&
-                                    attendanceType
-                                    === "normal"
-                                    && (
-
-                                        <>
-
-
-                                            <div className="mb-3">
-
-                                                현재 상태 :{" "}
-
-                                                <Badge
-                                                    bg={
-                                                        scheduledDayType
-                                                        === "holiday"
-
-                                                            ? "warning"
-
-                                                            : "success"
-                                                    }
-                                                    text={
-                                                        scheduledDayType
-                                                        === "holiday"
-
-                                                            ? "dark"
-
-                                                            : undefined
-                                                    }
-                                                >
 
                                                     {
-                                                        scheduledDayType
-                                                        === "holiday"
+                                                        attendanceType
+                                                        !== "absent"
+                                                        && (
 
-                                                        ? "주휴일 근무"
+                                                            <Button
+                                                                variant="danger"
+                                                                onClick={
+                                                                    () =>
+                                                                        absentToAbsent(
+                                                                            "absent"
+                                                                        )
+                                                                }
+                                                            >
+                                                                결근으로 변경
+                                                            </Button>
 
-                                                        : scheduledDayType
-                                                        === "dayOff"
-
-                                                        ? "휴무일 근무"
-
-                                                        : "출근"
+                                                        )
                                                     }
 
-                                                </Badge>
 
-                                            </div>
+                                                    {
+                                                        attendanceType
+                                                        !== "paid_leave"
+                                                        && (
+
+                                                            <Button
+                                                                variant="primary"
+                                                                onClick={
+                                                                    () =>
+                                                                        absentToAbsent(
+                                                                            "paid_leave"
+                                                                        )
+                                                                }
+                                                            >
+                                                                유급휴가로 변경
+                                                            </Button>
+
+                                                        )
+                                                    }
 
 
-                                            <Row className="g-3">
+                                                    {
+                                                        attendanceType
+                                                        !== "unpaid_leave"
+                                                        && (
+
+                                                            <Button
+                                                                variant="secondary"
+                                                                onClick={
+                                                                    () =>
+                                                                        absentToAbsent(
+                                                                            "unpaid_leave"
+                                                                        )
+                                                                }
+                                                            >
+                                                                무급휴가로 변경
+                                                            </Button>
+
+                                                        )
+                                                    }
 
 
-                                                <Col md={4}>
+                                                </div>
 
-                                                    <Form.Group>
 
-                                                        <Form.Label>
-                                                            실제 출근
-                                                        </Form.Label>
+                                                <hr />
 
+
+                                                <h6>
+                                                    출근 상태로 변경
+                                                </h6>
+
+
+                                                <Row className="g-3">
+
+
+                                                    <Col md={4}>
 
                                                         <Form.Control
                                                             type="datetime-local"
@@ -2858,19 +2835,10 @@ const AdminWorkScheduleCalendar = ({
                                                             }
                                                         />
 
-                                                    </Form.Group>
-
-                                                </Col>
+                                                    </Col>
 
 
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            실제 퇴근
-                                                        </Form.Label>
-
+                                                    <Col md={4}>
 
                                                         <Form.Control
                                                             type="datetime-local"
@@ -2885,19 +2853,10 @@ const AdminWorkScheduleCalendar = ({
                                                             }
                                                         />
 
-                                                    </Form.Group>
-
-                                                </Col>
+                                                    </Col>
 
 
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            휴게시간(분)
-                                                        </Form.Label>
-
+                                                    <Col md={4}>
 
                                                         <Form.Control
                                                             type="number"
@@ -2913,310 +2872,32 @@ const AdminWorkScheduleCalendar = ({
                                                             }
                                                         />
 
-                                                    </Form.Group>
-
-                                                </Col>
+                                                    </Col>
 
 
-                                            </Row>
-
-
-                                            <div
-                                                className="
-                                                    d-flex
-                                                    gap-2
-                                                    flex-wrap
-                                                    mt-3
-                                                "
-                                            >
+                                                </Row>
 
 
                                                 <Button
+                                                    className="mt-3"
+                                                    variant="success"
                                                     onClick={
-                                                        normalToNormal
+                                                        absentToNormal
                                                     }
                                                 >
-                                                    출근정보 수정
+                                                    출근 상태로 변경
                                                 </Button>
 
 
-                                                <Button
-                                                    variant="danger"
-                                                    onClick={
-                                                        () =>
-                                                            normalToAbsent(
-                                                                "absent"
-                                                            )
-                                                    }
-                                                >
-                                                    결근 전환
-                                                </Button>
+                                            </>
 
+                                        )
+                                    }
 
-                                                <Button
-                                                    variant="outline-primary"
-                                                    onClick={
-                                                        () =>
-                                                            normalToAbsent(
-                                                                "paid_leave"
-                                                            )
-                                                    }
-                                                >
-                                                    유급휴가 전환
-                                                </Button>
 
+                                </>
 
-                                                <Button
-                                                    variant="outline-secondary"
-                                                    onClick={
-                                                        () =>
-                                                            normalToAbsent(
-                                                                "unpaid_leave"
-                                                            )
-                                                    }
-                                                >
-                                                    무급휴가 전환
-                                                </Button>
-
-
-                                            </div>
-
-
-                                        </>
-
-                                    )
-                                }
-
-
-                                {/* =================================================
-                                    결근 / 휴가
-                                ================================================= */}
-
-                                {
-                                    attendanceExist
-                                    &&
-                                    attendanceType
-                                    !== "normal"
-                                    && (
-
-                                        <>
-
-
-                                            <div className="mb-3">
-
-                                                현재 상태 :{" "}
-
-                                                <Badge
-                                                    bg={
-                                                        attendanceBadge(
-                                                            attendanceType
-                                                        )
-                                                    }
-                                                >
-
-                                                    {
-                                                        attendanceLabel(
-                                                            attendanceType
-                                                        )
-                                                    }
-
-                                                </Badge>
-
-                                            </div>
-
-
-                                            <div
-                                                className="
-                                                    d-flex
-                                                    gap-2
-                                                    flex-wrap
-                                                    mb-4
-                                                "
-                                            >
-
-
-                                                {
-                                                    attendanceType
-                                                    !== "absent"
-                                                    && (
-
-                                                        <Button
-                                                            variant="danger"
-                                                            onClick={
-                                                                () =>
-                                                                    absentToAbsent(
-                                                                        "absent"
-                                                                    )
-                                                            }
-                                                        >
-                                                            결근으로 변경
-                                                        </Button>
-
-                                                    )
-                                                }
-
-
-                                                {
-                                                    attendanceType
-                                                    !== "paid_leave"
-                                                    && (
-
-                                                        <Button
-                                                            variant="primary"
-                                                            onClick={
-                                                                () =>
-                                                                    absentToAbsent(
-                                                                        "paid_leave"
-                                                                    )
-                                                            }
-                                                        >
-                                                            유급휴가로 변경
-                                                        </Button>
-
-                                                    )
-                                                }
-
-
-                                                {
-                                                    attendanceType
-                                                    !== "unpaid_leave"
-                                                    && (
-
-                                                        <Button
-                                                            variant="secondary"
-                                                            onClick={
-                                                                () =>
-                                                                    absentToAbsent(
-                                                                        "unpaid_leave"
-                                                                    )
-                                                            }
-                                                        >
-                                                            무급휴가로 변경
-                                                        </Button>
-
-                                                    )
-                                                }
-
-
-                                            </div>
-
-
-                                            <hr />
-
-
-                                            <h6>
-                                                출근 상태로 변경
-                                            </h6>
-
-
-                                            <Row className="g-3 mt-1">
-
-
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            실제 출근
-                                                        </Form.Label>
-
-
-                                                        <Form.Control
-                                                            type="datetime-local"
-                                                            value={
-                                                                clockIn
-                                                            }
-                                                            onChange={
-                                                                e =>
-                                                                    setClockIn(
-                                                                        e.target.value
-                                                                    )
-                                                            }
-                                                        />
-
-                                                    </Form.Group>
-
-                                                </Col>
-
-
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            실제 퇴근
-                                                        </Form.Label>
-
-
-                                                        <Form.Control
-                                                            type="datetime-local"
-                                                            value={
-                                                                clockOut
-                                                            }
-                                                            onChange={
-                                                                e =>
-                                                                    setClockOut(
-                                                                        e.target.value
-                                                                    )
-                                                            }
-                                                        />
-
-                                                    </Form.Group>
-
-                                                </Col>
-
-
-                                                <Col md={4}>
-
-                                                    <Form.Group>
-
-                                                        <Form.Label>
-                                                            휴게시간(분)
-                                                        </Form.Label>
-
-
-                                                        <Form.Control
-                                                            type="number"
-                                                            min="0"
-                                                            value={
-                                                                breakMinutes
-                                                            }
-                                                            onChange={
-                                                                e =>
-                                                                    setBreakMinutes(
-                                                                        e.target.value
-                                                                    )
-                                                            }
-                                                        />
-
-                                                    </Form.Group>
-
-                                                </Col>
-
-
-                                            </Row>
-
-
-                                            <Button
-                                                className="mt-3"
-                                                variant="success"
-                                                onClick={
-                                                    absentToNormal
-                                                }
-                                            >
-                                                출근 상태로 변경
-                                            </Button>
-
-
-                                        </>
-
-                                    )
-                                }
-
-
-                            </>
-
-                        )
+                            )
                     }
 
 
@@ -3231,9 +2912,7 @@ const AdminWorkScheduleCalendar = ({
                             closeModal
                         }
                     >
-
                         닫기
-
                     </Button>
 
                 </Modal.Footer>

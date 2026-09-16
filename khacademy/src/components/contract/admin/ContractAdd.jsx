@@ -38,16 +38,11 @@ export default function ContractAdd() {
     // =========================================================
     // parameter
     //
-    // /admin/contract/add/:employeeNo/:employeeType
-    //
-    // employeeType
-    // desk
-    // teacher
+    // /admin/contract/add/:employeeNo
     // =========================================================
 
     const {
-        employeeNo,
-        employeeType: employeeTypeParam
+        employeeNo
     } = useParams();
 
 
@@ -64,10 +59,7 @@ export default function ContractAdd() {
     // =========================================================
 
     const [employeeType, setEmployeeType] =
-        useState(
-            employeeTypeParam
-            ?? ""
-        );
+        useState("");
 
 
     const [employee, setEmployee] =
@@ -145,62 +137,177 @@ export default function ContractAdd() {
 
 
     // =========================================================
-    // employeeType param 변경 시 동기화
+    // 직원 조회
+    //
+    // 데스크 / 강사 API 둘 다 조회
+    //
+    // 데스크가 존재하면
+    // → employeeType = desk
+    //
+    // 강사가 존재하면
+    // → employeeType = teacher
+    // =========================================================
+
+    const loadEmployee =
+        useCallback(
+            async () => {
+
+                if (!employeeNo) {
+                    return;
+                }
+
+
+                try {
+
+                    setLoading(
+                        true
+                    );
+
+
+                    setEmployee(
+                        null
+                    );
+
+
+                    setEmployeeType(
+                        ""
+                    );
+
+
+                    // =============================================
+                    // 데스크 / 강사 동시에 조회
+                    //
+                    // 한쪽이 404여도 Promise 전체가 죽지 않도록
+                    // Promise.allSettled 사용
+                    // =============================================
+
+                    const [
+                        deskResult,
+                        teacherResult
+                    ] =
+                        await Promise.allSettled([
+
+                            apiClient.get(
+                                `/admin/contract/desk/${employeeNo}`
+                            ),
+
+                            apiClient.get(
+                                `/admin/contract/teacher/${employeeNo}`
+                            )
+
+                        ]);
+
+
+                    // =============================================
+                    // 데스크 직원인 경우
+                    // =============================================
+
+                    if (
+                        deskResult.status === "fulfilled"
+                        &&
+                        deskResult.value?.data
+                    ) {
+
+                        setEmployeeType(
+                            "desk"
+                        );
+
+
+                        setEmployee(
+                            deskResult.value.data
+                        );
+
+
+                        return;
+                    }
+
+
+                    // =============================================
+                    // 강사 직원인 경우
+                    // =============================================
+
+                    if (
+                        teacherResult.status === "fulfilled"
+                        &&
+                        teacherResult.value?.data
+                    ) {
+
+                        setEmployeeType(
+                            "teacher"
+                        );
+
+
+                        setEmployee(
+                            teacherResult.value.data
+                        );
+
+
+                        return;
+                    }
+
+
+                    // =============================================
+                    // 둘 다 조회 실패
+                    // =============================================
+
+                    toast.error(
+                        "계약 대상 직원 정보를 찾을 수 없습니다"
+                    );
+
+                }
+                catch (e) {
+
+                    console.error(
+                        e
+                    );
+
+
+                    setEmployee(
+                        null
+                    );
+
+
+                    setEmployeeType(
+                        ""
+                    );
+
+
+                    toast.error(
+                        e?.response?.data?.message
+                        ??
+                        "직원 정보를 불러오지 못했습니다"
+                    );
+
+                }
+                finally {
+
+                    setLoading(
+                        false
+                    );
+
+                }
+
+            },
+            [
+                employeeNo
+            ]
+        );
+
+
+    // =========================================================
+    // employeeNo 결정 후 직원 자동 조회
     // =========================================================
 
     useEffect(
         () => {
 
-            if (
-                employeeTypeParam
-                === "desk"
-                ||
-                employeeTypeParam
-                === "teacher"
-            ) {
-
-                setEmployeeType(
-                    employeeTypeParam
-                );
-
-                return;
-            }
-
-
-            setEmployeeType(
-                ""
-            );
+            loadEmployee();
 
         },
         [
-            employeeTypeParam
+            loadEmployee
         ]
     );
-
-
-    // =========================================================
-    // 직원 유형 변경
-    //
-    // employeeTypeParam이 없는 직접 접근일 경우만
-    // 수동 변경 가능
-    // =========================================================
-
-    const changeEmployeeType =
-        useCallback(
-            e => {
-
-                setEmployeeType(
-                    e.target.value
-                );
-
-
-                setEmployee(
-                    null
-                );
-
-            },
-            []
-        );
 
 
     // =========================================================
@@ -232,102 +339,6 @@ export default function ContractAdd() {
 
 
     // =========================================================
-    // 직원 정보 조회
-    //
-    // desk
-    // → GET /api/admin/contract/desk/{employeeNo}
-    //
-    // teacher
-    // → GET /api/admin/contract/teacher/{employeeNo}
-    // =========================================================
-
-    const loadEmployee =
-        useCallback(
-            async () => {
-
-                if (!employeeNo) {
-                    return;
-                }
-
-
-                if (
-                    employeeType
-                    === ""
-                ) {
-                    return;
-                }
-
-
-                try {
-
-                    setLoading(
-                        true
-                    );
-
-
-                    const { data } =
-                        await apiClient.get(
-                            `/admin/contract/${employeeType}/${employeeNo}`
-                        );
-
-
-                    setEmployee(
-                        data
-                    );
-
-                }
-                catch (e) {
-
-                    console.error(
-                        e
-                    );
-
-
-                    setEmployee(
-                        null
-                    );
-
-
-                    toast.error(
-                        e?.response?.data?.message
-                        ??
-                        "직원 정보를 불러오지 못했습니다"
-                    );
-
-                }
-                finally {
-
-                    setLoading(
-                        false
-                    );
-
-                }
-
-            },
-            [
-                employeeNo,
-                employeeType
-            ]
-        );
-
-
-    // =========================================================
-    // employeeNo / employeeType 결정 후 자동 조회
-    // =========================================================
-
-    useEffect(
-        () => {
-
-            loadEmployee();
-
-        },
-        [
-            loadEmployee
-        ]
-    );
-
-
-    // =========================================================
     // 입력값 검사
     // =========================================================
 
@@ -336,8 +347,7 @@ export default function ContractAdd() {
             () => {
 
                 if (
-                    employee
-                    === null
+                    employee === null
                 ) {
 
                     toast.warning(
@@ -349,14 +359,13 @@ export default function ContractAdd() {
 
 
                 if (
-                    employee.employeeStatus
-                    !== "대기"
+                    employee.employeeStatus !== "대기"
                     &&
                     employee.employeeStatus !== "종료"
                 ) {
 
                     toast.warning(
-                        "대기 상태의 직원만 신규 근로계약을 작성할 수 있습니다"
+                        "대기 또는 퇴사 상태의 직원만 신규 근로계약을 작성할 수 있습니다"
                     );
 
                     return false;
@@ -364,8 +373,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    contract.wageType
-                    === ""
+                    contract.wageType === ""
                 ) {
 
                     toast.warning(
@@ -377,8 +385,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    contract.baseWage
-                    === ""
+                    contract.baseWage === ""
                 ) {
 
                     toast.warning(
@@ -390,11 +397,9 @@ export default function ContractAdd() {
 
 
                 if (
-                    contract.dailyWorkHours
-                    === ""
+                    contract.dailyWorkHours === ""
                     ||
-                    contract.weeklyWorkHours
-                    === ""
+                    contract.weeklyWorkHours === ""
                 ) {
 
                     toast.warning(
@@ -422,8 +427,7 @@ export default function ContractAdd() {
                     ||
                     weeklyWorkHours <= 0
                     ||
-                    dailyWorkHours
-                    > weeklyWorkHours
+                    dailyWorkHours > weeklyWorkHours
                 ) {
 
                     toast.warning(
@@ -434,12 +438,14 @@ export default function ContractAdd() {
                 }
 
 
+                // =============================================
                 // 주 15시간 이상일 때만 주휴일 필수
+                // =============================================
+
                 if (
                     weeklyWorkHours >= 15
                     &&
-                    contract.weeklyHolidayDay
-                    === ""
+                    contract.weeklyHolidayDay === ""
                 ) {
 
                     toast.warning(
@@ -451,8 +457,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    contract.writtenBreakMinutes
-                    === ""
+                    contract.writtenBreakMinutes === ""
                 ) {
 
                     toast.warning(
@@ -470,8 +475,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    writtenBreakMinutes
-                    < 0
+                    writtenBreakMinutes < 0
                 ) {
 
                     toast.warning(
@@ -513,8 +517,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    contract.contractStart
-                    === ""
+                    contract.contractStart === ""
                 ) {
 
                     toast.warning(
@@ -526,8 +529,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    contract.contractEnd
-                    !== ""
+                    contract.contractEnd !== ""
                     &&
                     contract.contractStart
                     >
@@ -550,8 +552,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    contract.payday
-                    === ""
+                    contract.payday === ""
                     ||
                     payday < 1
                     ||
@@ -607,8 +608,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    sending
-                    === true
+                    sending === true
                 ) {
                     return;
                 }
@@ -639,8 +639,7 @@ export default function ContractAdd() {
 
 
                 if (
-                    result.isConfirmed
-                    === false
+                    result.isConfirmed === false
                 ) {
                     return;
                 }
@@ -650,8 +649,6 @@ export default function ContractAdd() {
 
                     ...contract,
 
-                    // 주 15시간 미만이면
-                    // 주휴일 없음
                     weeklyHolidayDay:
                         Number(
                             contract.weeklyWorkHours
@@ -660,8 +657,7 @@ export default function ContractAdd() {
                             : contract.weeklyHolidayDay,
 
                     contractEnd:
-                        contract.contractEnd
-                            === ""
+                        contract.contractEnd === ""
                             ? null
                             : contract.contractEnd
 
@@ -727,7 +723,6 @@ export default function ContractAdd() {
     return (
         <>
 
-
             <Jumbotron
                 title="근로계약 작성"
                 content="계약 대상 직원과 근로조건을 입력해주세요"
@@ -735,99 +730,14 @@ export default function ContractAdd() {
 
 
             {/* =====================================================
-                직원번호
-            ===================================================== */}
-
-            <Row className="mt-5">
-
-                <Form.Label
-                    column
-                    sm={3}
-                >
-                    직원번호
-                </Form.Label>
-
-
-                <Col sm={9}>
-
-                    <Form.Control
-                        type="text"
-                        value={
-                            employeeNo
-                            ?? ""
-                        }
-                        readOnly
-                    />
-
-                </Col>
-
-            </Row>
-
-
-            {/* =====================================================
-                직원유형
-            ===================================================== */}
-
-            <Row className="mt-4">
-
-                <Form.Label
-                    column
-                    sm={3}
-                >
-                    직원유형
-                </Form.Label>
-
-
-                <Col sm={9}>
-
-                    <Form.Select
-                        value={
-                            employeeType
-                        }
-                        onChange={
-                            changeEmployeeType
-                        }
-
-                        // URL에 employeeType이 존재하면
-                        // 이미 선택된 직원이므로 변경 금지
-                        disabled={
-                            employeeTypeParam
-                            === "desk"
-                            ||
-                            employeeTypeParam
-                            === "teacher"
-                        }
-                    >
-
-                        <option value="">
-                            선택
-                        </option>
-
-                        <option value="desk">
-                            데스크
-                        </option>
-
-                        <option value="teacher">
-                            강사
-                        </option>
-
-                    </Form.Select>
-
-                </Col>
-
-            </Row>
-
-
-            {/* =====================================================
-                직원 정보 조회 중
+                조회중
             ===================================================== */}
 
             {
-                loading
-                === true
+                loading === true
                 && (
 
-                    <Row className="mt-4">
+                    <Row className="mt-5">
 
                         <Col className="text-secondary">
 
@@ -846,112 +756,136 @@ export default function ContractAdd() {
 
 
             {/* =====================================================
-                직원 정보
+                직원 이름
             ===================================================== */}
 
             {
-                employee
-                !== null
+                loading === false
+                &&
+                employee !== null
                 && (
 
                     <>
 
+                        <Row className="mt-5">
 
-                        <Row className="mt-4">
-
-                            <Col
+                            <Form.Label
+                                column
                                 sm={3}
-                                className="fw-bold text-info"
                             >
-                                이름
-                            </Col>
+                                직원이름
+                            </Form.Label>
 
 
-                            <Col
-                                sm={9}
-                                className="text-secondary"
-                            >
+                            <Col sm={9}>
 
-                                {
-                                    employee.accountName
-                                }
+                                <Form.Control
+                                    type="text"
+                                    value={
+                                        employee.accountName
+                                        ?? ""
+                                    }
+                                    readOnly
+                                />
 
                             </Col>
 
                         </Row>
 
 
+                        {/* =================================================
+                            연락처
+                        ================================================= */}
+
                         <Row className="mt-4">
 
-                            <Col
+                            <Form.Label
+                                column
                                 sm={3}
-                                className="fw-bold text-info"
                             >
                                 연락처
-                            </Col>
+                            </Form.Label>
 
 
-                            <Col
-                                sm={9}
-                                className="text-secondary"
-                            >
+                            <Col sm={9}>
 
-                                {
-                                    employee.accountPhone
-                                }
+                                <Form.Control
+                                    type="text"
+                                    value={
+                                        employee.accountPhone
+                                        ?? ""
+                                    }
+                                    readOnly
+                                />
 
                             </Col>
 
                         </Row>
 
 
+                        {/* =================================================
+                            고용형태
+                        ================================================= */}
+
                         <Row className="mt-4">
 
-                            <Col
+                            <Form.Label
+                                column
                                 sm={3}
-                                className="fw-bold text-info"
                             >
                                 고용형태
-                            </Col>
+                            </Form.Label>
 
 
-                            <Col
-                                sm={9}
-                                className="text-secondary"
-                            >
+                            <Col sm={9}>
 
-                                {
-                                    employee.employeeType
-                                }
+                                <Form.Control
+                                    type="text"
+                                    value={
+                                        employee.employeeType
+                                        ?? ""
+                                    }
+                                    readOnly
+                                />
 
                             </Col>
 
                         </Row>
 
+
+                        {/* =================================================
+                            고용상태
+                        ================================================= */}
 
                         <Row className="mt-4">
 
-                            <Col
+                            <Form.Label
+                                column
                                 sm={3}
-                                className="fw-bold text-info"
                             >
                                 고용상태
-                            </Col>
+                            </Form.Label>
 
 
-                            <Col
-                                sm={9}
-                                className="text-secondary"
-                            >
+                            <Col sm={9}>
 
-                                {
-                                    employee.employeeStatus
-                                }
+                                <Form.Control
+                                    type="text"
+                                    value={
+                                        employee.employeeStatus
+                                        ?? ""
+                                    }
+                                    readOnly
+                                />
 
                             </Col>
 
                         </Row>
 
+
+                        {/* =================================================
+                            계약 작성 불가능 상태
+                        ================================================= */}
 
                         {
                             employee.employeeStatus !== "대기"
@@ -1449,8 +1383,7 @@ export default function ContractAdd() {
                                             )
                                     }
                                     disabled={
-                                        sending
-                                        === true
+                                        sending === true
                                     }
                                 >
 
@@ -1473,8 +1406,7 @@ export default function ContractAdd() {
                                         sendData
                                     }
                                     disabled={
-                                        sending
-                                        === true
+                                        sending === true
                                     }
                                 >
 
@@ -1483,8 +1415,7 @@ export default function ContractAdd() {
                                     <span className="ms-2">
 
                                         {
-                                            sending
-                                                === true
+                                            sending === true
                                                 ? "작성중..."
                                                 : "근로계약 작성"
                                         }

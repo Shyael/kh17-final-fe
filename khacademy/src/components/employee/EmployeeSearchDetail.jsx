@@ -236,115 +236,122 @@ export default function EmployeeSearchDetail() {
     // =========================================================
 
     const moveContract =
-    useCallback(
-        async () => {
+        useCallback(
+            async () => {
 
-            if (!employee) {
-                return;
-            }
-
-
-            if (!isAdmin) {
-
-                navigate(
-                    `/employee/contract/history/${employee.employeeNo}`
-                );
-
-                return;
-            }
+                if (!employee) {
+                    return;
+                }
 
 
-            if (contractLoading) {
-                return;
-            }
-
-
-            try {
-
-                setContractLoading(
-                    true
-                );
-
-
-                const { data } =
-                    await apiClient.get(
-                        `/admin/contract/${employee.employeeNo}`
-                    );
-
-
-                const contractList =
-                    Array.isArray(data)
-                        ? data
-                        : [];
-
-
-                // 계약 없음
-                if (
-                    contractList.length === 0
-                ) {
+                if (!isAdmin) {
 
                     navigate(
-                        `/admin/contract/add/${employee.employeeNo}`
+                        `/employee/contract/history/${employee.employeeNo}`
                     );
 
                     return;
                 }
 
 
-                // 계약 있음
-                navigate(
-                    `/admin/contract/history/${employee.employeeNo}`
-                );
-
-            }
-            catch (err) {
-
-                console.error(
-                    "근로계약 조회 실패",
-                    err
-                );
-
-
-                // =========================================
-                // 계약이 없는 직원
-                // 백엔드에서 404를 반환하는 경우
-                // =========================================
-
-                if (
-                    err.response?.status === 404
-                ) {
-
-                    navigate(
-                        `/admin/contract/add/${employee.employeeNo}`
-                    );
-
+                if (contractLoading) {
                     return;
                 }
 
 
-                toast.error(
-                    err?.response?.data?.message
-                    ??
-                    "근로계약 정보를 확인하지 못했습니다."
-                );
+                try {
 
-            }
-            finally {
+                    setContractLoading(
+                        true
+                    );
 
-                setContractLoading(
-                    false
-                );
 
-            }
+                    const { data } =
+                        await apiClient.get(
+                            `/admin/contract/${employee.employeeNo}`
+                        );
 
-        },
-        [
-            employee,
-            isAdmin,
-            contractLoading,
-            navigate
-        ]
-    );
+
+                    const contractList =
+                        Array.isArray(data)
+                            ? data
+                            : [];
+
+
+                    // 계약 없음
+                    if (
+                        contractList.length === 0
+                    ) {
+
+                        navigate(
+                            `/admin/contract/add/${employee.employeeNo}`
+                        );
+
+                        return;
+                    }
+
+                    if (!contractList.some((e) => e.contractStatus === "active")) {
+                        navigate(
+                            `/admin/contract/add/${employee.employeeNo}`
+                        );
+                        return;
+                    }
+
+
+                    // 계약 있음
+                    navigate(
+                        `/employee/contract/history/${employee.employeeNo}`
+                    );
+
+                }
+                catch (err) {
+
+                    console.error(
+                        "근로계약 조회 실패",
+                        err
+                    );
+
+
+                    // =========================================
+                    // 계약이 없는 직원
+                    // 백엔드에서 404를 반환하는 경우
+                    // =========================================
+
+                    if (
+                        err.response?.status === 404
+                    ) {
+
+                        navigate(
+                            `/admin/contract/add/${employee.employeeNo}`
+                        );
+
+                        return;
+                    }
+
+
+                    toast.error(
+                        err?.response?.data?.message
+                        ??
+                        "근로계약 정보를 확인하지 못했습니다."
+                    );
+
+                }
+                finally {
+
+                    setContractLoading(
+                        false
+                    );
+
+                }
+
+            },
+            [
+                employee,
+                isAdmin,
+                contractLoading,
+                navigate
+            ]
+        );
 
     // =========================================================
     // loading
@@ -765,7 +772,7 @@ export default function EmployeeSearchDetail() {
 
                     {
                         employee.roles?.length
-                        > 0
+                            > 0
                             ? (
 
                                 <div
@@ -827,137 +834,137 @@ export default function EmployeeSearchDetail() {
             {/* =====================================================
                 관련 업무
             ===================================================== */}
-        {isAdmin&&(<>
-            <Card>
+            {isAdmin && (<>
+                <Card>
 
 
-                <Card.Header>
+                    <Card.Header>
 
-                    관련 업무
+                        관련 업무
 
-                </Card.Header>
+                    </Card.Header>
 
 
-                <Card.Body
-                    className="
+                    <Card.Body
+                        className="
                         d-flex
                         gap-2
                         flex-wrap
                     "
-                >
+                    >
 
 
-                    {/* =============================================
+                        {/* =============================================
                         근로계약
                     ============================================= */}
 
-                    <Button
-                        variant="outline-primary"
-                        onClick={
-                            moveContract
-                        }
-                        disabled={
-                            contractLoading
-                        }
-                    >
+                        <Button
+                            variant="outline-primary"
+                            onClick={
+                                moveContract
+                            }
+                            disabled={
+                                contractLoading
+                            }
+                        >
 
-                        {
-                            contractLoading
-                                ? "계약 확인 중..."
-                                : "근로계약"
-                        }
+                            {
+                                contractLoading
+                                    ? "계약 확인 중..."
+                                    : "근로계약"
+                            }
 
-                    </Button>
+                        </Button>
 
 
-                    {/* =============================================
+                        {/* =============================================
                         근무일정
                     ============================================= */}
 
-                    <Button
-                        onClick={
-                            () =>
-                                setShowSchedule(
-                                    true
-                                )
-                        }
-                    >
+                        <Button
+                            onClick={
+                                () =>
+                                    setShowSchedule(
+                                        true
+                                    )
+                            }
+                        >
 
-                        근무일정 보기
+                            근무일정 보기
 
-                    </Button>
+                        </Button>
 
 
-                    {/* =============================================
+                        {/* =============================================
                         급여
                     ============================================= */}
 
-                    <Button
-                        variant="outline-primary"
-                        onClick={
-                            () =>
-                                navigate(
-                                    `/admin/payroll/${employee.employeeNo}`
-                                )
-                        }
-                    >
+                        <Button
+                            variant="outline-primary"
+                            onClick={
+                                () =>
+                                    navigate(
+                                        `/admin/payroll/${employee.employeeNo}`
+                                    )
+                            }
+                        >
 
-                        급여
+                            급여
 
-                    </Button>
+                        </Button>
 
 
-                </Card.Body>
+                    </Card.Body>
 
-            </Card>
+                </Card>
 
-            
-            {/* =====================================================
+
+                {/* =====================================================
                 근무일정 Modal
             ===================================================== */}
 
-            <Modal
-                show={
-                    showSchedule
-                }
-                onHide={
-                    () =>
-                        setShowSchedule(
-                            false
-                        )
-                }
-                size="xl"
-                centered
-            >
+                <Modal
+                    show={
+                        showSchedule
+                    }
+                    onHide={
+                        () =>
+                            setShowSchedule(
+                                false
+                            )
+                    }
+                    size="xl"
+                    centered
+                >
 
 
-                <Modal.Header closeButton>
+                    <Modal.Header closeButton>
 
-                    <Modal.Title>
+                        <Modal.Title>
 
-                        {
-                            employee.accountName
-                        }{" "}
-                        근무일정
+                            {
+                                employee.accountName
+                            }{" "}
+                            근무일정
 
-                    </Modal.Title>
+                        </Modal.Title>
 
-                </Modal.Header>
-
-
-                <Modal.Body>
-
-                    <AdminWorkScheduleCalendar
-                        employeeNo={
-                            employee.employeeNo
-                        }
-                    />
-
-                </Modal.Body>
+                    </Modal.Header>
 
 
-            </Modal>
-        </>)}
+                    <Modal.Body>
+
+                        <AdminWorkScheduleCalendar
+                            employeeNo={
+                                employee.employeeNo
+                            }
+                        />
+
+                    </Modal.Body>
+
+
+                </Modal>
+            </>)}
 
         </Container>
 
