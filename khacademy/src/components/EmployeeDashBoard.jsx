@@ -12,14 +12,16 @@ import {
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
-import { loginUserState, isAdminState } from "@utils/storage";
+import { loginUserState, isAdminState, isDeskState } from "@utils/storage";
 import { assignmentDdayLabel, examDdayLabel } from "@utils/dday";
 import AdminDashBoard from "@components/AdminDashBoard";
+import DeskDashboard from "@components/DeskDashboard";
 
 export default function EmployeeDashboard() {
     const navigate = useNavigate();
     const loginUser = useAtomValue(loginUserState);
     const isAdmin = useAtomValue(isAdminState);
+    const isDesk = useAtomValue(isDeskState);
 
     // 대시보드 요약 정보
     const [dashboard, setDashboard] = useState(null);
@@ -27,6 +29,7 @@ export default function EmployeeDashboard() {
     // 강좌 상태 탭 필터 ('ALL', 'RUNNING', 'WAITING', 'FINISHED')
     const [courseTab, setCourseTab] = useState("ALL");
 
+    // 대시보드 조회
     const loadDashboard = useCallback(async () => {
         try {
             const response = await apiClient.get("/employee/dashboard");
@@ -96,6 +99,9 @@ export default function EmployeeDashboard() {
                 <>
                     {/* 원장 전용 대시보드 */}
                     {isAdmin && <AdminDashBoard dashboard={dashboard} />}
+
+                    {/* 데스크 대시보드 */}
+                    {isDesk && <DeskDashboard dashboard={dashboard} />}
 
                     <Row className="g-3 mt-1">
                         {/* =========================

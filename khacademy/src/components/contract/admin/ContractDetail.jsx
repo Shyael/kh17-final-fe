@@ -2,7 +2,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Col, Row } from "react-bootstrap";
-import { FaLock, FaSquarePen, FaXmark } from "react-icons/fa6";
+import { FaDeleteLeft, FaLock, FaSquarePen, FaXmark } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { formatDateTime } from "@utils/format";
@@ -107,6 +107,34 @@ export default function ContractDetail() {
         }
     }, [contractNo, loadData]);
 
+    const cancelData =useCallback(async ()=>{
+     const result = await Swal.fire({
+            title:"근로계약을 취소하시겠습니까?",
+            text:"취소 후에는 되돌릴 수 없습니다",
+            icon:"danger",
+            showCancelButton:true,
+            confirmButtonText:"취소 하기",
+            cancelButtonText:"나가기",
+            confirmButtonColor:"#d63031"
+        });
+        if(result.isConfirmed === false) return;
+
+        try {
+            await apiClient.delete(`/admin/contract/${contractNo}`);
+
+            toast.success("근로계약이 취소되었습니다");
+            loadData();
+            navigate(`/admin/contract/list`)
+        }
+        catch(e) {
+            console.error(e);
+            toast.error(
+                e?.response?.data?.message
+                ?? "근로계약 취소에 실패했습니다"
+            );
+        }
+    }, [contractNo, loadData]);
+
     if(loading === true && contract === null) {
         return <h1>로딩중...</h1>
     }
@@ -182,6 +210,12 @@ export default function ContractDetail() {
                         <FaLock/>
                         <span className="ms-2">계약 서명</span>
                     </Button>
+
+                    <Button variant="success" className="ms-2"
+                            onClick={cancelData}>
+                        <FaDeleteLeft/>
+                        <span className="ms-2">계약 취소</span>
+                    </Button>
                 </>
                 )}
 
@@ -214,6 +248,8 @@ export default function ContractDetail() {
                     </Button>
                 </>
                 )}
+
+                
             </Col>
         </Row>
     </>)

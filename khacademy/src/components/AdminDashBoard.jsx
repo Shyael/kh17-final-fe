@@ -1,4 +1,4 @@
-import { Badge, Card, Col, Row } from "react-bootstrap";
+import { Badge, Button, Card, Col, Row } from "react-bootstrap";
 import {
     FaFileSignature,
     FaCalendarXmark,
@@ -14,6 +14,44 @@ export default function AdminDashBoard({ dashboard }) {
     const navigate = useNavigate();
     return (
         <Row className="g-3 mt-3">
+            <div className="d-flex align-items-center gap-2 ms-auto">
+            <Button 
+
+                onClick={() => {
+
+                    navigate("/admin/contract/list")
+
+                }}
+
+                variant="info"
+            >
+
+                계약 관리
+
+
+
+            </Button>
+
+
+
+            <Button 
+                
+                onClick={() => {
+
+                    navigate("/admin/payroll")
+
+                }}
+
+                variant="info"
+            >
+
+                급여 관리
+
+
+
+            </Button>
+
+                </div>
 
             {/* 서명 대기 계약 */}
             <Col xs={12} lg={4}>
@@ -29,19 +67,6 @@ export default function AdminDashBoard({ dashboard }) {
                             </div>
 
                             <Badge
-                                onClick={() =>
-                                    navigate("/admin/contract/list", {
-                                        state: {
-                                            initialCondition: {
-                                                employeeStatus: "대기"
-                                            }
-                                        }
-                                    })
-                                }
-
-
-
-
                                 bg={
                                     dashboard.pendingContractList?.length > 0
                                         ? "warning"
@@ -72,12 +97,7 @@ export default function AdminDashBoard({ dashboard }) {
 
                                         <div>
                                             <div className="fw-semibold"
-                                                style={{ cursor: "pointer" }}
-                                                onClick={() =>
-                                                    navigate(
-                                                        `/admin/contract/detail/${contract.contractNo}`
-                                                    )
-                                                }>
+                                            >
 
                                                 {contract.employeeName}
                                             </div>

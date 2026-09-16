@@ -1,174 +1,664 @@
-
-import { Col, Row } from "react-bootstrap";
 import { useMemo } from "react";
 import { formatDate } from "@utils/format";
 
-export default function ContractDocument({ contract }) {
+import "@templates/ContractDocument.css";
 
-    //임금형태 한글 표시
-    const wageTypeText = useMemo(()=>{
-        if(contract === null || contract === undefined) return "";
-        if(contract.wageType === "monthly") return "월급";
-        if(contract.wageType === "hourly") return "시급";
-        if(contract.wageType === "daily") return "일급";
+
+export default function ContractDocument({ contract,
+    employee,
+    employer }) {
+
+    // =========================================================
+    // 임금형태 한글
+    // =========================================================
+
+    const wageTypeText = useMemo(() => {
+
+        if (!contract) return "";
+
+        if (contract.wageType === "monthly") return "월급";
+        if (contract.wageType === "hourly") return "시급";
+        if (contract.wageType === "daily") return "일급";
+
         return contract.wageType ?? "";
+
     }, [contract]);
 
-    //주휴일 한글 표시
-    const weeklyHolidayDayText = useMemo(()=>{
-        if(contract === null || contract === undefined) return "";
-        if(contract.weeklyHolidayDay === "MONDAY") return "월요일";
-        if(contract.weeklyHolidayDay === "TUESDAY") return "화요일";
-        if(contract.weeklyHolidayDay === "WEDNESDAY") return "수요일";
-        if(contract.weeklyHolidayDay === "THURSDAY") return "목요일";
-        if(contract.weeklyHolidayDay === "FRIDAY") return "금요일";
-        if(contract.weeklyHolidayDay === "SATURDAY") return "토요일";
-        if(contract.weeklyHolidayDay === "SUNDAY") return "일요일";
+
+    // =========================================================
+    // 주휴일 한글
+    // =========================================================
+
+    const weeklyHolidayDayText = useMemo(() => {
+
+        if (!contract) return "";
+
+        if (contract.weeklyHolidayDay === "MONDAY") return "월요일";
+        if (contract.weeklyHolidayDay === "TUESDAY") return "화요일";
+        if (contract.weeklyHolidayDay === "WEDNESDAY") return "수요일";
+        if (contract.weeklyHolidayDay === "THURSDAY") return "목요일";
+        if (contract.weeklyHolidayDay === "FRIDAY") return "금요일";
+        if (contract.weeklyHolidayDay === "SATURDAY") return "토요일";
+        if (contract.weeklyHolidayDay === "SUNDAY") return "일요일";
+
         return contract.weeklyHolidayDay ?? "";
+
     }, [contract]);
 
-    //날짜 출력용
-    const startDate = useMemo(()=>{
-        if(contract?.contractStart === null || contract?.contractStart === undefined || contract?.contractStart === "") {
-            return "________________";
+
+    // =========================================================
+    // 계약 시작일
+    // =========================================================
+
+    const startDate = useMemo(() => {
+
+        if (
+            contract?.contractStart === null
+            ||
+            contract?.contractStart === undefined
+            ||
+            contract?.contractStart === ""
+        ) {
+            return "";
         }
-        return formatDate(contract.contractStart);
+
+        return formatDate(
+            contract.contractStart
+        );
+
     }, [contract]);
 
-    const endDate = useMemo(()=>{
-        if(contract?.contractEnd === null || contract?.contractEnd === undefined) {
+
+    // =========================================================
+    // 계약 종료일
+    // =========================================================
+
+    const endDate = useMemo(() => {
+
+        if (
+            contract?.contractEnd === null
+            ||
+            contract?.contractEnd === undefined
+            ||
+            contract?.contractEnd === ""
+        ) {
             return "기간의 정함 없음";
         }
-        if(contract.contractEnd === "") {
-            return "기간의 정함 없음";
-        }
-        return formatDate(contract.contractEnd);
+
+        return formatDate(
+            contract.contractEnd
+        );
+
     }, [contract]);
 
-    //금액 출력용
-    const baseWage = useMemo(()=>{
-        if(contract?.baseWage === null || contract?.baseWage === undefined || contract?.baseWage === "") {
-            return "________________";
+
+    // =========================================================
+    // 기본임금
+    // =========================================================
+
+    const baseWage = useMemo(() => {
+
+        if (
+            contract?.baseWage === null
+            ||
+            contract?.baseWage === undefined
+            ||
+            contract?.baseWage === ""
+        ) {
+            return "";
         }
 
-        const value = parseInt(contract.baseWage, 10);
-        if(Number.isNaN(value)) return contract.baseWage;
+
+        const value =
+            parseInt(
+                contract.baseWage,
+                10
+            );
+
+
+        if (
+            Number.isNaN(value)
+        ) {
+            return contract.baseWage;
+        }
+
 
         return `${value.toLocaleString()}원`;
+
     }, [contract]);
 
-    if(contract === null || contract === undefined) return null;
 
-    return (<>
-        <Row className="mt-5">
-            <Col className="text-center">
-                <h3 className="fw-bold">근 로 계 약 서</h3>
-            </Col>
-        </Row>
+    // =========================================================
+    // 계약 없으면 출력 안 함
+    // =========================================================
 
-        {(contract.contractNo !== undefined || contract.employeeNo !== undefined) && (
-        <Row className="mt-5">
-            <Col sm={3} className="fw-bold text-info">계약번호</Col>
-            <Col sm={3} className="text-secondary">
-                {contract.contractNo ?? "신규 작성"}
-            </Col>
-            <Col sm={3} className="fw-bold text-info">직원번호</Col>
-            <Col sm={3} className="text-secondary">
-                {contract.employeeNo ?? "-"}
-            </Col>
-        </Row>
-        )}
+    if (!contract) {
+        return null;
+    }
 
-        <Row className="mt-5">
-            <Col>
-                <h5 className="fw-bold">제1조 [근로계약기간]</h5>
-            </Col>
-        </Row>
 
-        <Row className="mt-3">
-            <Col>
-                근로계약기간은 <b>{startDate}</b> 부터 <b>{endDate}</b> 까지로 한다.
-            </Col>
-        </Row>
+    return (
+        <div className="contract-document-wrapper">
 
-        <Row className="mt-5">
-            <Col>
-                <h5 className="fw-bold">제2조 [임금]</h5>
-            </Col>
-        </Row>
+            <div className="contract-paper">
 
-        <Row className="mt-3">
-            <Col>
-                임금형태는 <b>{wageTypeText || "________________"}</b>으로 하며
-                기본임금은 <b>{baseWage}</b>으로 한다.
-            </Col>
-        </Row>
 
-        <Row className="mt-3">
-            <Col>
-                급여는 매월 <b>{contract.payday || "________"}일</b>에 지급한다.
-            </Col>
-        </Row>
+                {/* =====================================================
+                    제목
+                ===================================================== */}
 
-        <Row className="mt-5">
-            <Col>
-                <h5 className="fw-bold">제3조 [소정근로시간]</h5>
-            </Col>
-        </Row>
+                <div className="contract-title-box">
 
-        <Row className="mt-3">
-            <Col>
-                1일 소정근로시간은 <b>{contract.dailyWorkHours || "________"}시간</b>,
-                1주 소정근로시간은 <b>{contract.weeklyWorkHours || "________"}시간</b>으로 한다.
-            </Col>
-        </Row>
+                    <h2>
+                        표준근로계약서
+                    </h2>
 
-        <Row className="mt-5">
-            <Col>
-                <h5 className="fw-bold">제4조 [주휴일]</h5>
-            </Col>
-        </Row>
+                </div>
 
-        <Row className="mt-3">
-            <Col>
-                1주 유급 주휴일은 <b>{weeklyHolidayDayText || "________"}</b>로 한다.
-            </Col>
-        </Row>
 
-        <Row className="mt-5">
-            <Col>
-                <h5 className="fw-bold">제5조 [휴게시간]</h5>
-            </Col>
-        </Row>
+                <p className="contract-intro">
 
-        <Row className="mt-3">
-            <Col>
-                근로시간 중 휴게시간은 <b>{contract.writtenBreakMinutes || "________"}분</b>으로 한다.
-            </Col>
-        </Row>
+                    사용자와 근로자는 다음과 같이 근로계약을 체결한다.
 
-        <Row className="mt-5">
-            <Col>
-                <h5 className="fw-bold">제6조 [기타 근로조건]</h5>
-            </Col>
-        </Row>
+                </p>
 
-        <Row className="mt-3">
-            <Col>
-                {contract.contractContent || "근로계약 내용을 입력해주세요."}
-            </Col>
-        </Row>
 
-        <Row className="mt-5">
-            <Col>
-                <hr/>
-            </Col>
-        </Row>
+                {/* =====================================================
+                    기본 정보
+                ===================================================== */}
 
-        <Row className="mt-4 mb-5">
-            <Col className="text-center">
-                본 계약의 내용을 확인하고 이에 동의하여 근로계약을 체결한다.
-            </Col>
-        </Row>
-    </>)
+                {
+                    (
+                        contract.contractNo !== undefined
+                        ||
+                        contract.employeeNo !== undefined
+                    )
+                    && (
+
+                        <div className="contract-summary">
+
+                            <div>
+
+                                <span className="contract-label">
+                                    계약번호
+                                </span>
+
+                                <span>
+                                    {
+                                        contract.contractNo
+                                        ?? "신규 작성"
+                                    }
+                                </span>
+
+                            </div>
+
+
+                            <div>
+
+                                <span className="contract-label">
+                                    직원번호
+                                </span>
+
+                                <span>
+                                    {
+                                        contract.employeeNo
+                                        ?? "-"
+                                    }
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    )
+                }
+
+
+                {/* =====================================================
+                    제1조 계약기간
+                ===================================================== */}
+
+                <section className="contract-section">
+
+                    <h5>
+                        제1조 [근로계약기간]
+                    </h5>
+
+
+                    <div className="contract-line">
+
+                        근로계약기간은
+
+                        <span className="contract-value">
+                            {
+                                startDate
+                                || " "
+                            }
+                        </span>
+
+                        부터
+
+                        <span className="contract-value">
+                            {
+                                endDate
+                            }
+                        </span>
+
+                        까지로 한다.
+
+                    </div>
+
+                </section>
+
+
+                {/* =====================================================
+                    제2조 임금
+                ===================================================== */}
+
+                <section className="contract-section">
+
+                    <h5>
+                        제2조 [임금]
+                    </h5>
+
+
+                    <div className="contract-line">
+
+                        임금 형태는
+
+                        <span className="contract-value short">
+
+                            {
+                                wageTypeText
+                                || " "
+                            }
+
+                        </span>
+
+                        으로 한다.
+
+                    </div>
+
+
+                    <div className="contract-line">
+
+                        기본임금은
+
+                        <span className="contract-value">
+
+                            {
+                                baseWage
+                                || " "
+                            }
+
+                        </span>
+
+                        으로 한다.
+
+                    </div>
+
+
+                    <div className="contract-line">
+
+                        임금은 매월
+
+                        <span className="contract-value tiny">
+
+                            {
+                                contract.payday
+                                || " "
+                            }
+
+                        </span>
+
+                        일에 지급한다.
+
+                    </div>
+
+                </section>
+
+
+                {/* =====================================================
+                    제3조 소정근로시간
+                ===================================================== */}
+
+                <section className="contract-section">
+
+                    <h5>
+                        제3조 [소정근로시간]
+                    </h5>
+
+
+                    <div className="contract-line">
+
+                        1일 소정근로시간은
+
+                        <span className="contract-value short">
+
+                            {
+                                contract.dailyWorkHours
+                                || " "
+                            }
+
+                        </span>
+
+                        시간으로 한다.
+
+                    </div>
+
+
+                    <div className="contract-line">
+
+                        1주 소정근로시간은
+
+                        <span className="contract-value short">
+
+                            {
+                                contract.weeklyWorkHours
+                                || " "
+                            }
+
+                        </span>
+
+                        시간으로 한다.
+
+                    </div>
+
+                </section>
+
+
+                {/* =====================================================
+                    제4조 주휴일
+                ===================================================== */}
+
+                <section className="contract-section">
+
+                    <h5>
+                        제4조 [주휴일]
+                    </h5>
+
+
+                    <div className="contract-line">
+
+                        1주 유급 주휴일은
+
+                        <span className="contract-value short">
+
+                            {
+                                weeklyHolidayDayText
+                                || " "
+                            }
+
+                        </span>
+
+                        로 한다.
+
+                    </div>
+
+                </section>
+
+
+                {/* =====================================================
+                    제5조 휴게시간
+                ===================================================== */}
+
+                <section className="contract-section">
+
+                    <h5>
+                        제5조 [휴게시간]
+                    </h5>
+
+
+                    <div className="contract-line">
+
+                        근로시간 중 휴게시간은
+
+                        <span className="contract-value short">
+
+                            {
+                                contract.writtenBreakMinutes
+                                || " "
+                            }
+
+                        </span>
+
+                        분으로 한다.
+
+                    </div>
+
+                </section>
+
+
+                {/* =====================================================
+                    제6조 기타 근로조건
+                ===================================================== */}
+
+                <section className="contract-section">
+
+                    <h5>
+                        제6조 [기타 근로조건]
+                    </h5>
+
+
+                    <div className="contract-content-box">
+
+                        {
+                            contract.contractContent
+                            ||
+                            "기타 근로조건"
+                        }
+
+                    </div>
+
+                </section>
+
+
+                {/* =====================================================
+                    확인 문구
+                ===================================================== */}
+
+                <div className="contract-agreement">
+
+                    본 계약의 내용을 확인하고 이에 동의하여
+                    근로계약을 체결한다.
+
+                </div>
+
+
+                {/* =====================================================
+                    계약일
+                ===================================================== */}
+
+                <div className="contract-date">
+
+                    <span>
+                        ________년
+                    </span>
+
+                    <span>
+                        ______월
+                    </span>
+
+                    <span>
+                        ______일
+                    </span>
+
+                </div>
+
+
+
+                {/* =====================================================
+    사용자 / 근로자
+===================================================== */}
+
+                <div className="contract-signatures">
+
+
+                    {/* =================================================
+        사용자
+    ================================================= */}
+
+                    <div className="signature-party">
+
+                        <h5>
+                            사용자
+                        </h5>
+
+
+                        <div className="signature-row">
+
+                            <span>
+                                사업체명
+                            </span>
+
+                            <strong>
+                                KH EDU
+                            </strong>
+
+                        </div>
+
+
+                        <div className="signature-row">
+
+                            <span>
+                                대표자
+                            </span>
+
+                            <strong>
+                                {
+                                    employer?.accountName
+                                    ?? "____________________"
+                                }
+                            </strong>
+
+                        </div>
+
+
+                        <div className="signature-row">
+
+                            <span>
+                                연락처
+                            </span>
+
+                            <strong>
+                                {
+                                    employer?.accountPhone
+                                    ?? "____________________"
+                                }
+                            </strong>
+
+                        </div>
+
+
+                        <div className="signature-row signature-space">
+
+                            <span>
+                                서명
+                            </span>
+
+                            <strong>
+
+                                {
+                                    contract.employerSignature
+                                        ? "서명 완료"
+                                        : "(서명)"
+                                }
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    {/* =================================================
+        근로자
+    ================================================= */}
+
+                    <div className="signature-party">
+
+                        <h5>
+                            근로자
+                        </h5>
+
+
+                        <div className="signature-row">
+
+                            <span>
+                                성명
+                            </span>
+
+                            <strong>
+                                {
+                                    employee?.accountName
+                                    ?? "____________________"
+                                }
+                            </strong>
+
+                        </div>
+
+
+                        <div className="signature-row">
+
+                            <span>
+                                연락처
+                            </span>
+
+                            <strong>
+                                {
+                                    employee?.accountPhone
+                                    ?? "____________________"
+                                }
+                            </strong>
+
+                        </div>
+
+
+                        <div className="signature-row">
+
+                            <span>
+                                직원번호
+                            </span>
+
+                            <strong>
+
+                                {
+                                    contract.employeeNo
+                                    ?? "____________________"
+                                }
+
+                            </strong>
+
+                        </div>
+
+
+                        <div className="signature-row signature-space">
+
+                            <span>
+                                서명
+                            </span>
+
+                            <strong>
+
+                                {
+                                    contract.employeeSignature
+                                        ? "서명 완료"
+                                        : "(서명)"
+                                }
+
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+
+            </div>
+
+        </div>
+    );
 }
