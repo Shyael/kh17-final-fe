@@ -626,7 +626,7 @@ export default function CourseDetail() {
                         <Button
                             variant="outline-primary"
                             size="sm"
-                            onClick={() => navigate("/student/assignment")}
+                            onClick={() => navigate("/employee/assignment")}
                         >
                             과제 전체 목록 가기 &rarr;
                         </Button>
@@ -648,8 +648,12 @@ export default function CourseDetail() {
                                     <td colSpan={6} className="py-4 text-muted">등록된 과제가 없습니다.</td>
                                 </tr>
                             ) : (
-                                assignmentList.map(item => (
-                                    <tr key={item.assignmentNo}>
+                                assignmentList.map((item, idx) => (
+                                    <tr
+                                        key={item.assignmentNo ?? `assignment-${idx}`}
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => navigate(`/employee/assignment/${item.assignmentNo}`)}
+                                    >
                                         <td>{item.assignmentNo}</td>
                                         <td className="text-start fw-semibold">{item.assignmentTitle}</td>
                                         <td>{item.accountName || "담당 강사"}</td>
@@ -674,7 +678,16 @@ export default function CourseDetail() {
             {/* [탭 4] 시험 관리 */}
             {activeTab === "exam" && (
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
-                    <h6 className="fw-bold mb-3">등록된 시험 목록 ({examList?.length || 0}건)</h6>
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h6 className="fw-bold mb-0">등록된 시험 목록 ({examList?.length || 0}건)</h6>
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => navigate("/employee/exam")}
+                        >
+                            시험 전체 목록 가기 &rarr;
+                        </Button>
+                    </div>
                     <Table hover responsive className="kh-table text-center align-middle">
                         <thead>
                             <tr>
@@ -693,27 +706,39 @@ export default function CourseDetail() {
                                     <td colSpan={7} className="py-4 text-muted">등록된 시험이 없습니다.</td>
                                 </tr>
                             ) : (
-                                examList.map(item => (
-                                    <tr key={item.examNo}>
-                                        <td>{item.examNo}</td>
-                                        <td className="text-start fw-semibold">{item.examTitle}</td>
-                                        <td>{item.accountName || "담당 강사"}</td>
-                                        <td className="small">
-                                            {formatDateTime(item.examStart)} ~ <br />
-                                            {formatDateTime(item.examEnd)}
-                                        </td>
-                                        <td>{item.examLimit ? `${item.examLimit}분` : "제한 없음"}</td>
-                                        <td className="text-muted small">{formatDateTime(item.examWtime)}</td>
-                                        <td>
-                                            <Badge bg={
-                                                item.examStatus === "공개" ? "success" :
-                                                    item.examStatus === "마감" ? "secondary" : "warning"
-                                            }>
-                                                {item.examStatus}
-                                            </Badge>
-                                        </td>
-                                    </tr>
-                                ))
+                                examList.map((item, idx) => {
+                                    const isWriting = item.examStatus === "작성중";
+                                    const targetUrl = isWriting
+                                        ? `/employee/exam/${item.examNo}`
+                                        : `/employee/exam/${item.examNo}/result`;
+
+                                    return (
+                                        <tr
+                                            key={item.examNo ?? `exam-${idx}`}
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => navigate(targetUrl)}
+                                        >
+                                            <td>{item.examNo}</td>
+                                            <td className="text-start fw-semibold">{item.examTitle}</td>
+                                            <td>{item.accountName || "담당 강사"}</td>
+                                            <td className="small">
+                                                {formatDateTime(item.examStart)} ~ <br />
+                                                {formatDateTime(item.examEnd)}
+                                            </td>
+                                            <td>{item.examLimit ? `${item.examLimit}분` : "제한 없음"}</td>
+                                            <td className="text-muted small">{formatDateTime(item.examWtime)}</td>
+                                            <td>
+                                                <Badge bg={
+                                                    item.examStatus === "공개" ? "success" :
+                                                        item.examStatus === "마감" ? "secondary" :
+                                                            item.examStatus === "작성중" ? "info" : "warning"
+                                                }>
+                                                    {item.examStatus}
+                                                </Badge>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </Table>
