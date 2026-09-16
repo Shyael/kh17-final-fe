@@ -40,7 +40,7 @@ export default function EmployeeDashboard() {
     }, []);
 
     useEffect(() => {
-        loadDashboard();
+        loadDashboard(); 
     }, [loadDashboard]);
 
     return (<>
