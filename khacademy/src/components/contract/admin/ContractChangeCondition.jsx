@@ -10,6 +10,63 @@ import Swal from "sweetalert2";
 
 import ContractDocument from "./ContractDocument.jsx";
 
+// 일반 성인·일 8시간/주 40시간제, 매주 동일한 소정근로시간 기준.
+// 기본임금만으로 검증하며 연장·야간·휴일 가산수당은 포함하지 않는다.
+// 월급: 통상근로자 주 5일, 추가 약정 유급시간 없음. 주 40시간은 월 209시간.
+// 다른 근무제도/임금 구성은 별도의 산정 기준이 필요하다.
+const MINIMUM_HOURLY_WAGE_2026 = 10320;
+const WEEKLY_HOLIDAY_DAYS = [
+    "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"
+];
+
+function validateContractTerms(contract) {
+    const missing = value => value == null || String(value).trim() === "";
+    const dailyWorkHours = Number(contract.dailyWorkHours);
+    const weeklyWorkHours = Number(contract.weeklyWorkHours);
+    const writtenBreakMinutes = Number(contract.writtenBreakMinutes);
+    const baseWage = Number(contract.baseWage);
+    if (!["hourly", "daily", "monthly"].includes(contract.wageType)
+        || missing(contract.baseWage) || !Number.isFinite(baseWage) || baseWage <= 0) {
+        return "임금 형태와 기본임금을 확인해주세요";
+    }
+    if (missing(contract.dailyWorkHours) || missing(contract.weeklyWorkHours)
+        || !Number.isFinite(dailyWorkHours) || !Number.isFinite(weeklyWorkHours)
+        || dailyWorkHours <= 0 || weeklyWorkHours <= 0
+        || dailyWorkHours > weeklyWorkHours) {
+        return "소정근로시간을 확인해주세요";
+    }
+    if (dailyWorkHours > 8 || weeklyWorkHours > 40) {
+        return "소정근로시간은 1일 8시간, 1주 40시간을 초과할 수 없습니다";
+    }
+    if (weeklyWorkHours >= 15 && !WEEKLY_HOLIDAY_DAYS.includes(contract.weeklyHolidayDay)) {
+        return "주 15시간 이상 근로 시 주휴일을 선택해주세요";
+    }
+    if (missing(contract.writtenBreakMinutes) || !Number.isInteger(writtenBreakMinutes)
+        || writtenBreakMinutes < 0) {
+        return "휴게시간은 0 이상의 정수로 분 단위 입력해주세요";
+    }
+    const minimumBreakMinutes = dailyWorkHours >= 8 ? 60 : dailyWorkHours >= 4 ? 30 : 0;
+    if (writtenBreakMinutes < minimumBreakMinutes) {
+        return "해당 근로시간의 휴게시간은 " + minimumBreakMinutes + "분 이상이어야 합니다";
+    }
+    // 2026년과 겹치는 계약에만 해당 연도 금액을 적용한다.
+    // 2027년 이후 등 다른 연도의 최저임금 검증은 별도로 추가해야 한다.
+    const covers2026 = contract.contractStart && contract.contractStart <= "2026-12-31"
+        && (!contract.contractEnd || contract.contractEnd >= "2026-01-01");
+    if (covers2026) {
+        const weeklyPaidHolidayHours = weeklyWorkHours >= 15 ? weeklyWorkHours / 5 : 0;
+        const monthlyHours = weeklyWorkHours === 40 ? 209
+            : (weeklyWorkHours + weeklyPaidHolidayHours) * 365 / 7 / 12;
+        const wageHours = contract.wageType === "hourly" ? 1
+            : contract.wageType === "daily" ? dailyWorkHours : monthlyHours;
+        const minimumWage = Math.ceil(MINIMUM_HOURLY_WAGE_2026 * wageHours);
+        if (baseWage < minimumWage) {
+            return "2026년 기준 기본임금은 " + minimumWage.toLocaleString("ko-KR") + "원 이상이어야 합니다";
+        }
+    }
+    return null;
+}
+
 export default function ContractChangeCondition() {
     //parameter
     const { contractNo } = useParams();
@@ -62,7 +119,7 @@ export default function ContractChangeCondition() {
                 baseWage : data.baseWage ?? "",
                 dailyWorkHours : data.dailyWorkHours ?? "",
                 weeklyWorkHours : data.weeklyWorkHours ?? "",
-                weeklyHolidayDay : data.weeklyHolidayDay ?? "",
+                weeklyHolidayDay : Number(data.weeklyWorkHours) < 15 ? "" : (data.weeklyHolidayDay ?? ""),
                 writtenBreakMinutes : data.writtenBreakMinutes ?? "",
                 contractStart : "",
                 contractEnd : toDateInput(data.contractEnd),
@@ -92,7 +149,9 @@ export default function ContractChangeCondition() {
         const { name, value } = e.target;
         setContract(prev=>({
             ...prev,
-            [name] : value
+            [name]: value,
+            weeklyHolidayDay: name === "weeklyWorkHours" && Number(value) < 15
+                ? "" : name === "weeklyHolidayDay" ? value : prev.weeklyHolidayDay
         }));
     }, []);
 
@@ -103,40 +162,9 @@ export default function ContractChangeCondition() {
             return false;
         }
 
-        if(contract.wageType === "" || contract.baseWage === "") {
-            toast.warning("임금 정보를 입력해주세요");
-            return false;
-        }
-
-        const dailyWorkHours = parseFloat(contract.dailyWorkHours);
-        const weeklyWorkHours = parseFloat(contract.weeklyWorkHours);
-
-        if(contract.dailyWorkHours === "" || contract.weeklyWorkHours === ""
-            || dailyWorkHours <= 0 || weeklyWorkHours <= 0
-            || dailyWorkHours > weeklyWorkHours) {
-            toast.warning("소정근로시간을 확인해주세요");
-            return false;
-        }
-
-        if(contract.weeklyHolidayDay === "") {
-            toast.warning("주휴일을 선택해주세요");
-            return false;
-        }
-
-        const writtenBreakMinutes = parseInt(contract.writtenBreakMinutes, 10);
-
-        if(contract.writtenBreakMinutes === "" || writtenBreakMinutes < 0) {
-            toast.warning("휴게시간을 확인해주세요");
-            return false;
-        }
-
-        if(dailyWorkHours >= 8 && writtenBreakMinutes < 60) {
-            toast.warning("1일 8시간 이상 근무 시 휴게시간은 60분 이상이어야 합니다");
-            return false;
-        }
-
-        if(dailyWorkHours >= 4 && dailyWorkHours < 8 && writtenBreakMinutes < 30) {
-            toast.warning("1일 4시간 이상 근무 시 휴게시간은 30분 이상이어야 합니다");
+        const validationMessage = validateContractTerms(contract);
+        if (validationMessage) {
+            toast.warning(validationMessage);
             return false;
         }
 
@@ -150,9 +178,9 @@ export default function ContractChangeCondition() {
             return false;
         }
 
-        const payday = parseInt(contract.payday, 10);
+        const payday = Number(contract.payday);
 
-        if(contract.payday === "" || payday < 1 || payday > 31) {
+        if(contract.payday === "" || !Number.isInteger(payday) || payday < 1 || payday > 31) {
             toast.warning("급여 지급일은 1일부터 31일 사이로 입력해주세요");
             return false;
         }
@@ -186,7 +214,7 @@ export default function ContractChangeCondition() {
             baseWage : contract.baseWage,
             dailyWorkHours : contract.dailyWorkHours,
             weeklyWorkHours : contract.weeklyWorkHours,
-            weeklyHolidayDay : contract.weeklyHolidayDay,
+            weeklyHolidayDay : Number(contract.weeklyWorkHours) < 15 ? null : contract.weeklyHolidayDay,
             writtenBreakMinutes : contract.writtenBreakMinutes,
             contractStart : contract.contractStart,
             contractEnd : contract.contractEnd === "" ? null : contract.contractEnd,
@@ -285,7 +313,7 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>1일 소정근로시간</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="number" min="0.5" step="0.5"
-                            name="dailyWorkHours"
+                            name="dailyWorkHours" max="8"
                             value={contract.dailyWorkHours}
                             onChange={changeStringValue}/>
                 </Col>
@@ -295,7 +323,7 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>1주 소정근로시간</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="number" min="0.5" step="0.5"
-                            name="weeklyWorkHours"
+                            name="weeklyWorkHours" max="40"
                             value={contract.weeklyWorkHours}
                             onChange={changeStringValue}/>
                 </Col>
@@ -305,7 +333,7 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>주휴일</Form.Label>
                 <Col sm={9}>
                     <Form.Select
-                            name="weeklyHolidayDay"
+                            name="weeklyHolidayDay" disabled={Number(contract.weeklyWorkHours) < 15}
                             value={contract.weeklyHolidayDay}
                             onChange={changeStringValue}>
                         <option value="">선택</option>
@@ -326,8 +354,8 @@ export default function ContractChangeCondition() {
                     <Form.Control type="number" min="0" name="writtenBreakMinutes"
                             value={contract.writtenBreakMinutes}
                             onChange={changeStringValue}
-                            placeholder="시간 단위로 입력 해 주세요"
-                            step={0.5}/>
+                            placeholder="분 단위로 입력해주세요"
+                            step={1}/>
                     <Form.Text className="text-muted">
                         4시간 이상 근무 시 30분 이상, 8시간 이상 근무 시 60분 이상
                     </Form.Text>

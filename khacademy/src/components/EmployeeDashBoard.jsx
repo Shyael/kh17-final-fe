@@ -10,6 +10,8 @@ import { loginUserState } from "@utils/storage";
 import { assignmentDdayLabel, examDdayLabel } from "@utils/dday";
 import { isAdminState } from "@utils/storage";
 import AdminDashBoard from "@components/AdminDashBoard";
+import { isDeskState } from "@utils/storage";
+import DeskDashboard from "@components/DeskDashboard";
 
 export default function EmployeeDashboard() {
 
@@ -21,12 +23,15 @@ export default function EmployeeDashboard() {
     const [dashboard, setDashboard] = useState(null);
 
     const isAdmin = useAtomValue(isAdminState);
+    const isDesk = useAtomValue(isDeskState);
     // 대시보드 조회
     const loadDashboard = useCallback(async () => {
         try {
             const response = await apiClient.get("/employee/dashboard");
             setDashboard(response.data);
-            console.log(isAdmin);
+            console.log(isDesk);
+            console.log(response);
+
         }
         catch (err) {
             console.error("대시보드 조회 실패", err);
@@ -65,6 +70,15 @@ export default function EmployeeDashboard() {
                         />
                         
                     )}
+
+                    {/* 데스크 대시보드 */}
+                    {isDesk && (
+
+                        <DeskDashboard
+                        dashboard={dashboard}
+                        />
+                    )}
+                    
             <Row className="g-3 mt-1">
                 {/* 과제 요약 */}
                 <Col xs={12} md={6}>

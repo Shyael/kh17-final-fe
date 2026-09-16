@@ -1,0 +1,375 @@
+.contract-document-wrapper {
+    width: 100%;
+    margin-top: -100px;
+    padding: 3rem 1rem;
+
+    background-color: #f1f3f5;
+
+    display: flex;
+    justify-content: center;
+}
+
+
+/* =========================================================
+    계약서 종이
+========================================================= */
+
+.contract-paper {
+    width: 100%;
+    max-width: 850px;
+
+    min-height: 1100px;
+
+    background-color: #ffffff;
+
+    border: 1px solid #d8d8d8;
+
+    box-shadow:
+        0 4px 10px rgba(0, 0, 0, 0.08),
+        0 15px 35px rgba(0, 0, 0, 0.08);
+
+    padding: 70px 75px;
+
+    color: #212529;
+
+    font-size: 15px;
+
+    line-height: 1.8;
+
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+    제목
+========================================================= */
+
+.contract-title-box {
+    display: flex;
+    justify-content: center;
+
+    margin-bottom: 40px;
+}
+
+
+.contract-title-box h2 {
+    margin: 0;
+
+    padding: 8px 45px;
+
+    border: 3px double #555;
+
+    font-size: 26px;
+    font-weight: 700;
+
+    letter-spacing: 4px;
+}
+
+
+/* =========================================================
+    안내문
+========================================================= */
+
+.contract-intro {
+    text-align: center;
+
+    margin-bottom: 35px;
+
+    color: #333;
+}
+
+
+/* =========================================================
+    계약 기본정보
+========================================================= */
+
+.contract-summary {
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    border-top: 1px solid #aaa;
+    border-bottom: 1px solid #aaa;
+
+    margin-bottom: 35px;
+}
+
+
+.contract-summary>div {
+    padding: 12px 15px;
+
+    display: flex;
+    gap: 15px;
+}
+
+
+.contract-summary>div:first-child {
+    border-right: 1px solid #ddd;
+}
+
+
+.contract-label {
+    font-weight: 700;
+
+    min-width: 70px;
+}
+
+
+/* =========================================================
+    조항
+========================================================= */
+
+.contract-section {
+    margin-top: 32px;
+}
+
+
+.contract-section h5 {
+    margin: 0 0 13px 0;
+
+    padding-bottom: 7px;
+
+    border-bottom: 1px solid #aaa;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+    계약 문장
+========================================================= */
+
+.contract-line {
+    margin-top: 10px;
+}
+
+
+/* =========================================================
+    값 밑줄
+========================================================= */
+
+.contract-value {
+    display: inline-block;
+
+    min-width: 160px;
+
+    margin: 0 8px;
+
+    padding: 0 10px 2px;
+
+    text-align: center;
+
+    font-weight: 700;
+
+    border-bottom: 1px solid #333;
+}
+
+
+.contract-value.short {
+    min-width: 100px;
+}
+
+
+.contract-value.tiny {
+    min-width: 50px;
+}
+
+
+/* =========================================================
+    기타 근로조건
+========================================================= */
+
+.contract-content-box {
+    min-height: 110px;
+
+    padding: 18px;
+
+    border: 1px solid #bbb;
+
+    white-space: pre-wrap;
+
+    background-color: #fff;
+}
+
+
+/* =========================================================
+    계약 확인 문구
+========================================================= */
+
+.contract-agreement {
+    margin-top: 55px;
+
+    padding-top: 25px;
+
+    border-top: 1px solid #aaa;
+
+    text-align: center;
+
+    font-weight: 600;
+}
+
+
+/* =========================================================
+    작성일
+========================================================= */
+
+.contract-date {
+    margin-top: 40px;
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 20px;
+
+    font-weight: 500;
+}
+
+
+/* =========================================================
+    서명영역
+========================================================= */
+
+.contract-signatures {
+    margin-top: 55px;
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(2, 1fr);
+
+    gap: 50px;
+}
+
+
+.signature-party {
+    border-top: 2px solid #444;
+
+    padding-top: 15px;
+}
+
+
+.signature-party h5 {
+    text-align: center;
+
+    margin-bottom: 25px;
+
+    font-size: 17px;
+    font-weight: 700;
+}
+
+
+.signature-row {
+    display: grid;
+
+    grid-template-columns:
+        80px 1fr;
+
+    margin-top: 12px;
+
+    align-items: center;
+}
+
+
+.signature-row span {
+    font-weight: 600;
+}
+
+
+.signature-row strong {
+    text-align: center;
+
+    font-weight: 500;
+}
+
+
+.signature-space {
+    margin-top: 30px;
+}
+
+
+/* =========================================================
+    반응형
+========================================================= */
+
+@media (max-width: 768px) {
+
+    .contract-document-wrapper {
+        padding: 1rem 0;
+    }
+
+
+    .contract-paper {
+        padding:
+            35px 25px;
+
+        min-height: auto;
+    }
+
+
+    .contract-title-box h2 {
+        padding:
+            7px 20px;
+
+        font-size: 20px;
+
+        letter-spacing: 2px;
+    }
+
+
+    .contract-summary {
+        grid-template-columns:
+            1fr;
+    }
+
+
+    .contract-summary>div:first-child {
+        border-right: none;
+
+        border-bottom: 1px solid #ddd;
+    }
+
+
+    .contract-signatures {
+        grid-template-columns:
+            1fr;
+
+        gap: 40px;
+    }
+
+
+    .contract-value {
+        min-width: 100px;
+    }
+
+}
+
+
+/* =========================================================
+    인쇄
+========================================================= */
+
+@media print {
+    .contract-document-wrapper {
+        width: 100%;
+        margin-top: -20px;
+        padding: 0;
+
+        display: flex;
+        justify-content: center;
+    }
+
+    .contract-paper {
+        width: 100%;
+        max-width: 100%;
+        min-height: 1100px;
+        padding: 50px 40px;
+        box-sizing: border-box;
+    }
+
+    .contract-preview-col {
+    margin-top: -70px !important;
+}
+}
