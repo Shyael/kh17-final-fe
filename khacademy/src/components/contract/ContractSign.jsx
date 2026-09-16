@@ -9,6 +9,8 @@ import { toast } from "react-toastify";
 import Swal from "sweetalert2";
 
 import ContractDocument from "@components/contract/admin/ContractDocument";
+import { useAtomValue } from "jotai";
+import { isAdminState } from "@utils/storage";
 
 
 export default function ContractSign() {
@@ -16,7 +18,7 @@ export default function ContractSign() {
     // parameter
     const { contractNo } = useParams();
 
-
+    const isAdmin = useAtomValue(isAdminState)
     // navigate
     const navigate = useNavigate();
 
@@ -551,7 +553,7 @@ export default function ContractSign() {
                         {/* =============================================
                             직원 서명
                         ============================================= */}
-
+                {!isAdmin &&(<>
                         <Row className="mt-5">
 
                             <Col>
@@ -566,7 +568,7 @@ export default function ContractSign() {
 
                         </Row>
 
-
+                        
                         <Row className="mt-4">
 
                             <Form.Label
@@ -598,8 +600,8 @@ export default function ContractSign() {
 
                             </Col>
 
-                        </Row>
-
+                        </Row>  
+                        
 
                         <Row className="mt-4">
 
@@ -629,12 +631,12 @@ export default function ContractSign() {
                             </Col>
 
                         </Row>
-
+                          </>)}         
 
                         {/* =============================================
                             원장 서명
                         ============================================= */}
-
+                        {isAdmin && (<>
                         <Row className="mt-5">
 
                             <Col>
@@ -648,7 +650,7 @@ export default function ContractSign() {
                             </Col>
 
                         </Row>
-
+                          
 
                         <Row className="mt-4">
 
@@ -712,7 +714,7 @@ export default function ContractSign() {
                             </Col>
 
                         </Row>
-
+                    </>)}
 
                     </>
 

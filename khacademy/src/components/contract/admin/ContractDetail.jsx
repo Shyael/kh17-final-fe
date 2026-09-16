@@ -193,7 +193,7 @@ export default function ContractDetail() {
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary"
-                        onClick={()=>navigate(`/admin/contract/history/${contract.employeeNo}`)}>
+                        onClick={()=>navigate(`/employee/contract/history/${contract.employeeNo}`)}>
                     계약 이력
                 </Button>
 
