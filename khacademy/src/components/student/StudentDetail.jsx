@@ -2,7 +2,9 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup, Modal } from "react-bootstrap";
 import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
-import { apiClient } from "@utils/reaxios";
+
+import { apiClient } from "@utils/reaxios"; 
+import Swal from 'sweetalert2';
 
 export default function StudentDetail() {
     const { studentNo } = useParams();
@@ -69,7 +71,7 @@ export default function StudentDetail() {
 
     const fetchStudentPayments = useCallback(async () => {
         try {
-            const response = await apiClient.get(`/payment/student/${studentNo}`);
+            const response = await apiClient.get(`/employee/payment/student/${studentNo}`);
             setPayments(response.data);
             const unpaidSum = response.data.reduce((sum, p) => sum + (p.remainingAmount || 0), 0);
             setTotalUnpaid(unpaidSum);
@@ -80,7 +82,7 @@ export default function StudentDetail() {
 
     const fetchDiscounts = useCallback(async () => {
         try {
-            const allRes = await apiClient.get("/payment/discount/list");
+            const allRes = await apiClient.get("/employee/payment/discount/list");
             setAllDiscounts(allRes.data.filter(d => d.discountStatus === 'Y'));
             const studentRes = await apiClient.get(`/employee/student/${studentNo}/discount`);
             setStudentDiscounts(studentRes.data);
@@ -108,30 +110,43 @@ export default function StudentDetail() {
         }
     }, [studentNo]);
 
-    // 🌟 추가: 수강 취소 기능
-    const handleCancelCourse = async (courseNo) => {
-        if (!window.confirm("정말로 이 강의의 수강을 취소하시겠습니까?")) return;
-
-        try {
-            await apiClient.delete(`/employee/student/course/cancel/${studentNo}/${courseNo}`);
-            alert("수강이 취소되었습니다.");
-
-            // 삭제 후 화면의 수강 중인 목록과 모달의 강의 목록을 동시에 갱신!
-            fetchEnrolledCourses();
-            fetchAvailableCourses();
-        } catch (error) {
-            alert("수강 취소에 실패했습니다.");
-        }
+    // 수강 취소 기능
+    const handleCancelCourse = (courseNo) => {
+        Swal.fire({
+            title: '수강 취소',
+            text: "정말로 이 강의의 수강을 취소하시겠습니까?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '취소 진행',
+            cancelButtonText: '닫기'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await apiClient.delete(`/employee/student/course/cancel/${studentNo}/${courseNo}`);
+                    
+                    Swal.fire({ icon: 'success', title: '취소 완료', text: '수강이 성공적으로 취소되었습니다.', confirmButtonColor: '#3085d6' });
+                    
+                    // 삭제 후 화면의 수강 중인 목록과 모달의 강의 목록을 동시에 갱신!
+                    fetchEnrolledCourses(); 
+                    fetchAvailableCourses(); 
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: '취소 실패', text: '수강 취소에 실패했습니다.', confirmButtonColor: '#d33' });
+                }
+            }
+        });
     };
 
-    // [추가] 현재 학생이 수강 중인 강의 목록
+    // 현재 학생이 수강 중인 강의 목록
     const fetchEnrolledCourses = useCallback(async () => {
         try {
-            // 백엔드 컨트롤러 주소에 맞게 수정 필요 시 변경
             const response = await apiClient.get(`/employee/student/course/enrolled/${studentNo}`);
             setEnrolledCourses(response.data || []);
         } catch (error) {
             console.error("수강 중인 강의 로딩 실패:", error);
+            // (조회 실패는 화면을 가리지 않게 콘솔로만 남겨두거나 필요한 경우 아래 주석 해제)
+            // Swal.fire({ icon: 'error', title: '조회 실패', text: '수강 중인 강의 로딩에 실패했습니다.', confirmButtonColor: '#d33' });
         }
     }, [studentNo]);
 
@@ -139,16 +154,16 @@ export default function StudentDetail() {
     // 수강 신청 실행 함수 (백엔드 에러 핸들링 포함)
     const handleCourseEnrollSubmit = async () => {
         if (!selectedCourseNo) {
-            return alert("신청할 강의를 선택해주세요.");
+            Swal.fire({ icon: 'warning', text: '신청할 강의를 선택해주세요.', confirmButtonColor: '#3085d6' });
+            return;
         }
 
         try {
             const response = await apiClient.post("/employee/student/course/add", {
                 studentNo: student.studentNo,
                 courseNo: selectedCourseNo
-            });
-
-            alert(response.data);
+            });          
+            Swal.fire({ icon: 'success', title: '신청 완료', text: response.data, confirmButtonColor: '#3085d6' });
             setShowCourseModal(false);
             setSelectedCourseNo("");
             fetchEnrolledCourses(); // 등록 성공 시 목록 갱신
@@ -157,12 +172,11 @@ export default function StudentDetail() {
             if (error.response && error.response.data) {
                 alert(error.response.data);
             } else {
-                alert("수강 신청 중 오류가 발생했습니다.");
+            const errorMsg = error.response?.data || "수강 신청 중 오류가 발생했습니다.";
+            Swal.fire({ icon: 'error', title: '신청 실패', text: errorMsg, confirmButtonColor: '#d33' });
             }
         }
     };
-
-
 
     // useEffect에 새로운 fetch 함수들 추가
     useEffect(() => {
@@ -185,27 +199,49 @@ export default function StudentDetail() {
     // 3. 이벤트 핸들러 (Action) 구역
     // ==========================================
     const handleAddDiscount = async () => {
-        if (!selectedDiscountNo) return alert("적용할 할인을 선택해 주세요.");
+        if (!selectedDiscountNo) {
+            Swal.fire({ icon: 'warning', text: '적용할 할인을 선택해 주세요.', confirmButtonColor: '#3085d6' });
+            return;
+        }
+        
         const isDuplicate = studentDiscounts.some(sd => sd.discountNo.toString() === selectedDiscountNo.toString());
-        if (isDuplicate) return alert("이미 적용되어 있는 할인 혜택입니다.");
+        if (isDuplicate) {
+            Swal.fire({ icon: 'info', text: '이미 적용되어 있는 할인 혜택입니다.', confirmButtonColor: '#3085d6' });
+            return;
+        }
 
         try {
             await apiClient.post(`/employee/student/${studentNo}/discount/${selectedDiscountNo}`);
-            setSelectedDiscountNo("");
-            fetchDiscounts();
+            Swal.fire({ icon: 'success', title: '적용 완료', text: '할인 혜택이 적용되었습니다.', confirmButtonColor: '#3085d6', timer: 1500 });         
+            setSelectedDiscountNo(""); 
+            fetchDiscounts(); 
         } catch (error) {
-            alert("할인 적용에 실패했습니다.");
+            Swal.fire({ icon: 'error', title: '적용 실패', text: '할인 적용에 실패했습니다.', confirmButtonColor: '#d33' });
         }
     };
 
-    const handleRemoveDiscount = async (studentDiscountNo) => {
-        if (!window.confirm("이 할인 혜택을 해제하시겠습니까?")) return;
-        try {
-            await apiClient.delete(`/employee/student/discount/${studentDiscountNo}`);
-            fetchDiscounts();
-        } catch (error) {
-            alert("할인 해제에 실패했습니다.");
-        }
+    const handleRemoveDiscount = (studentDiscountNo) => {
+        Swal.fire({
+            title: '할인 해제',
+            text: "이 할인 혜택을 정말로 해제하시겠습니까?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '해제하기',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await apiClient.delete(`/employee/student/discount/${studentDiscountNo}`);
+                    
+                    Swal.fire({ icon: 'success', title: '해제 완료', text: '할인 혜택이 해제되었습니다.', confirmButtonColor: '#3085d6', timer: 1500 });
+                    fetchDiscounts(); 
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: '해제 실패', text: '할인 해제에 실패했습니다.', confirmButtonColor: '#d33' });
+                }
+            }
+        });
     };
 
     const handleChange = (e) => {
@@ -213,27 +249,52 @@ export default function StudentDetail() {
         setStudent(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleUpdate = async () => {
-        if (!window.confirm("학생 정보를 이대로 수정하시겠습니까?")) return;
-        try {
-            const response = await apiClient.put("/employee/student/edit", student);
-            alert(response.data);
-            fetchStudentDetail();
-        } catch (error) {
-            alert("정보 수정에 실패했습니다.");
-        }
+    const handleUpdate = () => {
+        Swal.fire({
+            title: '정보 수정',
+            text: "학생 정보를 이대로 수정하시겠습니까?",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754', // Success 색상
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '수정 완료',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    const response = await apiClient.put("/employee/student/edit", student);
+                    
+                    Swal.fire({ icon: 'success', title: '수정 완료', text: response.data || '정보가 성공적으로 수정되었습니다.', confirmButtonColor: '#3085d6' });
+                    fetchStudentDetail(); 
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: '수정 실패', text: '정보 수정에 실패했습니다.', confirmButtonColor: '#d33' });
+                }
+            }
+        });
     };
 
-    const handleApproveStudent = async () => {
-        if (!window.confirm("이 학생을 '재원' 상태로 승인하시겠습니까? (승인 시 청구 대상이 됩니다)")) return;
-
-        try {
-            await apiClient.patch(`/employee/student/approve/${studentNo}`);
-            alert("재원 처리가 완료되었습니다.");
-            fetchStudentDetail();
-        } catch (error) {
-            alert("승인 처리에 실패했습니다.");
-        }
+    const handleApproveStudent = () => {
+        Swal.fire({
+            title: '재원 승인',
+            text: "이 학생을 '재원' 상태로 승인하시겠습니까? (승인 시 청구 대상이 됩니다)",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd', // Primary 색상
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '승인하기',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await apiClient.patch(`/employee/student/approve/${studentNo}`);
+                    
+                    Swal.fire({ icon: 'success', title: '승인 완료', text: '재원 처리가 완료되었습니다.', confirmButtonColor: '#3085d6' });
+                    fetchStudentDetail(); 
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: '승인 실패', text: '승인 처리에 실패했습니다.', confirmButtonColor: '#d33' });
+                }
+            }
+        });
     };
 
     // ==========================================

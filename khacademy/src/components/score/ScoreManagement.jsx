@@ -2,6 +2,8 @@ import React, { useState, useCallback } from "react";
 import { Button, Card, Col, Form, Row, Table, Modal, Badge, InputGroup } from "react-bootstrap";
 import { FaSearch, FaList, FaTrash, FaEdit, FaTimes } from "react-icons/fa";
 import { apiClient } from "@utils/reaxios"; 
+// 🌟 1. SweetAlert2 임포트! (설치가 안 되어 있다면 npm install sweetalert2)
+import Swal from 'sweetalert2';
 
 export default function ScoreManagement() {
     // ==========================================
@@ -31,7 +33,12 @@ export default function ScoreManagement() {
     // 2. API 호출 및 이벤트 핸들러
     // ==========================================
     const handleSearchStudent = async () => {
-        if (!searchKeyword.trim()) return alert("학생 이름이나 번호를 입력해주세요.");
+        if (!searchKeyword.trim()) {
+            // 🌟 alert -> Swal.fire 교체 및 return 분리
+            Swal.fire({ icon: 'warning', title: '알림', text: '학생 이름이나 번호를 입력해주세요.', confirmButtonColor: '#3085d6' });
+            return;
+        }
+
         try {
             const response = await apiClient.get("/employee/student/list", {
                 params: {
@@ -39,33 +46,31 @@ export default function ScoreManagement() {
                     searchKeyword: searchKeyword
                 }
             });
-            
-            if (response.data && response.data.length > 0) {
-                // 검색 결과가 있으면 모달을 열고 데이터를 채워줍니다.
-                setSearchResults(response.data);
+
+            if (response.data && response.data.list && response.data.list.length > 0) {
+                setSearchResults(response.data.list);
                 setShowSearchModal(true); 
             } else {
-                alert("검색된 학생이 없습니다.");
+                Swal.fire({ icon: 'info', title: '검색 결과 없음', text: '검색된 학생이 없습니다.', confirmButtonColor: '#3085d6' });
                 setSearchResults([]);
             }
         } catch (error) {
             console.error("학생 검색 실패:", error);
-            alert("학생 검색 중 오류가 발생했습니다.");
+            Swal.fire({ icon: 'error', title: '검색 실패', text: '학생 검색 중 오류가 발생했습니다.', confirmButtonColor: '#d33' });
         }
     };
 
-    // 🌟 추가: 모달에서 [선택] 버튼을 눌렀을 때 실행될 함수
+
     const handleSelectStudent = (selected) => {
-        setStudent(selected);            // 1. 선택한 학생 정보를 화면에 세팅
-        fetchScores(selected.studentNo); // 2. 해당 학생의 성적 목록 불러오기
-        resetForm();                     // 3. 입력 폼 초기화
-        setShowSearchModal(false);       // 4. 검색 모달 닫기
+        setStudent(selected);            
+        fetchScores(selected.studentNo); 
+        resetForm();                     
+        setShowSearchModal(false);       
     };
 
     const fetchScores = useCallback(async (studentNo) => {
         try {
-            // 🌟 /api 제거
-            const response = await apiClient.get(`/score/list/${studentNo}`); 
+            const response = await apiClient.get(`/employee/score/list/${studentNo}`); 
             setRawScores(response.data || []);
         } catch (error) {
             console.error("성적 로딩 실패:", error);
@@ -85,28 +90,31 @@ export default function ScoreManagement() {
     };
 
     const handleSaveScore = async () => {
-        if (!student) return alert("먼저 학생을 검색하고 선택해주세요.");
+        if (!student) {
+            Swal.fire({ icon: 'warning', text: '먼저 학생을 검색하고 선택해주세요.', confirmButtonColor: '#3085d6' });
+            return;
+        }
         if (!scoreForm.scoreName || !scoreForm.scoreScore || !scoreForm.scoreDate) {
-            return alert("시험명, 점수, 시험일은 필수 입력값입니다.");
+            Swal.fire({ icon: 'warning', text: '시험명, 점수, 시험일은 필수 입력값입니다.', confirmButtonColor: '#3085d6' });
+            return;
         }
 
-        // 🌟 방어 로직 추가: 점수 검증 (0 ~ 100)
         const scoreNum = Number(scoreForm.scoreScore);
         if (scoreNum < 0 || scoreNum > 100) {
-            return alert("점수는 0점에서 100점 사이로 입력해주세요.");
+            Swal.fire({ icon: 'warning', text: '점수는 0점에서 100점 사이로 입력해주세요.', confirmButtonColor: '#3085d6' });
+            return;
         }
 
-        // 🌟 방어 로직 추가: 등급/석차 검증 (입력된 경우만 1 ~ 9)
         if (scoreForm.scoreRank) {
             const rankNum = Number(scoreForm.scoreRank);
             if (rankNum < 1 || rankNum > 9) {
-                return alert("등급은 1등급에서 9등급 사이로 입력해주세요.");
+                Swal.fire({ icon: 'warning', text: '등급은 1등급에서 9등급 사이로 입력해주세요.', confirmButtonColor: '#3085d6' });
+                return;
             }
         }
 
         const isEditMode = scoreForm.scoreNo !== null; 
-        // 🌟 /api 제거
-        const apiUrl = isEditMode ? "/score/edit" : "/score/add";
+        const apiUrl = isEditMode ? "/employee/score/edit" : "/employee/score/add";
         const method = isEditMode ? "put" : "post";
 
         try {
@@ -115,7 +123,13 @@ export default function ScoreManagement() {
                 ...scoreForm
             });
             
-            alert(isEditMode ? "성적이 성공적으로 수정되었습니다." : "성적이 성공적으로 등록되었습니다.");
+            // 🌟 성공 alert 교체
+            Swal.fire({ 
+                icon: 'success', 
+                title: '성공', 
+                text: isEditMode ? "성적이 성공적으로 수정되었습니다." : "성적이 성공적으로 등록되었습니다.", 
+                confirmButtonColor: '#3085d6' 
+            });
             
             if (isEditMode) {
                 resetForm();
@@ -125,7 +139,13 @@ export default function ScoreManagement() {
             
             fetchScores(student.studentNo); 
         } catch (error) {
-            alert(isEditMode ? "성적 수정에 실패했습니다." : "성적 등록에 실패했습니다.");
+            // 🌟 실패 alert 교체
+            Swal.fire({ 
+                icon: 'error', 
+                title: '실패', 
+                text: isEditMode ? "성적 수정에 실패했습니다." : "성적 등록에 실패했습니다.", 
+                confirmButtonColor: '#d33' 
+            });
         }
     };
 
@@ -144,22 +164,37 @@ export default function ScoreManagement() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDeleteScore = async (scoreNo) => {
-        if (!window.confirm("이 과목 성적을 삭제하시겠습니까?")) return;
-        try {
-            // 🌟 /api 제거
-            await apiClient.delete(`/score/delete/${scoreNo}`);
-            fetchScores(student.studentNo);
-            
-            if (selectedExam) {
-                setSelectedExam(prev => ({
-                    ...prev,
-                    subjects: prev.subjects.filter(s => s.scoreNo !== scoreNo)
-                }));
+    // 🌟 window.confirm 대신 Swal.fire 적용! (비동기 처리 구조 변경)
+    const handleDeleteScore = (scoreNo) => {
+        Swal.fire({
+            title: '정말 삭제하시겠습니까?',
+            text: "삭제한 성적 데이터는 복구할 수 없습니다.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // Danger 색상
+            cancelButtonColor: '#6c757d',  // Secondary 색상
+            confirmButtonText: '삭제',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            // '삭제' 버튼을 눌렀을 때만 아래 로직 실행
+            if (result.isConfirmed) {
+                try {
+                    await apiClient.delete(`/employee/score/delete/${scoreNo}`);
+                    fetchScores(student.studentNo);
+                    
+                    if (selectedExam) {
+                        setSelectedExam(prev => ({
+                            ...prev,
+                            subjects: prev.subjects.filter(s => s.scoreNo !== scoreNo)
+                        }));
+                    }
+                    
+                    Swal.fire({ icon: 'success', title: '삭제 완료', text: '성적이 성공적으로 삭제되었습니다.', confirmButtonColor: '#3085d6' });
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: '삭제 실패', text: '삭제 중 오류가 발생했습니다.', confirmButtonColor: '#3085d6' });
+                }
             }
-        } catch (error) {
-            alert("삭제에 실패했습니다.");
-        }
+        });
     };
 
     // ==========================================
@@ -189,6 +224,7 @@ export default function ScoreManagement() {
         const { name, value } = e.target;
         setScoreForm(prev => ({ ...prev, [name]: value }));
     };
+
 
     // ==========================================
     // 4. 화면 렌더링
