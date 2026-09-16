@@ -162,7 +162,7 @@ export default function PaymentList() {
                             ) : (
                                 payments.map((p, idx) => (
                                     <tr key={p.paymentNo} 
-                                        onClick={() => navigate(`/payment/detail/${p.paymentNo}`)} 
+                                        onClick={() => navigate(`/employee/payment/detail/${p.paymentNo}`)} 
                                         style={{ cursor: "pointer" }}
                                     >
                                         <td className="text-muted">{idx + 1}</td>

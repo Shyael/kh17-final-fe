@@ -2,8 +2,8 @@ import React, { useState, useCallback } from "react";
 import { Button, Card, Col, Form, Row, Table, Modal, Badge, InputGroup } from "react-bootstrap";
 import { FaSearch, FaList, FaTrash, FaEdit, FaTimes } from "react-icons/fa";
 import { apiClient } from "@utils/reaxios"; 
-// 🌟 1. SweetAlert2 임포트! (설치가 안 되어 있다면 npm install sweetalert2)
 import Swal from 'sweetalert2';
+import PaginationBar from "@templates/PaginationBar";
 
 export default function ScoreManagement() {
     // ==========================================
@@ -11,7 +11,9 @@ export default function ScoreManagement() {
     // ==========================================
     const [searchKeyword, setSearchKeyword] = useState("");
     const [student, setStudent] = useState(null); 
-    const [searchResults, setSearchResults] = useState([]); 
+    const [pageData, setPageData] = useState({
+        list: [], page: 1, totalPages: 0, startBlock: 1, endBlock: 0, prev: false, next: false, totalCount: 0
+    }); 
     const [showSearchModal, setShowSearchModal] = useState(false);
 
     const [scoreForm, setScoreForm] = useState({
@@ -32,27 +34,27 @@ export default function ScoreManagement() {
     // ==========================================
     // 2. API 호출 및 이벤트 핸들러
     // ==========================================
-    const handleSearchStudent = async () => {
-        if (!searchKeyword.trim()) {
-            // 🌟 alert -> Swal.fire 교체 및 return 분리
-            Swal.fire({ icon: 'warning', title: '알림', text: '학생 이름이나 번호를 입력해주세요.', confirmButtonColor: '#3085d6' });
-            return;
-        }
-
+    // 🌟 매개변수로 targetPage를 받습니다. (기본값 1)
+    // 🌟 1. 매개변수로 targetPage를 받습니다. 기본값은 1페이지입니다.
+    const handleSearchStudent = async (targetPage = 1) => { 
         try {
             const response = await apiClient.get("/employee/student/list", {
                 params: {
-                    filter: '전체', // 전체 학생 대상 검색
-                    searchKeyword: searchKeyword
+                    filter: '전체', 
+                    searchKeyword: searchKeyword.trim(),
+                    // 🌟 2. 백엔드로 현재 클릭한 페이지 번호를 함께 보냅니다!
+                    page: targetPage 
                 }
             });
 
             if (response.data && response.data.list && response.data.list.length > 0) {
-                setSearchResults(response.data.list);
+                // 🌟 3. 기존 setSearchResults 대신, 페이지 정보 전체를 담는 setSearchPageData 사용!
+                setPageData(response.data); 
                 setShowSearchModal(true); 
             } else {
                 Swal.fire({ icon: 'info', title: '검색 결과 없음', text: '검색된 학생이 없습니다.', confirmButtonColor: '#3085d6' });
-                setSearchResults([]);
+                // 🌟 4. 데이터가 없으면 빈 리스트로 초기화
+                setPageData({ list: [], totalPages: 0, totalCount: 0 }); 
             }
         } catch (error) {
             console.error("학생 검색 실패:", error);
@@ -197,6 +199,8 @@ export default function ScoreManagement() {
         });
     };
 
+    
+
     // ==========================================
     // 3. 데이터 가공 (시험별 그룹화)
     // ==========================================
@@ -244,9 +248,9 @@ export default function ScoreManagement() {
                                 placeholder="이름 또는 학생번호 입력" 
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearchStudent()}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearchStudent(1)}
                             />
-                            <Button variant="primary" onClick={handleSearchStudent}>
+                            <Button variant="primary" onClick={()=>handleSearchStudent(1)}>
                                 <FaSearch className="me-1" /> 검색
                             </Button>
                         </InputGroup>
@@ -365,7 +369,6 @@ export default function ScoreManagement() {
                             <Table hover responsive className="kh-table align-middle text-center">
                                 <thead>
                                     <tr>
-                                        <th>시험일</th>
                                         <th>유형</th>
                                         <th className="text-start">시험명</th>
                                         <th>응시 과목 수</th>
@@ -380,7 +383,6 @@ export default function ScoreManagement() {
                                     ) : (
                                         examList.map((exam, idx) => (
                                             <tr key={idx}>
-                                                <td className="text-muted small">{exam.examDate}</td>
                                                 <td><Badge bg="secondary">{exam.examType}</Badge></td>
                                                 <td className="fw-bold text-start">{exam.examName}</td>
                                                 <td>{exam.subjects.length}과목</td>
@@ -409,6 +411,7 @@ export default function ScoreManagement() {
                     <Table hover responsive className="kh-table kh-table-flat align-middle text-center">
                         <thead>
                             <tr>
+                                <th>시험일</th>
                                 <th>과목</th>
                                 <th>점수</th>
                                 <th>등급/석차</th>
@@ -418,6 +421,7 @@ export default function ScoreManagement() {
                         <tbody>
                             {selectedExam?.subjects.map(subject => (
                                 <tr key={subject.scoreNo}>
+                                    <td className="text-muted small">{subject.scoreDate}</td>
                                     <td className="fw-bold text-dark">{subject.scoreSubject}</td>
                                     <td className="text-primary fw-bold">{subject.scoreScore}점</td>
                                     <td>{subject.scoreRank ? `${subject.scoreRank}` : '-'}</td>
@@ -446,43 +450,66 @@ export default function ScoreManagement() {
             <Modal show={showSearchModal} onHide={() => setShowSearchModal(false)} size="lg" centered>
                 <Modal.Header closeButton className="bg-light">
                     <Modal.Title className="fw-bold fs-5 text-dark">
-                        [{searchKeyword}] 검색 결과 목록 ({searchResults.length}건)
+                        {/* 🌟 searchPageData.totalCount 로 진짜 전체 검색 건수를 표시합니다! */}
+                        [{searchKeyword}] 검색 결과 목록 ({pageData.totalCount || 0}건)
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                    <Table hover responsive className="kh-table kh-table-flat align-middle text-center">
-                        <thead className="sticky-top">
-                            <tr>
-                                <th>번호</th>
-                                <th>이름</th>
-                                <th>학교</th>
-                                <th>학년</th>
-                                <th>상태</th>
-                                <th>선택</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {searchResults.map(res => (
-                                <tr key={res.studentNo}>
-                                    <td className="text-muted">{res.studentNo}</td>
-                                    <td className="fw-bold text-dark">{res.studentName}</td>
-                                    <td>{res.studentSchool || '-'}</td>
-                                    <td>{res.studentGrade || '-'}</td>
-                                    <td>
-                                        <Badge bg={res.studentAcademicStatus === '재원' ? 'success' : 'secondary'}>
-                                            {res.studentAcademicStatus}
-                                        </Badge>
-                                    </td>
-                                    <td>
-                                        <Button variant="outline-primary" size="sm" onClick={() => handleSelectStudent(res)}>
-                                            선택
-                                        </Button>
-                                    </td>
+                
+                {/* 🌟 d-flex flex-column 을 줘서 테이블과 페이지네이션 바를 위아래로 분리 */}
+                <Modal.Body className="p-0 d-flex flex-column" style={{ maxHeight: '70vh' }}>
+                    <div style={{ overflowY: 'auto' }}>
+                        <Table hover responsive className="kh-table kh-table-flat align-middle text-center mb-0">
+                            <thead className="sticky-top bg-white">
+                                <tr>
+                                    <th>번호</th>
+                                    <th>이름</th>
+                                    <th>학교</th>
+                                    <th>학년</th>
+                                    <th>상태</th>
+                                    <th>선택</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </Table>
+                            </thead>
+                            <tbody>
+                                {/* 🌟 searchResults 대신 searchPageData.list 사용! */}
+                                {pageData.list.map(res => (
+                                    <tr key={res.studentNo}>
+                                        <td className="text-muted">{res.studentNo}</td>
+                                        <td className="fw-bold text-dark">{res.studentName}</td>
+                                        <td>{res.studentSchool || '-'}</td>
+                                        <td>{res.studentGrade || '-'}</td>
+                                        <td>
+                                            <Badge bg={res.studentAcademicStatus === '재원' ? 'success' : 'secondary'}>
+                                                {res.studentAcademicStatus}
+                                            </Badge>
+                                        </td>
+                                        <td>
+                                            <Button variant="outline-primary" size="sm" onClick={() => handleSelectStudent(res)}>
+                                                선택
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    </div>
+
+                    {/* 🌟 페이지네이션 바 부착 영역 (2페이지 이상일 때만 표시) */}
+                    {pageData.totalPages > 1 && (
+                        <div className="py-3 bg-white border-top d-flex justify-content-center mt-auto">
+                            <PaginationBar 
+                                page={pageData.page}
+                                totalPages={pageData.totalPages}
+                                startBlock={pageData.startBlock}
+                                endBlock={pageData.endBlock}
+                                prev={pageData.prev}
+                                next={pageData.next}
+                                // 🌟 번호를 누르면 해당 번호를 넣어서 검색 함수를 다시 실행!
+                                onChange={(targetPage) => handleSearchStudent(targetPage)} 
+                            />
+                        </div>
+                    )}
                 </Modal.Body>
+                
                 <Modal.Footer className="border-0 bg-light">
                     <Button variant="secondary" onClick={() => setShowSearchModal(false)}>닫기</Button>
                 </Modal.Footer>

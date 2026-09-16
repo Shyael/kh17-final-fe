@@ -140,49 +140,58 @@ export default function StudentList() {
                                     </thead>
                                     <tbody>
                                         {/* 🌟 수정: students 배열 대신 pageData.list 사용 */}
-                                        {pageData.list.length === 0 ? (
-                                            <tr>
-                                                <td colSpan="5" className="py-5 text-muted">등록된 학생 데이터가 없습니다.</td>
-                                            </tr>
-                                        ) : (
-                                            pageData.list.map((student) => (
-                                                <tr 
-                                                    key={student.studentNo}
-                                                    onClick={() => setSelectedStudent(student)}
-                                                    style={{ cursor: "pointer" }}
-                                                    className={selectedStudent?.studentNo === student.studentNo ? "table-primary" : ""}
+                                        {pageData.list.map((student) => {
+                                        // 🌟 가독성을 위해 선택 여부를 변수로 뺍니다.
+                                        const isSelected = selectedStudent?.studentNo === student.studentNo;
+
+                                        return (
+                                            <tr 
+                                                key={student.studentNo}
+                                                onClick={() => setSelectedStudent(student)}
+                                                style={{ cursor: "pointer",
+                                                        backgroundColor: isSelected ? "#eef4fd" : undefined,
+                                                        borderLeft: isSelected ? "4px solid #0d6efd" : "4px solid transparent",
+                                                        transition: "background-color 0.15s ease-in-out"
+                                                 }} // 🌟 tr에는 커서만 남깁니다!
+                                                // 배경색은 부트스트랩의 table-primary 클래스가 알아서 완벽하게 처리해 줍니다.
+                                                className={isSelected ? "kh-table" : ""}
+                                            >
+                                                <td 
+                                                    className="fw-semibold"
                                                 >
-                                                    <td className="fw-semibold">
-                                                        {student.studentName}
-                                                        {student.studentAcademicStatus === '대기' && (
-                                                            <Badge bg="warning" text="dark" className="ms-2">대기</Badge>
-                                                        )}
-                                                    </td>
-                                                    <td className="text-muted">{student.studentSchool}</td>
-                                                    <td style={{ width: "20%" }}>
-                                                        <ProgressBar 
-                                                            now={student.attendanceRate} 
-                                                            variant={student.attendanceRate < 50 ? "danger" : "primary"} 
-                                                            style={{ height: "8px" }} 
-                                                        />
-                                                    </td>
-                                                    <td>
-                                                        {student.unpaidAmount > 0 ? (
-                                                            <span className="text-danger fw-bold">
-                                                                {student.unpaidAmount?.toLocaleString()}원
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-muted">없음</span>
-                                                        )}
-                                                    </td>
-                                                    <td>
-                                                        <Badge bg={getRiskBadgeVariant(student.riskLevel)}>
-                                                            {student.riskLevel}
-                                                        </Badge>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
+                                                    {student.studentName}
+                                                    {student.studentAcademicStatus === '대기' && (
+                                                        <Badge bg="warning" text="dark" className="ms-2">대기</Badge>
+                                                    )}
+                                                </td>
+                                                
+                                                <td className="text-muted">{student.studentSchool}</td>
+                                                
+                                                {/* ... 나머지 td 코드들은 기존과 동일하게 유지 ... */}
+                                                <td style={{ width: "20%" }}>
+                                                    <ProgressBar 
+                                                        now={student.attendanceRate} 
+                                                        variant={student.attendanceRate < 50 ? "danger" : "kh-table"} 
+                                                        style={{ height: "8px" }} 
+                                                    />
+                                                </td>
+                                                <td>
+                                                    {student.unpaidAmount > 0 ? (
+                                                        <span className="text-danger fw-bold">
+                                                            {student.unpaidAmount?.toLocaleString()}원
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-muted">없음</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <Badge bg={getRiskBadgeVariant(student.riskLevel)}>
+                                                        {student.riskLevel}
+                                                    </Badge>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                     </tbody>
                                 </Table>
                             </div>
@@ -260,7 +269,7 @@ export default function StudentList() {
 
                                 <Button 
                                     as={Link} 
-                                    to={`/student/detail/${selectedStudent.studentNo}`}
+                                    to={`/employee/student/detail/${selectedStudent.studentNo}`}
                                     variant="primary" 
                                     className="w-100 py-2 fw-bold mt-auto"
                                 >

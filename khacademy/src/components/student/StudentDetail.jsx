@@ -315,7 +315,7 @@ export default function StudentDetail() {
                 <Card.Header className="bg-white border-bottom-0 pt-4 pb-0 px-4">
                     <div className="d-flex justify-content-between align-items-center">
                         <div className="d-flex align-items-center gap-3">
-                            <Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>← 뒤로</Button>
+                            <Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>← 목록</Button>
                             <h4 className="fw-bold mb-0 text-primary">학생 상세 정보</h4>
 
                             <Badge bg={student.studentAcademicStatus === '재원' ? 'success' : 'warning'} text={student.studentAcademicStatus === '대기' ? 'dark' : ''} className="fs-6 ms-2">
