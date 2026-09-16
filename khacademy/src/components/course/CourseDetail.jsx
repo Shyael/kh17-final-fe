@@ -744,6 +744,7 @@ export default function CourseDetail() {
                     </Table>
                 </div>
             )}
+            
 
             {/* 회차 일정 및 상태 수정 모달 */}
             <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
