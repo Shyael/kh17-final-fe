@@ -55,7 +55,8 @@ function App() {
         </EmployeeLayout>
       ) : authPage ? (
         // 인증 화면: 메뉴/푸터 없이 (로고는 외부 회원용 화면에서만)
-        <Container fluid>
+        // 로고 + 로그인 카드를 한 덩어리로 화면 세로 중앙에 배치
+        <Container fluid className="kh-auth-page">
           {showAuthLogo && (
             <div className="kh-auth-bar">
               <Link to="/academy" className="kh-auth-logo">{academyName}</Link>

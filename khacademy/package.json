@@ -10,6 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.21",
+    "@fullcalendar/react": "^6.1.21",
+    "@fullcalendar/timegrid": "^6.1.21",
     "@stomp/stompjs": "^7.3.0",
     "axios": "^1.20.0",
     "bootstrap": "^5.3.8",
