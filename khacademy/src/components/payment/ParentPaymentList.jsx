@@ -17,9 +17,9 @@ export default function ParentPaymentList({ targetStudentNo }) {
     
     const [currentStudentNo, setCurrentStudentNo] = useState(null);
 
-    // 🌟 2. 데이터 및 필터 State (월별/이름 검색은 삭제!)
-    const [payments, setPayments] = useState([]);
-    const [searchStatus, setSearchStatus] = useState("전체"); // 완납/미납 필터만 남김
+    // 🌟 1. 상태(State) 수정: 백엔드에서 받은 '원본 데이터'를 저장할 State로 변경
+    const [allPayments, setAllPayments] = useState([]); 
+    const [searchStatus, setSearchStatus] = useState("전체"); 
     const [summary, setSummary] = useState({ totalPaid: 0, totalUnpaid: 0 });
 
     // ----------------------------------------------------
@@ -49,22 +49,23 @@ export default function ParentPaymentList({ targetStudentNo }) {
     }, [targetStudentNo, loginAccountNo, selectedChildNo]);
 
     // ----------------------------------------------------
-    // 데이터 불러오기 로직 (아까 뚫어둔 백엔드 API 호출!)
     const fetchPayments = useCallback(async () => {
         if (!currentStudentNo) return;
 
         try {
-            // 🌟 주소가 /employee 가 아니라 /academy 입니다!
             const response = await apiClient.get("/academy/payment/list", {
                 params: { 
-                    studentNo: currentStudentNo,
-                    searchStatus: searchStatus === "전체" ? "" : searchStatus 
+                    studentNo: currentStudentNo
+                    // searchStatus 파라미터 삭제! (어차피 백엔드에서 전체를 다 줌)
                 }
             });
             
             const data = response.data.list || response.data || [];
-            setPayments(data);
+            
+            // 가져온 전체 데이터를 allPayments에 저장!
+            setAllPayments(data);
 
+            // 요약(총액)은 필터와 상관없이 '학생의 전체 기준'으로 보여주는 것이 좋습니다.
             const paid = data.reduce((sum, item) => sum + (item.paidAmount || 0), 0);
             const unpaid = data.reduce((sum, item) => sum + (item.remainingAmount || 0), 0);
             setSummary({ totalPaid: paid, totalUnpaid: unpaid });
@@ -72,11 +73,28 @@ export default function ParentPaymentList({ targetStudentNo }) {
         } catch (error) {
             console.error("수납 목록 로딩 실패:", error);
         }
-    }, [currentStudentNo, searchStatus]);
+    }, [currentStudentNo]); // searchStatus 의존성 제거
 
     useEffect(() => {
         fetchPayments();
     }, [fetchPayments]);
+
+    // 🌟 3. 리액트에서 실시간 필터링! (searchStatus가 바뀔 때마다 즉시 계산)
+    const filteredPayments = allPayments.filter(p => {
+        if (searchStatus === "전체") return true;
+        
+        // "미납"을 선택하면 상태가 '미납'이거나 '부분납'인 것을 모두 보여줌!
+        if (searchStatus === "미납") {
+            return p.paymentStatus === "미납" || p.paymentStatus === "부분납";
+        }
+        
+        // "완납"을 선택하면 완납만!
+        if (searchStatus === "완납") {
+            return p.paymentStatus === "완납";
+        }
+        
+        return true;
+    });
 
     // ----------------------------------------------------
     const handleKakaoPay = async (e, payment) => {
@@ -167,18 +185,16 @@ export default function ParentPaymentList({ targetStudentNo }) {
                             </tr>
                         </thead>
                         <tbody>
-                            {payments.length === 0 ? (
+                            {/* 🌟 payments -> filteredPayments 로 변경! */}
+                            {filteredPayments.length === 0 ? (
                                 <tr>
                                     <td colSpan="6" className="py-5 text-muted">
                                         조회된 수납 내역이 없습니다.
                                     </td>
                                 </tr>
                             ) : (
-                                payments.map((p) => (
-                                    <tr key={p.paymentNo} 
-                                        // onClick={() => navigate(`/parent/payment/detail/${p.paymentNo}`)} 
-                                        style={{ cursor: "pointer" }}
-                                    >
+                                filteredPayments.map((p) => (
+                                    <tr key={p.paymentNo} style={{ cursor: "pointer" }}>
                                         <td className="fw-bold">{p.paymentMonth}</td>
                                         <td><Badge bg={getBadgeVariant(p.paymentStatus)}>{p.paymentStatus}</Badge></td>
                                         <td>{p.totalAmount?.toLocaleString()}원</td>
