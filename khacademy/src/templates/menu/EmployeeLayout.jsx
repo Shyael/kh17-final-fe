@@ -21,6 +21,11 @@ const MENU = [
         ],
     },
     {
+        type: "group", icon: "🎓", label: "학부모 관리", children: [
+            { label: "학부모 목록", to: "/employee/parent/list" },
+        ],
+    },
+    {
         type: "group", icon: "📅", label: "상담관리", children: [
             { label: "상담 예약 목록", to: "/employee/consult/reservation" },
             { label: "상담 관리", to: "/employee/consult/manage" },

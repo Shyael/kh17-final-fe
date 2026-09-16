@@ -165,7 +165,7 @@ export default function EmployeeDashboard() {
                                                     <tbody>
                                                         {filteredCourses.map((course) => (
                                                             <tr
-                                                                key={course.scheduleNo}
+                                                                key={`${course.courseNo}-${course.scheduleNo}`}
                                                                 style={{ cursor: "pointer" }}
                                                                 onClick={() => navigate(`/employee/course/detail/${course.courseNo}`)}
                                                             >

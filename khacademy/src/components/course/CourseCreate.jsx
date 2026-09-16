@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Col, Form, InputGroup, Modal, Row } from "react-bootstrap";
+import { useAtomValue } from "jotai";
+import { loginUserState } from "@utils/storage"; // EmployeeLayout과 동일한 경로
 import {
     FaCalendarPlus,
     FaCheck,
@@ -51,13 +53,22 @@ const emptySchedule = {
 
 
 export default function CourseCreate() {
-
     const navigate = useNavigate();
 
+    // 1. Jotai Atom에서 로그인 유저 정보 추출
+    const loginUser = useAtomValue(loginUserState);
 
-    // ========================================================
-    // 강좌 정보
-    // ========================================================
+    // 2. 강사 여부 및 사번 확인
+    const isTutor =
+        (loginUser?.roleNames?.includes("TUTOR") ?? false) &&
+        !(loginUser?.roleNames?.includes("ADMIN") ?? false);
+
+    const currentEmployeeNo = Number(loginUser?.typeNo);
+
+    // [1] 선택된 강사
+    const [selectedTutor, setSelectedTutor] = useState(null);
+
+    // [2] 강좌 정보 State
     const [course, setCourse] = useState({
         employeeNo: 0,
         academySubjectNo: 0,
@@ -91,38 +102,48 @@ export default function CourseCreate() {
         tutorList: []
     });
 
+    const displaySubjectList = useMemo(() => {
+        // 강사이고 본인 정보가 세팅되어 있으며 담당 과목이 있으면 본인 과목만 표시
+        if (isTutor && selectedTutor?.subjectList?.length > 0) {
+            return selectedTutor.subjectList;
+        }
+        // 관리자이거나 아직 강사 선택 전이면 전체 과목 표시
+        return formData.subjectList;
+    }, [isTutor, selectedTutor, formData.subjectList]);
 
     // ========================================================
     // 초기 데이터 조회
     // ========================================================
     const loadFormData = useCallback(async () => {
-
         try {
-
-            const { data } = await apiClient.get(
-                "/employee/course/form-data"
-            );
-
+            const { data } = await apiClient.get("/employee/course/form-data");
             console.log("강좌 등록 초기 데이터", data);
-
             setFormData(data);
 
+            // 강사 계정인 경우 본인 정보 자동 매핑
+            if (isTutor && currentEmployeeNo) {
+                const myTutor = data.tutorList?.find(
+                    t => Number(t.employeeNo) === currentEmployeeNo
+                );
+                if (myTutor) {
+                    setSelectedTutor(myTutor);
+                    // 첫 번째 담당 과목 추출
+                    const firstSubject = myTutor.subjectList?.[0];
+
+                    setCourse(prev => ({
+                        ...prev,
+                        employeeNo: myTutor.employeeNo,
+                        // 첫 번째 과목 자동 선택 (과목이 있는 경우)
+                        academySubjectNo: firstSubject ? firstSubject.academySubjectNo : prev.academySubjectNo,
+                        courseSubject: firstSubject ? firstSubject.academySubjectName : prev.courseSubject
+                    }));
+                }
+            }
+        } catch (e) {
+            console.error("강좌 등록 초기 데이터 조회 오류", e);
+            Swal.fire("등록 정보 조회 실패", "강좌 등록에 필요한 정보를 불러오지 못했습니다.", "error");
         }
-        catch (e) {
-
-            console.error(
-                "강좌 등록 초기 데이터 조회 오류",
-                e
-            );
-
-            Swal.fire(
-                "등록 정보 조회 실패",
-                "강좌 등록에 필요한 정보를 불러오지 못했습니다.",
-                "error"
-            );
-        }
-
-    }, []);
+    }, [isTutor, currentEmployeeNo]);
 
 
     useEffect(() => {
@@ -130,13 +151,6 @@ export default function CourseCreate() {
         loadFormData();
 
     }, [loadFormData]);
-
-
-    // ========================================================
-    // 선택된 강사
-    // ========================================================
-    const [selectedTutor, setSelectedTutor] = useState(null);
-
 
     // ========================================================
     // 강사 Modal
@@ -180,22 +194,23 @@ export default function CourseCreate() {
     // ===================
     const changeSubject = useCallback((e) => {
         const subjectNo = Number(e.target.value);
-
         const selectedSubject = formData.subjectList.find(
-            subject =>
-                Number(subject.academySubjectNo) === subjectNo
+            subject => Number(subject.academySubjectNo) === subjectNo
         );
 
         setCourse(prev => ({
             ...prev,
             academySubjectNo: subjectNo,
             courseSubject: selectedSubject?.academySubjectName || "",
-            employeeNo: 0
+            // 강사가 아닐 때만 employeeNo를 0으로 리셋
+            employeeNo: isTutor ? prev.employeeNo : 0
         }));
 
-        setSelectedTutor(null);
-
-    }, [formData.subjectList]);
+        // 강사가 아닐 때만 선택 강사 초기화
+        if (!isTutor) {
+            setSelectedTutor(null);
+        }
+    }, [formData.subjectList, isTutor]);
     // ========================================================
     // 일정 변경
     // =======================================================
@@ -219,26 +234,37 @@ export default function CourseCreate() {
         });
     }, []);
 
-    // 1:00 부터 12:30 까지 30분 간격 Date 객체 24개 생성 (DatePicker 목록 주입용)
-    const TWELVE_HOUR_TIMES = [];
-    for (let h = 1; h <= 12; h++) {
-        TWELVE_HOUR_TIMES.push(dayjs(`2000-01-01 ${String(h).padStart(2, "0")}:00`).toDate());
-        TWELVE_HOUR_TIMES.push(dayjs(`2000-01-01 ${String(h).padStart(2, "0")}:30`).toDate());
-    }
+    // 1:00 ~ 12:30 (30분 간격) 시간 선택지 생성
+    const TIME_OPTIONS = [
+        "01:00", "01:30", "02:00", "02:30", "03:00", "03:30",
+        "04:00", "04:30", "05:00", "05:30", "06:00", "06:30",
+        "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
+        "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"
+    ];
 
-    // 24시간제 문자열("14:30")을 받아서 오전/오후 반환
+    // 24시간제("18:30") -> 오전/오후 반환 ("AM" 또는 "PM")
     const getMeridiem = (timeStr) => {
         if (!timeStr) return "AM";
         const hour = parseInt(timeStr.split(":")[0], 10);
         return hour >= 12 ? "PM" : "AM";
     };
 
-    // 24시간제 문자열("14:30")을 12시간제 Date 객체로 변환 (14:30 -> 02:30 Date)
-    const get12HourDate = (timeStr) => {
-        if (!timeStr) return null;
-        let [h, m] = timeStr.split(":").map(Number);
-        const hour12 = h % 12 === 0 ? 12 : h % 12;
-        return dayjs(`2000-01-01 ${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")}`).toDate();
+    // 24시간제("18:30") -> 12시간제 문자열("06:30") 반환
+    const get12HourTimeStr = (timeStr) => {
+        if (!timeStr) return "";
+        const [h, m] = timeStr.split(":");
+        const hour = parseInt(h, 10);
+        const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+        return `${String(hour12).padStart(2, "0")}:${m}`;
+    };
+
+    // 오전/오후 및 12시간제 문자열을 조합하여 24시간제("HH:mm")로 변환
+    const convertTo24Hour = (meridiem, time12) => {
+        if (!time12) return "";
+        let [h, m] = time12.split(":").map(Number);
+        if (meridiem === "PM" && h < 12) h += 12;
+        if (meridiem === "AM" && h === 12) h = 0; // 오전 12시는 00시
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     };
 
     // ========================================================
@@ -972,9 +998,10 @@ export default function CourseCreate() {
                                             value={course.academySubjectNo}
                                             onChange={changeSubject}
                                         >
+                                            {/* 관리자일 때만 '과목 선택' 안내 옵션을 보여주고, 강사면 안내 옵션 없이 바로 첫 과목 선택 상태 유지 */}
+                                            {!isTutor && <option value="0">과목 선택</option>}
 
-                                            <option value="0">과목 선택</option>
-                                            {formData.subjectList.map(subject => (
+                                            {displaySubjectList.map(subject => (
                                                 <option
                                                     key={subject.academySubjectNo}
                                                     value={subject.academySubjectNo}
@@ -1296,27 +1323,15 @@ export default function CourseCreate() {
                                             }}
                                         >
 
-                                            <div
-                                                style={{
-                                                    fontSize:
-                                                        "11px",
-
-                                                    color:
-                                                        COLORS.muted,
-
-                                                    marginBottom:
-                                                        "4px"
-                                                }}
-                                            >
+                                            <div style={{ fontSize: "11px", color: COLORS.muted, marginBottom: "4px" }}>
                                                 담당 강사
                                             </div>
 
 
-                                            <strong
-                                                style={{
-                                                    fontSize:
-                                                        "18px"
-                                                }}
+                                            <strong style={{
+                                                fontSize:
+                                                    "18px"
+                                            }}
                                             >
                                                 {
                                                     selectedTutor.accountName
@@ -1344,18 +1359,8 @@ export default function CourseCreate() {
 
                                             {selectedTutor.subjectList && (
 
-                                                <div
-                                                    style={{
-                                                        marginTop:
-                                                            "8px",
-
-                                                        fontSize:
-                                                            "12px"
-                                                    }}
-                                                >
-
+                                                <div style={{ marginTop: "8px", fontSize: "12px" }}>
                                                     담당 과목:{" "}
-
                                                     {
                                                         selectedTutor.subjectList
                                                             .map(
@@ -1375,9 +1380,9 @@ export default function CourseCreate() {
                                         <Button
                                             variant="outline-secondary"
                                             className="w-100"
-                                            onClick={
-                                                loadTutors
-                                            }
+                                            onClick={loadTutors}
+                                            // 강사라면 버튼 숨김 또는 비활성화
+                                            style={{ display: isTutor ? "none" : "block" }}
                                         >
                                             강사 변경
                                         </Button>
@@ -1627,88 +1632,82 @@ export default function CourseCreate() {
                                                 </Form.Select>
                                             </Col>
 
-                                            {/* 시작시간 */}
+                                            {/* ==================== 시작시간 ==================== */}
                                             <Col md={3}>
-                                                <Form.Label>시작</Form.Label>
+                                                <Form.Label>시작 시간</Form.Label>
                                                 <div className="d-flex gap-1">
                                                     {/* 1. 오전/오후 선택 */}
                                                     <Form.Select
-                                                        style={{ width: "80px", flexShrink: 0 }}
+                                                        style={{ width: "75px", flexShrink: 0 }}
                                                         value={getMeridiem(schedule.scheduleStart)}
                                                         onChange={(e) => {
                                                             const nextMeridiem = e.target.value;
-                                                            if (!schedule.scheduleStart) return;
-
-                                                            // 오전/오후 변경 시 24시간제로 환산
-                                                            let [h, m] = schedule.scheduleStart.split(":").map(Number);
-                                                            if (nextMeridiem === "PM" && h < 12) h += 12;
-                                                            if (nextMeridiem === "AM" && h >= 12) h -= 12;
-
-                                                            const nextTime = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-                                                            changeScheduleValue(index, "scheduleStart", nextTime);
+                                                            const currentTime12 = get12HourTimeStr(schedule.scheduleStart) || "09:00";
+                                                            const nextTime24 = convertTo24Hour(nextMeridiem, currentTime12);
+                                                            changeScheduleValue(index, "scheduleStart", nextTime24);
                                                         }}
                                                     >
                                                         <option value="AM">오전</option>
                                                         <option value="PM">오후</option>
                                                     </Form.Select>
 
-                                                    {/* 2. 12시간제 전용 DatePicker */}
-                                                    <DatePicker
-                                                        name="scheduleStart"
-                                                        selected={get12HourDate(schedule.scheduleStart)}
-                                                        onChange={(date) => {
-                                                            if (!date) {
-                                                                changeScheduleValue(index, "scheduleStart", "");
-                                                                return;
-                                                            }
-                                                            // 선택된 시(1~12), 분 추출
-                                                            let h = date.getHours();
-                                                            const m = String(date.getMinutes()).padStart(2, "0");
-
-                                                            // 현재 선택된 오전/오후 상태에 맞춰 24시간제로 계산
-                                                            const isPM = getMeridiem(schedule.scheduleStart) === "PM";
-                                                            if (isPM && h < 12) h += 12;
-                                                            if (!isPM && h === 12) h = 0; // 오전 12시는 00시
-
-                                                            const finalTime = `${String(h).padStart(2, "0")}:${m}`;
-                                                            changeScheduleValue(index, "scheduleStart", finalTime);
+                                                    {/* 2. 12시간제 시간 선택 (01:00 ~ 12:30) */}
+                                                    <Form.Select
+                                                        value={get12HourTimeStr(schedule.scheduleStart)}
+                                                        onChange={(e) => {
+                                                            const nextTime12 = e.target.value;
+                                                            const currentMeridiem = getMeridiem(schedule.scheduleStart);
+                                                            const nextTime24 = convertTo24Hour(currentMeridiem, nextTime12);
+                                                            changeScheduleValue(index, "scheduleStart", nextTime24);
                                                         }}
-                                                        showTimeSelect
-                                                        showTimeSelectOnly
-                                                        includeTimes={TWELVE_HOUR_TIMES} // 1:00 ~ 12:30 외의 다른 시간은 아예 숨김
-                                                        timeFormat="h:mm"                // 드롭다운 내부 텍스트에서 AM/PM 제거
-                                                        dateFormat="h:mm"                // Input에 표시될 때도 숫자만 (예: 2:30)
-                                                        timeCaption="시간"
-                                                        placeholderText="시간 선택"
-                                                        customInput={<Form.Control />}
-                                                        wrapperClassName="w-100"
-                                                    />
+                                                    >
+                                                        <option value="">시간 선택</option>
+                                                        {TIME_OPTIONS.map((t) => (
+                                                            <option key={t} value={t}>
+                                                                {t}
+                                                            </option>
+                                                        ))}
+                                                    </Form.Select>
                                                 </div>
                                             </Col>
 
+                                            {/* ==================== 종료시간 ==================== */}
+                                            <Col md={3}>
+                                                <Form.Label>종료 시간</Form.Label>
+                                                <div className="d-flex gap-1">
+                                                    {/* 1. 오전/오후 선택 */}
+                                                    <Form.Select
+                                                        style={{ width: "75px", flexShrink: 0 }}
+                                                        value={getMeridiem(schedule.scheduleEnd)}
+                                                        onChange={(e) => {
+                                                            const nextMeridiem = e.target.value;
+                                                            const currentTime12 = get12HourTimeStr(schedule.scheduleEnd) || "10:00";
+                                                            const nextTime24 = convertTo24Hour(nextMeridiem, currentTime12);
+                                                            changeScheduleValue(index, "scheduleEnd", nextTime24);
+                                                        }}
+                                                    >
+                                                        <option value="AM">오전</option>
+                                                        <option value="PM">오후</option>
+                                                    </Form.Select>
 
-                                            {/* 종료시간 */}
-                                            <Col md={2}>
-
-                                                <Form.Label>
-                                                    종료
-                                                </Form.Label>
-
-
-                                                <Form.Control
-                                                    type="time"
-                                                    name="scheduleEnd"
-                                                    value={
-                                                        schedule.scheduleEnd
-                                                    }
-                                                    onChange={e =>
-                                                        changeScheduleValue(
-                                                            index,
-                                                            e
-                                                        )
-                                                    }
-                                                />
-
+                                                    {/* 2. 12시간제 시간 선택 (01:00 ~ 12:30) */}
+                                                    <Form.Select
+                                                        value={get12HourTimeStr(schedule.scheduleEnd)}
+                                                        onChange={(e) => {
+                                                            const nextTime12 = e.target.value;
+                                                            const currentMeridiem = getMeridiem(schedule.scheduleEnd);
+                                                            const nextTime24 = convertTo24Hour(currentMeridiem, nextTime12);
+                                                            changeScheduleValue(index, "scheduleEnd", nextTime24);
+                                                        }}
+                                                    >
+                                                        <option value="">시간 선택</option>
+                                                        {TIME_OPTIONS.map((t) => (
+                                                            <option key={t} value={t}>
+                                                                {t}
+                                                            </option>
+                                                        ))}
+                                                    </Form.Select>
+                                                </div>
                                             </Col>
 
 

@@ -57,6 +57,8 @@ import ParentAssignmentDetail from "@components/student/assignment/ParentAssignm
 import StudentMyInfo from "@components/student/StudentMyInfo";
 
 import ParentMyInfo from "@components/parent/ParentMyInfo";
+import ParentList from "@components/parent/ParentList";
+import ParentDetail from "@components/parent/ParentDetail";
 
 import StudentList from "@components/student/StudentList";
 import StudentDetail from "@components/student/StudentDetail";
@@ -191,7 +193,9 @@ export default function Body() {
             <Route path="/employee/attendance" element={<EmployeeAttendanceList />} />
             {/* 직원 - 학생근태 */}
             <Route path="/employee/kiosk/" element={<KioskAttendance />} />
-
+            {/* 직원 - 학부모 목록 */}
+            <Route path="/employee/parent/list" element={<ParentList />}/>
+            <Route path="/employee/parent/detail/:parentNo" element={<ParentDetail />}/>
             {/* 직원 - 급여 */}
             <Route path="/employee/payroll" element={<EmployeePayrollList />} />
             <Route path="/employye/payroll/:employeeNo/:payrollYear/:payrollMonth" element={<EmployeePayrollDetail />} />
@@ -274,7 +278,6 @@ export default function Body() {
 
             {/* 학부모 - 내 정보 */}
             <Route path="/parent/myInfo" element={<Member><ParentMyInfo /></Member>} />
-
             {/* 학부모 - 자녀 과제 상세 */}
             <Route path="/parent/assignment/:assignmentNo" element={<ParentAssignmentDetail />} />
             {/* 학부모 - 자녀 시험 결과 */}

@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Badge, Button, Card, Col, Form, Row, Spinner, Table, InputGroup, Modal } from "react-bootstrap";
-import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie } from "react-icons/fa"; 
+import { FaSave, FaComments, FaTrash, FaPlus, FaUserTie } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
-import { apiClient } from "@utils/reaxios"; 
+import { apiClient } from "@utils/reaxios";
 
 export default function StudentDetail() {
-    const { studentNo } = useParams(); 
-    const navigate = useNavigate(); 
+    const { studentNo } = useParams();
+    const navigate = useNavigate();
 
     // ==========================================
     // 1. 상태 관리 (State) 구역
@@ -15,12 +15,12 @@ export default function StudentDetail() {
     const [payments, setPayments] = useState([]);
     const [totalUnpaid, setTotalUnpaid] = useState(0);
 
-    const [allDiscounts, setAllDiscounts] = useState([]); 
-    const [studentDiscounts, setStudentDiscounts] = useState([]); 
-    const [selectedDiscountNo, setSelectedDiscountNo] = useState(""); 
+    const [allDiscounts, setAllDiscounts] = useState([]);
+    const [studentDiscounts, setStudentDiscounts] = useState([]);
+    const [selectedDiscountNo, setSelectedDiscountNo] = useState("");
 
     const [parentList, setParentList] = useState([]);
-    const [payAmount, setPayAmount] = useState(""); 
+    const [payAmount, setPayAmount] = useState("");
 
     // 수강 중인 강의 목록과 전체 강의 목록을 담을 State
     const [enrolledCourses, setEnrolledCourses] = useState([]);
@@ -111,14 +111,14 @@ export default function StudentDetail() {
     // 🌟 추가: 수강 취소 기능
     const handleCancelCourse = async (courseNo) => {
         if (!window.confirm("정말로 이 강의의 수강을 취소하시겠습니까?")) return;
-        
+
         try {
             await apiClient.delete(`/employee/student/course/cancel/${studentNo}/${courseNo}`);
             alert("수강이 취소되었습니다.");
-            
+
             // 삭제 후 화면의 수강 중인 목록과 모달의 강의 목록을 동시에 갱신!
-            fetchEnrolledCourses(); 
-            fetchAvailableCourses(); 
+            fetchEnrolledCourses();
+            fetchAvailableCourses();
         } catch (error) {
             alert("수강 취소에 실패했습니다.");
         }
@@ -147,23 +147,23 @@ export default function StudentDetail() {
                 studentNo: student.studentNo,
                 courseNo: selectedCourseNo
             });
-            
-            alert(response.data); 
+
+            alert(response.data);
             setShowCourseModal(false);
             setSelectedCourseNo("");
             fetchEnrolledCourses(); // 등록 성공 시 목록 갱신
-            
+
         } catch (error) {
             if (error.response && error.response.data) {
-                alert(error.response.data); 
+                alert(error.response.data);
             } else {
                 alert("수강 신청 중 오류가 발생했습니다.");
             }
         }
     };
 
-    
-    
+
+
     // useEffect에 새로운 fetch 함수들 추가
     useEffect(() => {
         fetchStudentDetail();
@@ -173,11 +173,11 @@ export default function StudentDetail() {
         fetchAvailableCourses();
         fetchEnrolledCourses();
     }, [
-        fetchStudentDetail, 
-        fetchStudentPayments, 
-        fetchDiscounts, 
-        fetchParentInfo, 
-        fetchAvailableCourses, 
+        fetchStudentDetail,
+        fetchStudentPayments,
+        fetchDiscounts,
+        fetchParentInfo,
+        fetchAvailableCourses,
         fetchEnrolledCourses
     ]);
 
@@ -191,8 +191,8 @@ export default function StudentDetail() {
 
         try {
             await apiClient.post(`/employee/student/${studentNo}/discount/${selectedDiscountNo}`);
-            setSelectedDiscountNo(""); 
-            fetchDiscounts(); 
+            setSelectedDiscountNo("");
+            fetchDiscounts();
         } catch (error) {
             alert("할인 적용에 실패했습니다.");
         }
@@ -202,7 +202,7 @@ export default function StudentDetail() {
         if (!window.confirm("이 할인 혜택을 해제하시겠습니까?")) return;
         try {
             await apiClient.delete(`/employee/student/discount/${studentDiscountNo}`);
-            fetchDiscounts(); 
+            fetchDiscounts();
         } catch (error) {
             alert("할인 해제에 실패했습니다.");
         }
@@ -217,8 +217,8 @@ export default function StudentDetail() {
         if (!window.confirm("학생 정보를 이대로 수정하시겠습니까?")) return;
         try {
             const response = await apiClient.put("/employee/student/edit", student);
-            alert(response.data); 
-            fetchStudentDetail(); 
+            alert(response.data);
+            fetchStudentDetail();
         } catch (error) {
             alert("정보 수정에 실패했습니다.");
         }
@@ -226,11 +226,11 @@ export default function StudentDetail() {
 
     const handleApproveStudent = async () => {
         if (!window.confirm("이 학생을 '재원' 상태로 승인하시겠습니까? (승인 시 청구 대상이 됩니다)")) return;
-        
+
         try {
             await apiClient.patch(`/employee/student/approve/${studentNo}`);
             alert("재원 처리가 완료되었습니다.");
-            fetchStudentDetail(); 
+            fetchStudentDetail();
         } catch (error) {
             alert("승인 처리에 실패했습니다.");
         }
@@ -256,7 +256,7 @@ export default function StudentDetail() {
                         <div className="d-flex align-items-center gap-3">
                             <Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>← 뒤로</Button>
                             <h4 className="fw-bold mb-0 text-primary">학생 상세 정보</h4>
-                            
+
                             <Badge bg={student.studentAcademicStatus === '재원' ? 'success' : 'warning'} text={student.studentAcademicStatus === '대기' ? 'dark' : ''} className="fs-6 ms-2">
                                 {student.studentAcademicStatus}
                             </Badge>
@@ -305,7 +305,10 @@ export default function StudentDetail() {
                                 <Table hover responsive className="kh-table align-middle text-center">
                                     <thead>
                                         <tr>
-                                            <th>청구 월</th><th>청구 금액</th><th>납부 상태</th><th>미납액</th>
+                                            <th>청구 월</th>
+                                            <th>청구 금액</th>
+                                            <th>납부 상태</th>
+                                            <th>미납액</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -376,7 +379,7 @@ export default function StudentDetail() {
                                 + 수강 신청
                             </Button>
                         </div>
-                        
+
                         <Table hover responsive className="kh-table text-center align-middle">
                             <thead>
                                 <tr>
@@ -384,7 +387,7 @@ export default function StudentDetail() {
                                     <th>과목</th>
                                     <th>강의 유형</th>
                                     <th>상태</th>
-                                    <th>관리</th> {/* 🌟 수강료 -> 관리 로 변경 */}
+                                    <th>관리</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -427,7 +430,7 @@ export default function StudentDetail() {
                         <div className="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2 mt-5">
                             <h6 className="fw-bold text-secondary mb-0">연결된 보호자 정보</h6>
                         </div>
-                        
+
                         {parentList && parentList.length > 0 ? (
                             parentList.map((parent, index) => (
                                 <Row key={parent.parentNo || index} className="mb-3 g-3 bg-light p-3 rounded mx-0 align-items-end shadow-sm">
@@ -494,19 +497,19 @@ export default function StudentDetail() {
                     </Form>
                 </Card.Body>
             </Card>
-            
+
             {/* 수강 신청 모달 창 */}
             <Modal show={showCourseModal} onHide={() => { setShowCourseModal(false); resetCourseModal(); }} centered>
                 <Modal.Header closeButton className="bg-light">
                     <Modal.Title className="fw-bold fs-5">신규 수강 신청</Modal.Title>
                 </Modal.Header>
-                
+
                 <Modal.Body>
                     {/* 🌟 새로 추가된 필터 영역 (학년, 과목 2칸으로 나눔) */}
                     <Row className="g-2 mb-3">
                         <Col>
-                            <Form.Select 
-                                value={courseFilter.grade} 
+                            <Form.Select
+                                value={courseFilter.grade}
                                 onChange={(e) => setCourseFilter(prev => ({ ...prev, grade: e.target.value }))}
                             >
                                 {uniqueGrades.map(grade => (
@@ -515,8 +518,8 @@ export default function StudentDetail() {
                             </Form.Select>
                         </Col>
                         <Col>
-                            <Form.Select 
-                                value={courseFilter.subject} 
+                            <Form.Select
+                                value={courseFilter.subject}
                                 onChange={(e) => setCourseFilter(prev => ({ ...prev, subject: e.target.value }))}
                             >
                                 {uniqueSubjects.map(subject => (
@@ -529,12 +532,12 @@ export default function StudentDetail() {
                     {/* 기존에 있던 메인 강의 선택 영역 */}
                     <Form.Group>
                         <Form.Label className="small text-muted fw-bold">개설된 강의 목록</Form.Label>
-                        <Form.Select 
-                            value={selectedCourseNo} 
+                        <Form.Select
+                            value={selectedCourseNo}
                             onChange={(e) => setSelectedCourseNo(e.target.value)}
                         >
                             <option value="">수강할 강의를 선택하세요</option>
-                            
+
                             {/* 🌟 availableCourses 대신 filteredCourses로 매핑! */}
                             {filteredCourses.map(course => (
                                 <option key={course.courseNo} value={course.courseNo}>
@@ -542,13 +545,13 @@ export default function StudentDetail() {
                                 </option>
                             ))}
                         </Form.Select>
-                        
+
                         <Form.Text className="text-muted d-block mt-2">
                             * 학생의 기존 시간표와 겹치지 않는 강의만 노출됩니다.
                         </Form.Text>
                     </Form.Group>
                 </Modal.Body>
-                
+
                 <Modal.Footer className="border-0">
                     <Button variant="secondary" onClick={() => { setShowCourseModal(false); resetCourseModal(); }}>
                         취소
