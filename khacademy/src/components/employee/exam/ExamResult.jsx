@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import { Badge, Button, ButtonGroup, Card, Col, Row, Table } from "react-bootstrap";
-import { FaLock } from "react-icons/fa6";
+import { FaLock, FaListUl } from "react-icons/fa6";
 import { formatShortDateTime } from "@utils/format";
 import Swal from "sweetalert2";
 
@@ -397,7 +397,8 @@ export default function ExamResult() {
         <Row className="mt-4 mb-4">
             <Col className="text-end">
                 <Button variant="outline-secondary" as={Link} to={`/employee/exam`}>
-                    목록으로
+                    <FaListUl className="me-2" />
+                    <span>목록으로</span>
                 </Button>
             </Col>
         </Row>

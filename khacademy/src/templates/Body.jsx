@@ -108,6 +108,8 @@ import CourseCreate from "@components/course/CourseCreate";
 import CourseList from "@components/course/CourseList";
 import CourseDetail from "@components/course/CourseDetail";
 
+import EmployeeTimetable from "@components/employee/timetable/EmployeeTimetable";
+
 
 
 
@@ -187,6 +189,9 @@ export default function Body() {
             <Route path="/employee/course/create" element={<CourseCreate />} />
             <Route path="/employee/course/list" element={<CourseList />} />
             <Route path="/employee/course/detail/:courseNo" element={<CourseDetail />} />
+
+            {/* 직원 - 강의 시간표 */}
+            <Route path="/employee/timetable" element={<EmployeeTimetable />} />
 
             {/* 직원 - 근태 */}
             <Route path="/employeeAttendance" element={<EmployeeAttendance />} />

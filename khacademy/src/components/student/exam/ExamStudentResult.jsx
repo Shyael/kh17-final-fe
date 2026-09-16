@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Card } from "react-bootstrap";
+import { FaListUl } from "react-icons/fa6";
 import { toast } from "react-toastify";
 import { useAtomValue } from "jotai";
 import { selectedChildNoState } from "@utils/storage";
@@ -334,7 +335,8 @@ export default function ExamStudentResult() {
                             navigate("/student/exam");
                         }
                     }}>
-                    목록으로
+                    <FaListUl className="me-2" />
+                    <span>목록으로</span>
                 </Button>
             </div>
         </div>

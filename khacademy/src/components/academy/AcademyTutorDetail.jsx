@@ -1,11 +1,11 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Card, Col, Row } from "react-bootstrap";
-import { FaArrowLeft, FaCommentDots, FaGraduationCap, FaPhone } from "react-icons/fa6";
+import { FaCommentDots, FaGraduationCap, FaListUl, FaPhone } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
-import NoImage from "@assets/no-image.png";
+import TutorAvatar from "./TutorAvatar";
 
 export default function AcademyTutorDetail() {
     // URL
@@ -95,17 +95,16 @@ export default function AcademyTutorDetail() {
     const info = tutor.tutor;
 
     return (
-        <>
+        <div className="kh-external-content">
             <Jumbotron title={info.accountName ? `${info.accountName} 강사` : "강사 소개"} />
 
             {/* 뒤로가기 */}
             <Row className="mb-3">
                 <Col>
                     <Button
-                        variant="link"
-                        className="text-decoration-none px-0 fw-bold"
+                        variant="outline-secondary"
                         onClick={() => navigate("/academy/tutor")}>
-                        <FaArrowLeft className="me-2" />
+                        <FaListUl className="me-2" />
                         <span>강사진 목록</span>
                     </Button>
                 </Col>
@@ -114,19 +113,12 @@ export default function AcademyTutorDetail() {
             {/* 강사 프로필 카드 */}
             <Row>
                 <Col>
-                    <Card className="text-center mb-4">
+                    <Card className="border-0 shadow-sm text-center mb-4">
                         <Card.Body className="py-5">
-                            <img
-                                src={
-                                    tutor.image
-                                            ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
-                                            : NoImage
-                                }
-                                alt={`${info.accountName} 강사`}
-                                className="rounded-circle mb-3"
-                                width={140}
-                                height={140}
-                                style={{ objectFit: "cover" }}
+                            <TutorAvatar
+                                tutor={{ accountName: info.accountName, image: tutor.image }}
+                                size={140}
+                                className="mb-3"
                             />
 
                             <h2 className="fw-bold mb-2">
@@ -184,6 +176,6 @@ export default function AcademyTutorDetail() {
                     </ul>
                 </Col>
             </Row>
-        </>
+        </div>
     );
 }

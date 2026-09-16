@@ -8,8 +8,6 @@ import {
     FaArrowRight,
     FaClock,
     FaChalkboardUser,
-    FaLocationDot,
-    FaUsers
 } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
@@ -97,9 +95,7 @@ export default function EmployeeDashboard() {
             ) : (
                 <>
                     {/* 원장 전용 대시보드 */}
-                    {isAdmin && (
-                        <AdminDashBoard dashboard={dashboard} />
-                    )}
+                    {isAdmin && <AdminDashBoard dashboard={dashboard} />}
 
                     <Row className="g-3 mt-1">
                         {/* =========================
@@ -218,7 +214,7 @@ export default function EmployeeDashboard() {
                         {/* =========================
                             과제 요약
                            ========================= */}
-                        <Col xs={12} lg={dashboard.courses !== undefined ? 6 : 6}>
+                        <Col xs={12} lg={dashboard.courses !== undefined ? 6 : 12}>
                             <Card className="h-100 shadow-sm border-0">
                                 <Card.Body className="d-flex flex-column p-3">
                                     <div className="d-flex justify-content-between align-items-center mb-2">
@@ -226,7 +222,11 @@ export default function EmployeeDashboard() {
                                             <FaPen className="text-primary" />
                                             <span className="fw-bold">진행중인 과제</span>
                                         </div>
-                                        <Badge bg={dashboard.activeAssignmentCount > 0 ? "primary" : "secondary"}>
+                                        <Badge
+                                            bg={dashboard.activeAssignmentCount > 0 ? "primary" : "secondary"}
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => navigate("/employee/assignment?assignmentPhase=제출가능")}
+                                        >
                                             {dashboard.activeAssignmentCount}건
                                         </Badge>
                                     </div>
@@ -288,10 +288,18 @@ export default function EmployeeDashboard() {
                                             <span className="fw-bold">응시중 · 예정 시험</span>
                                         </div>
                                         <div className="d-flex gap-1">
-                                            <Badge bg={dashboard.availableExamCount > 0 ? "success" : "secondary"}>
+                                            <Badge
+                                                bg={dashboard.availableExamCount > 0 ? "success" : "secondary"}
+                                                style={{ cursor: "pointer" }}
+                                                onClick={() => navigate("/employee/exam?examPhase=응시가능")}
+                                            >
                                                 응시가능 {dashboard.availableExamCount}
                                             </Badge>
-                                            <Badge bg="info">
+                                            <Badge
+                                                bg="info"
+                                                style={{ cursor: "pointer" }}
+                                                onClick={() => navigate("/employee/exam?examPhase=예정")}
+                                            >
                                                 예정 {dashboard.upcomingExamCount}
                                             </Badge>
                                         </div>

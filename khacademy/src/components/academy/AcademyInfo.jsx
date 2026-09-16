@@ -5,7 +5,8 @@ import { FaArrowRight, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Carousel } from "react-bootstrap";
-import NoImage from "@assets/no-image.png";
+import TutorCard from "./TutorCard";
+import useScrollReveal from "@utils/scrollReveal";
 
 import {
     Map,
@@ -36,6 +37,12 @@ export default function AcademyInfo() {
     });
 
     const [tutorList, setTutorList] = useState([]);
+
+    // 섹션별 스크롤 리빌 (스크롤해서 보일 때 서서히 나타나는 연출)
+    const [historyRevealRef, historyVisible] = useScrollReveal();
+    const [locationRevealRef, locationVisible] = useScrollReveal();
+    const [tutorRevealRef, tutorVisible] = useScrollReveal();
+    const [consultRevealRef, consultVisible] = useScrollReveal();
 
     //지도 좌표
     const [position, setPosition] = useState(null);
@@ -134,7 +141,7 @@ export default function AcademyInfo() {
     }, [mapReady, position]);
 
     return (
-        <>
+        <div className="kh-external-content">
             {/* 메인 배너 이미지 (Lorem Picsum 자리잡기) */}
             <Row>
                 <Col>
@@ -145,7 +152,7 @@ export default function AcademyInfo() {
                                     <img
                                         src={`${import.meta.env.VITE_SERVER_URL}/api/attach/${image.attachNo}`}
                                         alt={image.attachName}
-                                        className="d-block w-100 rounded"
+                                        className="d-block w-100 rounded-top"
                                         style={{
                                             height: "400px",
                                             objectFit: "cover"
@@ -156,7 +163,7 @@ export default function AcademyInfo() {
                         </Carousel>
                     ) : (
                         <div
-                            className="d-flex justify-content-center align-items-center bg-light rounded"
+                            className="d-flex justify-content-center align-items-center bg-light rounded-top"
                             style={{ height: "400px" }}
                         >
                             <span className="text-muted">
@@ -167,56 +174,85 @@ export default function AcademyInfo() {
                 </Col>
             </Row>
 
-            {/* 캐치프레이즈 + 과목 뱃지 + 소개글 */}
-            <Row className="mt-4 text-center">
+            {/* 캐치프레이즈 + 과목 뱃지 + 소개글 : 캐러셀과 한 덩어리로 보이는 히어로 배너 */}
+            <Row className="g-0">
                 <Col>
-                    <h2 className="fw-bold">
-                        {info.academyTagline}
-                    </h2>
+                    <div
+                        className="text-center px-4 py-5 shadow-sm"
+                        style={{
+                            background: "var(--kh-surface)",
+                            borderBottomLeftRadius: "var(--bs-card-border-radius)",
+                            borderBottomRightRadius: "var(--bs-card-border-radius)",
+                        }}
+                    >
+                        <h2
+                            className="fw-bolder mb-3"
+                            style={{ letterSpacing: "-0.02em", color: "var(--kh-text)" }}
+                        >
+                            {info.academyTagline}
+                        </h2>
 
-                    <div className="my-3 d-flex justify-content-center flex-wrap gap-2">
-                        {academy.subjectList.map((subject, index) => (
-                            <Badge
-                                key={subject.academySubjectNo ?? index}
-                                bg="primary"
-                                pill
-                                className="px-3 py-2">
-                                {subject.academySubjectName}
-                            </Badge>
-                        ))}
+                        <div className="mb-3 d-flex justify-content-center flex-wrap gap-2">
+                            {academy.subjectList.map((subject, index) => (
+                                <Badge
+                                    key={subject.academySubjectNo ?? index}
+                                    pill
+                                    className="px-3 py-2 fw-semibold"
+                                    style={{
+                                        background: "var(--kh-primary-light)",
+                                        color: "var(--kh-primary-dark)",
+                                    }}
+                                >
+                                    {subject.academySubjectName}
+                                </Badge>
+                            ))}
+                        </div>
+
+                        <p
+                            className="text-muted mb-0 mx-auto"
+                            style={{ whiteSpace: "pre-line", maxWidth: 640 }}
+                        >
+                            {info.academyIntro}
+                        </p>
                     </div>
-
-                    <p className="text-muted" style={{ whiteSpace: "pre-line" }}>
-                        {info.academyIntro}
-                    </p>
                 </Col>
             </Row>
 
-            <hr className="mt-4" />
+            <div className="mt-5" />
 
             {/* 학원 연혁 */}
-            <Row className="mt-4">
-                <Col>
-                    <h3 className="fw-bold mb-3">학원 연혁</h3>
-                    <ul className="list-unstyled">
-                        {academy.historyList.map((history, index) => (
-                            <li
-                                key={history.academyHistoryNo ?? index}
-                                className="d-flex gap-3 py-2 border-bottom">
-                                <span className="fw-bold text-primary text-nowrap">
-                                    {history.academyHistoryYear}
-                                </span>
-                                <span>{history.academyHistoryContent}</span>
-                            </li>
-                        ))}
-                    </ul>
-                </Col>
-            </Row>
+            <div
+                ref={historyRevealRef}
+                className={"kh-reveal bg-white shadow-sm p-4 p-md-5" + (historyVisible ? " visible" : "")}
+                style={{ borderRadius: "var(--bs-card-border-radius)" }}
+            >
+                <h3 className="fw-bold mb-3">학원 연혁</h3>
+                <ul className="list-unstyled mb-0">
+                    {academy.historyList.map((history, index) => (
+                        <li
+                            key={history.academyHistoryNo ?? index}
+                            className="d-flex gap-3 py-2 border-bottom">
+                            <span className="fw-bold text-primary text-nowrap">
+                                {history.academyHistoryYear}
+                            </span>
+                            <span>{history.academyHistoryContent}</span>
+                        </li>
+                    ))}
+                </ul>
+            </div>
 
-            <hr className="mt-4" />
+            <div className="mt-5" />
 
             {/* 오시는 길 */}
-            <Row className="mt-4">
+            <div
+                ref={locationRevealRef}
+                className={"kh-reveal p-4 p-md-5" + (locationVisible ? " visible" : "")}
+                style={{
+                    background: "var(--kh-primary-light)",
+                    borderRadius: "var(--bs-card-border-radius)",
+                }}
+            >
+            <Row>
                 <Col>
                     <h3 className="fw-bold mb-3">
                         <FaLocationDot className="text-primary me-2" />
@@ -314,11 +350,17 @@ export default function AcademyInfo() {
                     </p>
                 </Col>
             </Row>
+            </div>
 
-            <hr className="mt-4" />
+            <div className="mt-5" />
 
             {/* 강사 소개 */}
-            <Row className="mt-4">
+            <div
+                ref={tutorRevealRef}
+                className={"kh-reveal bg-white shadow-sm p-4 p-md-5" + (tutorVisible ? " visible" : "")}
+                style={{ borderRadius: "var(--bs-card-border-radius)" }}
+            >
+            <Row>
                 <Col>
                     <h3 className="fw-bold mb-3">
                         <FaUsers className="text-primary me-2" />
@@ -329,31 +371,7 @@ export default function AcademyInfo() {
             <Row className="g-3">
                 {previewTutorList.map((tutor) => (
                     <Col key={tutor.tutorNo} xs={12} md={4}>
-                        <Card
-                            as={Link}
-                            to={`/academy/tutor/${tutor.tutorNo}`}
-                            className="h-100 text-center text-decoration-none text-reset">
-                            <Card.Body>
-                                <img
-                                    src={
-                                        tutor.image
-                                            ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
-                                            : NoImage
-                                    }
-                                    alt={`${tutor.accountName} 강사`}
-                                    className="rounded-circle mb-3"
-                                    width={120}
-                                    height={120}
-                                    style={{ objectFit: "cover" }}
-                                />
-                                <Card.Title className="fw-bold mb-1">
-                                    {tutor.accountName} 강사
-                                </Card.Title>
-                                <Card.Text className="text-muted">
-                                    {tutor.tutorTagline}
-                                </Card.Text>
-                            </Card.Body>
-                        </Card>
+                        <TutorCard tutor={tutor} />
                     </Col>
                 ))}
             </Row>
@@ -368,13 +386,14 @@ export default function AcademyInfo() {
                     </Link>
                 </Col>
             </Row>
+            </div>
 
-            <hr className="mt-4" />
+            <div className="mt-5 mb-5" />
 
             {/* 상담 신청 */}
-            <Row className="mt-4 mb-5">
+            <Row className="mb-5" ref={consultRevealRef}>
                 <Col>
-                    <Card>
+                    <Card className={"kh-reveal border-0 shadow-sm" + (consultVisible ? " visible" : "")}>
                         <Card.Body>
                             <Card.Title className="fw-bold mb-3">
                                 <FaPhone className="text-primary me-2" />
@@ -391,7 +410,7 @@ export default function AcademyInfo() {
                                 <Button
                                     href={`tel:${info.academyPhone}`}
                                     variant="primary"
-                                    className="text-nowrap"
+                                    className="btn-kh-accent text-nowrap"
                                 >
                                     <FaPhone className="me-2" />
                                     <span>전화 걸기</span>
@@ -401,6 +420,6 @@ export default function AcademyInfo() {
                     </Card>
                 </Col>
             </Row>
-        </>
+        </div>
     );
 }
