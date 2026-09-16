@@ -103,7 +103,6 @@ import ExamStudentResult from "@components/student/exam/ExamStudentResult";
 
 import ScoreManagement from "@components/score/ScoreManagement";
 
-
 import CourseCreate from "@components/course/CourseCreate";
 import CourseList from "@components/course/CourseList";
 import CourseDetail from "@components/course/CourseDetail";

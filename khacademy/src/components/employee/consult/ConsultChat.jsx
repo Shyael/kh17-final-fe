@@ -7,10 +7,19 @@ import { apiClient } from "@utils/reaxios";
 import { loginUserState, isLoginState } from "@utils/storage";
 import { Badge, Button, Card, Col, Container, Form, ListGroup, Modal, Row } from "react-bootstrap";
 import { FaPaperPlane } from "react-icons/fa6";
+import Swal from "sweetalert2";
 
 import dayjs from "dayjs";
 import "dayjs/locale/ko";
 dayjs.locale("ko");//한국어로 설정
+
+import './ConsultChat.css'
+
+const badgeColorMap = {
+    '학생': 'info',
+    '학부모': 'success',
+    '직원': 'warning'
+};
 
 export default function ConsultChat() {
 
@@ -23,6 +32,7 @@ export default function ConsultChat() {
     const [room, setRoom] = useState(null);
     const [rooms, setRooms] = useState([]);//채팅방 목록
     const [roomCount, setRoomCount] = useState(0);//채팅방 개수
+    const [users, setUsers] = useState([]);//참여자 목록
     const [history, setHistory] = useState([]);//메세지 이력
 
     const totalUnreadCount = useMemo(() => {
@@ -56,12 +66,10 @@ export default function ConsultChat() {
 
     //연결 함수
     const connectToServer = useCallback(()=>{
-        //연결(socket) 생성
-        const socket = new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`);
-
         //연결을 관리할 도구(client) 생성하여 반환
         const client = new Client({
-            webSocketFactory : () => socket , 
+            webSocketFactory : () => new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`), 
+            reconnectDelay: 5000,
             heartbeatIncoming: 10000, // 서버로부터 10초마다 하트비트를 수신할 것으로 기대
             heartbeatOutgoing: 10000, // 서버로 10초마다 하트비트를 발송
 
@@ -118,6 +126,36 @@ export default function ConsultChat() {
                             return updatedRooms.sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
                         });
                     });
+                    client.subscribe(`/public/${r.roomNo}/users`, (message) => {
+                        // 1. 서버에서 보낸 참여자 목록(배열) 파싱
+                        const updatedUsers = JSON.parse(message.body);
+                        
+                        // 2. 현재 내가 화면에 열어두고 있는 방 번호 확인 (오래된 클로저 방지용 ref 사용)
+                        const currentActive = sockRef.current; 
+
+                        // 3. 누군가 참가/퇴장한 방이 '현재 내가 보고 있는 방'일 때만 참여자 목록 즉시 갱신
+                        if (currentActive === r.roomNo) {
+                            setUsers(updatedUsers);
+                        }
+
+                        const isEnter = updatedUsers.some(user => user.accountNo === loginUser.accountNo) ? 'Y' : 'N';
+                        // 4. 좌측 채팅방 목록(rooms)의 해당 방 cnt와 enter 값 실시간 갱신
+                        setRooms(prevRooms => 
+                            prevRooms.map(room => 
+                                room.roomNo === r.roomNo 
+                                    ? { ...room, cnt: updatedUsers.length, enter: isEnter } // 👈 enter 값도 함께 덮어씌움
+                                    : room
+                            )
+                        );
+                    });
+                    client.subscribe(`/private/${r.roomNo}/action/${loginUser.accountNo}`, (message) => {
+                        const json = JSON.parse(message.body);
+                        switch(json) {
+                            case "leave":
+                                leaveRoom();
+                                break;
+                        }
+                    });
                 });
 
                 //신규채팅방 체크
@@ -135,6 +173,33 @@ export default function ConsultChat() {
             },
             onDisconnect: () => {
                 console.log('연결 끊김');
+            },
+            onWebSocketClose: async (event) => {
+                console.log("웹소켓 연결 종료 이벤트 발생:", event);
+
+                try {
+                    await apiClient.get("/employee/room/");
+                } catch (error) {
+                    // 401 에러(인증 실패)가 떨어졌다면 세션이 만료된 것!
+                    if (error.response?.status === 401) {
+                        client.deactivate(); // 무한 재연결 시도 중지
+
+                        // 알림창을 띄우고 로그인 페이지로 강제 이동
+                        Swal.fire({
+                            title: "세션 만료",
+                            text: "오랜 시간 응답이 없어 연결이 끊어졌습니다. 다시 로그인해 주세요.",
+                            icon: "warning",
+                            confirmButtonText: "확인",
+                            allowOutsideClick: false // 바깥 클릭 방지
+                        }).then(() => {
+                            // 로컬 스토리지 등에 저장된 만료 정보 삭제 (프로젝트 환경에 맞게 수정)
+                            localStorage.removeItem("loginUserState");
+                            
+                            // 로그인 페이지로 튕겨냄 (새로고침 효과)
+                            window.location.href = "/employee/login"; 
+                        });
+                    }
+                }
             },
             //디버깅 설정(옵션)
             debug: (str)=>console.log(str)
@@ -223,8 +288,9 @@ export default function ConsultChat() {
         setActiveRoomNo(selectedRoom.roomNo);
         
         const { data } = await apiClient.get(`/employee/room/${selectedRoom.roomNo}`);
+        setUsers(data.users);
         setHistory(data.history);
-
+        
         // 안읽음 카운트 초기화
         setRooms(prev => prev.map(r => r.roomNo === selectedRoom.roomNo ? { ...r, unreadCnt: 0 } : r));
     }, []);
@@ -291,16 +357,71 @@ export default function ConsultChat() {
         }
     }, []);
 
+    const enterRoom = useCallback(async (targetRoomNo) => {
+        try {
+            await apiClient.post(`/employee/room/${targetRoomNo}/enter`);
+            // 2. 요청 성공 시, 해당 방의 정보를 즉시 다시 불러옴
+            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
+            // 3. 참여자 목록(users) 상태를 업데이트 -> 화면(UI) 즉시 변경됨!
+            setUsers(data.users);
+            loadRooms();
+        } catch (error) {
+            console.error("참여 처리 실패", error);
+        }
+    }, []);
+    
+    const leaveRoom = useCallback(async (targetRoomNo) => {
+        try {
+            await apiClient.post(`/employee/room/${targetRoomNo}/leave`);
+            // 2. 요청 성공 시, 방 정보 다시 불러오기
+            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
+            // 3. 참여자 목록 갱신 -> 내가 빠진 목록이 세팅되므로 화면이 즉시 바뀜!
+            setUsers(data.users);
+            loadRooms();
+        } catch (error) {
+            console.error("퇴장 처리 실패", error);
+        }
+    }, []);
+    
+    // 🔴 관리자 전용: 특정 직원 강제 퇴장 처리
+    const kickEmployee = useCallback(async (targetRoomNo, targetAccountNo) => {
+        const result = await Swal.fire({
+            title: "직원 내보내기",
+            text: "해당 직원을 채팅방에서 내보내시겠습니까?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "내보내기",
+            confirmButtonColor: "#d33",
+            cancelButtonText: "취소"
+        });
+
+        if (!result.isConfirmed) return;
+
+        try {
+            await apiClient.post(`/employee/room/${targetRoomNo}/leave/${targetAccountNo}`);
+            
+            // 요청 성공 시, 방 정보 다시 불러오기
+            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
+            setUsers(data.users);
+            loadRooms(); // 목록 갱신
+        } catch (error) {
+            console.error("강제 퇴장 처리 실패", error);
+            Swal.fire("오류", "내보내기 처리에 실패했습니다.", "error");
+        }
+    }, [loadRooms]);
+
+    const consultEmployee = users?.find(user => user.accountType === '직원');
+
     return(<>
-        <Jumbotron title="상담 채팅 관리" />
+        {/* <Jumbotron title="채팅 관리" /> */}
 
         <Container fluid className="p-3 bg-light">
             <Row className="bg-white shadow-sm rounded overflow-hidden">
                 
                 {/* 좌측: 채팅방 목록 */}
-                <Col xs={12} md={5} lg={4} className="p-0 border-end d-flex flex-column " style={{ height: "550px" }}>
+                <Col xs={12} md={5} lg={4} className="p-0 border-end d-flex flex-column chat-col-height">
                 <div className="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">상담 채팅 목록</h5>
+                    <h5 className="mb-0">채팅 목록</h5>
                     {totalUnreadCount > 0 && (
                         <Badge bg="danger" pill className="fs-6">
                             새 메시지 {totalUnreadCount}
@@ -318,9 +439,35 @@ export default function ConsultChat() {
                     >
                         {/* 상단: 이름과 마지막 채팅 시간 */}
                         <div className="d-flex w-100 justify-content-between align-items-center mb-1">
-                            <h6 className="mb-0 fw-bold text-truncate pe-2">
-                                [{room.accountType}] {room.accountName}
-                            </h6>
+                            <div className="d-flex align-items-center gap-2 text-truncate pe-2">
+                                <Badge bg={badgeColorMap[room.accountType] || 'secondary'} className="px-2 py-1">
+                                    {room.accountType}
+                                </Badge>
+                                <h6 className="mb-0 fw-bold text-truncate">
+                                    {room.accountName}
+                                </h6>
+
+                                {room.enter === 'Y' ? (
+                                    <Badge 
+                                        bg="primary" 
+                                        className="d-flex align-items-center justify-content-center rounded-pill bg-opacity-10 text-primary border border-primary-subtle fw-bold px-2"
+                                        style={{ fontSize: '0.65rem', height: '20px', lineHeight: '1' }}
+                                    >
+                                        참여중
+                                    </Badge>
+                                ) : (
+                                    room.cnt > 1 && (
+                                    <Badge 
+                                        bg="success" 
+                                        className="d-flex align-items-center justify-content-center rounded-pill bg-opacity-10 text-success border border-success-subtle fw-bold px-2"
+                                        style={{ fontSize: '0.65rem', height: '20px', lineHeight: '1' }}
+                                    >
+                                        상담중
+                                    </Badge>
+                                    )
+                                )
+                                }
+                            </div>
                             
                             {/* ✨ 마지막 채팅 시간 표시 (VO의 필드명이 chatTime인지 lastTime인지 맞춰서 수정) */}
                             <span className={`small text-nowrap ${activeRoomNo === room.roomNo ? 'text-white' : 'text-muted'}`}>
@@ -343,13 +490,81 @@ export default function ConsultChat() {
                 </Col>
 
                 {/* 우측: 채팅 내용 */}
-                <Col xs={12} md={7} lg={8} className="p-0 d-flex flex-column bg-light" style={{ height: "550px" }}>
+                <Col xs={12} md={7} lg={8} className="p-0 d-flex flex-column bg-light chat-col-height">
                 {activeRoomNo ? (
                     <>
-                    <div className="p-3 bg-white border-bottom shadow-sm">
-                        <h5 className="mb-0">[{room?.accountType}] {room?.accountName}</h5>
-                    </div>
+                    {/* 👇 1. 상단 회원 정보 카드 헤더 영역 변경 */}
+                    <div className="p-4 bg-white border-bottom shadow-sm z-1">
+                        <div className="d-flex justify-content-between align-items-center">
+                            
+                            {/* 좌측: 프로필 아이콘 및 회원 정보 */}
+                            <div className="d-flex align-items-center gap-3">
+                                <div>
+                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                        <Badge bg={badgeColorMap[room.accountType] || 'secondary'} className="px-2 py-1">
+                                            {room.accountType}
+                                        </Badge>
+                                        <h5 className="mb-0 fw-bold">{room?.accountName}</h5>
+                                    </div>
+                                    {/* <div className="text-muted small">
+                                        채팅방 번호: {room?.roomNo} | 최근 접속: {formatRoomTime(room?.lastTime)}
+                                    </div> */}
+                                </div>
+                            </div>
 
+                            {consultEmployee ? (
+                                /* 누군가(직원) 이미 참가 중인 경우 보여줄 UI */
+                                consultEmployee.accountNo === loginUser.accountNo ? (
+                                    <Button 
+                                        variant="outline-danger" 
+                                        className="fw-bold px-4 py-2 rounded-pill d-flex align-items-center gap-2 shadow-sm hover-elevate transition-all"
+                                        onClick={() => leaveRoom(room.roomNo)}
+                                    >
+                                        <span>나가기</span>
+                                    </Button>
+                                ) : (
+                                    <div 
+                                        className="d-flex align-items-center bg-white border border-light-subtle rounded-pill shadow-sm" 
+                                        style={{ padding: '4px 6px 4px 16px' }}
+                                    >
+                                        {/* 1. 직원 뱃지 및 이름 (내보내기가 있을 때만 조건부로 border-end 적용) */}
+                                        <div className={`d-flex align-items-center gap-2 py-1 ${loginUser?.roleNames?.includes('ADMIN') ? 'border-end border-light-subtle pe-3' : 'pe-2'}`}>
+                                            <Badge bg={badgeColorMap[consultEmployee.accountType] || 'secondary'} className="px-2 py-1 rounded-pill fw-normal">
+                                                {consultEmployee.accountType}
+                                            </Badge>
+                                            <div className="d-flex flex-column justify-content-center">
+                                                <span className="fw-bold text-dark fs-6" style={{ letterSpacing: '-0.5px' }}>
+                                                    {consultEmployee.accountName}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        
+                                        {/* 2. 관리자 전용 '내보내기' 영역 */}
+                                        {loginUser?.roleNames?.includes('ADMIN') && (
+                                            <Button 
+                                                variant="outline-danger" 
+                                                className="border-0 rounded-pill fw-bold ms-2 px-3 d-flex align-items-center transition-all"
+                                                style={{ fontSize: '0.75rem', height: '30px' }}
+                                                onClick={() => kickEmployee(room.roomNo, consultEmployee.accountNo)}
+                                            >
+                                                내보내기
+                                            </Button>
+                                        )}
+                                    </div>
+                                )
+                            ) : (
+                                /* 아무도 참가하지 않은 경우 (기존 참가 버튼) */
+                                <Button 
+                                    variant="primary" 
+                                    className="fw-bold px-4 py-2 rounded-pill d-flex align-items-center gap-2 shadow-sm hover-elevate transition-all"
+                                    onClick={() => enterRoom(room.roomNo)}
+                                >
+                                    <FaPaperPlane size={14} />
+                                    <span>참가하기</span>
+                                </Button>
+                            )}
+                        </div>
+                    </div>
                     <div className="p-4 flex-grow-1 overflow-auto d-flex flex-column gap-3"
                         ref={messagesEndRef}>
                         {history.map((message, index) => {
@@ -385,9 +600,14 @@ export default function ConsultChat() {
                                 <div className="d-flex justify-content-start">
                                     <div className="d-flex flex-column align-items-start">
                                         {(!my && isDiffSender) && (
-                                            <span className="small text-muted mb-1 fw-bold">
-                                                [{message.senderType}] {message.senderName}
-                                            </span>
+                                            <div className="d-flex align-items-center gap-2 mb-1">
+                                                <Badge bg={badgeColorMap[message.senderType] || 'secondary'} className="px-2 py-1">
+                                                    {message.senderType}
+                                                </Badge>
+                                                <span className="small text-muted fw-bold">
+                                                    {message.senderName}
+                                                </span>
+                                            </div>
                                         )}
                                         <div className="d-flex align-items-end gap-2">
                                             <div className="bg-white border rounded-3 p-2 px-3 shadow-sm">
@@ -405,25 +625,40 @@ export default function ConsultChat() {
                     </div>
 
                     <div className="p-3 bg-white border-top">
-                        <div className="d-flex gap-2">
-                            <Form.Control 
-                                type="text" 
-                                placeholder="메시지를 입력하세요"
-                                name="chatContent"
-                                value={input}
-                                onKeyUp={e=>{
-                                    //엔터를 누르면 전송버튼과 동일한 기능을 실행
-                                    if(e.key === "Enter") sendMessage();
-                                }}
-                                onChange={(e)=>setInput(e.target.value)}
-                                className="bg-light border-secondary-subtle"
-                            />
-                            <Button type="button" variant="primary" className="d-flex align-items-center justify-content-center text-nowrap fw-bold px-3"
-                                disabled={isConnect === false} onClick={sendMessage}>
-                                <FaPaperPlane />
-                                <span className="d-none d-md-inline ms-1">전송</span>
-                            </Button>
-                        </div>
+                        {!consultEmployee ? (
+                            <div className="d-flex align-items-center justify-content-center bg-light border border-secondary-subtle rounded-3 p-2 text-muted shadow-sm" style={{ height: "42px" }}>
+                                <span className="small">
+                                    대화중인 직원이 없습니다. 상단의 <strong>참가하기</strong> 버튼을 눌러 대화를 시작해 주세요.
+                                </span>
+                            </div>
+                        ) : consultEmployee.accountNo !== loginUser.accountNo ? (
+                            /* 다른 직원이 상담 중일 때 보여줄 대체 UI */
+                            <div className="d-flex align-items-center justify-content-center bg-light border border-secondary-subtle rounded-3 p-2 text-muted shadow-sm" style={{ height: "42px" }}>
+                                <span className="small">
+                                    현재 <strong>{consultEmployee.accountName}</strong> 직원이 대화 중입니다.
+                                </span>
+                            </div>
+                        ) : (
+                            /* 내가 상담 중이거나 아직 담당자가 없을 때 보여줄 입력창 (기존 코드) */
+                            <div className="d-flex gap-2">
+                                <Form.Control 
+                                    type="text" 
+                                    placeholder="메시지를 입력하세요"
+                                    name="chatContent"
+                                    value={input}
+                                    onKeyUp={e=>{
+                                        if(e.key === "Enter") sendMessage();
+                                    }}
+                                    onChange={(e)=>setInput(e.target.value)}
+                                    className="bg-light border-secondary-subtle"
+                                />
+                                <Button type="button" variant="primary" className="d-flex align-items-center justify-content-center text-nowrap fw-bold px-3"
+                                    disabled={isConnect === false} onClick={sendMessage}>
+                                    <FaPaperPlane />
+                                    <span className="d-none d-md-inline ms-1">전송</span>
+                                </Button>
+                            </div>
+                        )}
                     </div>
                     </>
                 ) : (

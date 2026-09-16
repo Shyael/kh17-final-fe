@@ -10,6 +10,8 @@ import useLogout from "@templates/menu/useLogout";
 import useAcademyName from "@templates/menu/useAcademyName";
 import "@templates/menu/menu.css";
 
+import Alarm from "@components/employee/alarm/Alarm";
+
 /* 직원 사이드바 메뉴 구성 (기존 Menu.jsx 직원 메뉴와 동일한 경로) */
 const MENU = [
     { type: "link", icon: "📊", label: "대시보드", to: "/employeeDashboard" },
@@ -91,7 +93,6 @@ export default function EmployeeLayout({ children }) {
     const [open, setOpen] = useState(initialOpen);
     const toggle = (label) =>
         setOpen(prev => ({ ...prev, [label]: !prev[label] }));
-
     // 사이드바 열림/닫힘 (화면 크기와 무관하게 클릭으로 토글)
     // 처음 진입 시에는 화면이 넓으면 펼친 상태, 좁으면 닫힌 상태로 시작
     const [sidebarOpen, setSidebarOpen] = useState(() =>
@@ -101,10 +102,15 @@ export default function EmployeeLayout({ children }) {
 
     //로그아웃 처리
 
-    return (
+    return (<>
+        <Alarm />
+        {/* {isAdmin && (
+            <Alarm2 />
+        )} */}
         <div className={"kh-gw-layout" + (sidebarOpen ? " sidebar-open" : "")}>
             {/* 사이드바가 열려있을 때 작은 화면에서 뒤 화면을 덮는 백드롭 (클릭 시 닫힘) */}
             <div className="kh-gw-backdrop" onClick={() => setSidebarOpen(false)} />
+
 
             {/* ===== 좌측 사이드바 ===== */}
             <aside className={"kh-gw-sidebar" + (sidebarOpen ? " open" : "")}>
@@ -233,5 +239,5 @@ export default function EmployeeLayout({ children }) {
                 </main>
             </div>
         </div>
-    );
+    </>);
 }

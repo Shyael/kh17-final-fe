@@ -94,13 +94,10 @@ export default function AcademyChat() {
 
     //연결 함수
     const connectToServer = useCallback(()=>{
-        //연결(socket) 생성
-        const socket = new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`);
-
         //연결을 관리할 도구(client) 생성하여 반환
         const client = new Client({
             //연결 객체를 생성하는 함수
-            webSocketFactory : () => socket , 
+            webSocketFactory : () => new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`), 
             // 백엔드 설정 시간과 맞춰줍니다 (밀리초 단위)
             heartbeatIncoming: 10000, // 서버로부터 10초마다 하트비트를 수신할 것으로 기대
             heartbeatOutgoing: 10000, // 서버로 10초마다 하트비트를 발송
@@ -118,10 +115,10 @@ export default function AcademyChat() {
                         updateLastReadTime();
                     }
                 });
-                client.subscribe(`/public/${room.roomNo}/system`, (message)=>{
-                    const json = JSON.parse(message.body);
-                    setHistory(prev=>[...(prev || []), json]);
-                });
+                // client.subscribe(`/public/${room.roomNo}/system`, (message)=>{
+                //     const json = JSON.parse(message.body);
+                //     setHistory(prev=>[...(prev || []), json]);
+                // });
             },
             onDisconnect: () => {
                 console.log('연결 끊김');
@@ -290,7 +287,7 @@ export default function AcademyChat() {
             }}>
             {/* 상단 헤더 영역 */}
             <div className="d-flex justify-content-between align-items-center border-bottom p-3 bg-white rounded-top-3">
-                <h5 className="fw-bold mb-0">채팅 상담</h5>
+                <h5 className="fw-bold mb-0">채팅</h5>
                 <CloseButton onClick={() => setIsChatOpen(false)} data-bs-theme="dark" />
             </div>
             
