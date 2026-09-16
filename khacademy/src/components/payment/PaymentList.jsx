@@ -3,6 +3,7 @@ import { Card, Form, Button, Table, Row, Col, Badge, InputGroup } from "react-bo
 import { FaSearch, FaRegBell } from "react-icons/fa";
 import { apiClient } from "@utils/reaxios"; 
 import { useNavigate } from "react-router-dom";
+import Swal from 'sweetalert2';
 
 export default function PaymentList() {
     const navigate = useNavigate();
@@ -186,9 +187,18 @@ export default function PaymentList() {
                                                     className="d-flex align-items-center gap-1 mx-auto"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        alert(`${p.studentName} 학부모님께 수납 요청 알림을 발송합니다.`);
-                                                    }}>
-                                                    <FaRegBell /> 요청
+                                                        
+                                                        // 🌟 기존 alert 대신 폼나는 알림톡 발송(?) 효과!
+                                                        Swal.fire({
+                                                            icon: 'success',
+                                                            title: '발송 완료',
+                                                            text: `${p.studentName} 학부모님께 수납 요청 알림을 발송했습니다.`,
+                                                            showConfirmButton: false, // 자동으로 닫힐 거라 확인 버튼은 숨김!
+                                                            timer: 1500 // 1.5초 뒤에 스르륵 사라짐
+                                                        });
+                                                    }}
+                                                >
+                                                    수납 요청
                                                 </Button>
                                             ) : (
                                                 <span className="text-muted">-</span>

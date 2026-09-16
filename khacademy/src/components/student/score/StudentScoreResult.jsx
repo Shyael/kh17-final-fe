@@ -165,18 +165,18 @@ export default function StudentScoreResult({ targetStudentNo }) {
         const chartData = allScores
             .filter(item => item.scoreSubject === selectedSubject)
             .filter(item => {
-                // 🌟 DTO에 추가한 examType(또는 scoreType)으로 필터링!
                 if (isMockExam) {
                     return item.scoreType === '모의고사' || item.scoreType === '수능';
                 } else {
                     return item.scoreType === '내신';
                 }
             })
-            // (백엔드에서 이미 ORDER BY로 정렬해왔다면 sort 로직은 지워도 무방합니다!)
+            // 🌟 [해결 2] 날짜(scoreDate)를 기준으로 과거 -> 최신순으로 오름차순 정렬!
+            .sort((a, b) => new Date(a.scoreDate) - new Date(b.scoreDate))
             .map(item => ({
-                // 🌟 핵심: item.scoreName 이 아니라 item.examName (DTO 필드명)으로 변경!
+                // 🌟 [해결 1] JSON 스펙에 맞게 다시 scoreName으로 롤백!
                 month: item.scoreName, 
-                score: item.scoreScore 
+                score: item.scoreScore
             }));
 
         setTrendData(chartData); 
@@ -275,7 +275,10 @@ export default function StudentScoreResult({ targetStudentNo }) {
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                     <XAxis 
                                         dataKey="month" 
-                                        padding={{ left: 30, right: 30 }}
+                                        padding={{ left: 40, right: 40 }}
+                                        interval={0}
+                                        tickMargin={15} 
+                                        tick={{ fontSize: 13, fill: '#666' }}
                                     />
                                     <YAxis domain={[0, 100]} hide={true} />
                                     <Tooltip />

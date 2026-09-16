@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Card, Spinner } from "react-bootstrap";
 import { FaCheckCircle } from "react-icons/fa";
+import Swal from 'sweetalert2';
 
 export default function PaymentSuccess() {
     const navigate = useNavigate();
@@ -23,9 +24,17 @@ export default function PaymentSuccess() {
             const userInfo = userStateStr ? JSON.parse(userStateStr) : null;
 
             if (!pgToken || !tid) {
-                alert("비정상적인 결제 접근입니다.");
-                navigate("/parent/payment/list", { replace: true });
-                return;
+                // 🌟 경고창 띄우고, 확인 버튼 누르면 이동!
+                Swal.fire({
+                    icon: 'warning',
+                    title: '비정상적인 접근',
+                    text: '비정상적인 결제 접근입니다.',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: '확인'
+                }).then(() => {
+                    navigate("/parent/payment/list", { replace: true });
+                });
+                return; // 로직 중단은 팝업과 별개로 바로 시켜줘야 함
             }
 
             try {
@@ -53,8 +62,17 @@ export default function PaymentSuccess() {
 
             } catch (error) {
                 console.error("결제 승인 실패:", error);
-                alert("결제 승인 중 오류가 발생했습니다.");
-                navigate("/parent/payment/list", { replace: true });
+                
+                // 🌟 에러창 띄우고, 확인 버튼 누르면 이동!
+                Swal.fire({
+                    icon: 'error',
+                    title: '결제 승인 오류',
+                    text: '결제 승인 중 오류가 발생했습니다.',
+                    confirmButtonColor: '#d33',
+                    confirmButtonText: '확인'
+                }).then(() => {
+                    navigate("/parent/payment/list", { replace: true });
+                });
             }
         };
 

@@ -3,8 +3,8 @@ import { Card, Form, Button, Table, Row, Col, Badge } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios"; 
 import { useNavigate } from "react-router-dom";
 import { useAtomValue } from "jotai"; 
-// 🚨 경로 주의: 팀원분이 만든 atom 경로로 맞춰주세요!
 import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
+import Swal from 'sweetalert2';
 
 export default function ParentPaymentList({ targetStudentNo }) {
     const navigate = useNavigate();
@@ -99,7 +99,15 @@ export default function ParentPaymentList({ targetStudentNo }) {
             window.location.href = response.data.next_redirect_pc_url;
         } catch (error) {
             console.error("결제 준비 실패", error);
-            alert("카카오페이 결제창을 여는 데 실패했습니다.");
+            
+            // 🌟 기존 alert 대신 Swal 적용!
+            Swal.fire({
+                icon: 'error',
+                title: '결제 준비 실패',
+                text: '카카오페이 결제창을 여는 데 실패했습니다. 잠시 후 다시 시도해주세요.',
+                confirmButtonColor: '#d33', // 에러에 어울리는 빨간색 버튼
+                confirmButtonText: '확인'
+            });
         }
     };
 

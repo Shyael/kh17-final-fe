@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, Fragment } from "react";
 import { Card, Table, Button, Form } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
+import Swal from 'sweetalert2';
 
 export default function DiscountList() {
     // 1. 할인 목록 State
@@ -35,17 +36,22 @@ export default function DiscountList() {
     // 신규 할인 등록 처리
     const handleAddSubmit = async () => {
         if (!newDiscount.discountName || newDiscount.discountValue <= 0) {
-            alert("할인명과 올바른 할인율(금액)을 입력해 주세요.");
+            // 🌟 alert 대체 및 return 분리
+            Swal.fire({ icon: 'warning', text: '할인명과 올바른 할인율(금액)을 입력해 주세요.', confirmButtonColor: '#3085d6' });
             return;
         }
         try {
             const response = await apiClient.post("/employee/payment/discount/add", newDiscount);
-            alert(response.data);
+            
+            // 🌟 성공 알림 (타이머 적용)
+            Swal.fire({ icon: 'success', title: '등록 완료', text: response.data || '할인이 성공적으로 등록되었습니다.', confirmButtonColor: '#3085d6', timer: 1500 });
+            
             setNewDiscount({ discountName: "", discountType: "비율", discountValue: 0 });
             setShowAddForm(false);
             fetchDiscounts(); 
         } catch (error) {
             console.error("할인 등록 실패:", error);
+            Swal.fire({ icon: 'error', title: '등록 실패', text: '할인 등록 중 오류가 발생했습니다.', confirmButtonColor: '#d33' });
         }
     };
 
@@ -57,20 +63,20 @@ export default function DiscountList() {
         try {
             await apiClient.put("/employee/payment/discount/edit", updateData);
             fetchDiscounts(); 
+            // 토글은 화면에서 즉각적으로 스위치가 바뀌므로 굳이 알림창을 띄우지 않아도 좋습니다.
         } catch (error) {
             console.error("할인 정보 변경 실패:", error);
-            alert("정보 변경 중 오류가 발생했습니다.");
+            // 🌟 에러 발생 시 알림
+            Swal.fire({ icon: 'error', title: '변경 실패', text: '정보 변경 중 오류가 발생했습니다.', confirmButtonColor: '#d33' });
         }
     };
 
     // 🌟 4. 줄(Row) 클릭 시 아코디언 메뉴 열기/닫기 (이벤트 버블링 활용)
     const handleRowClick = (discount) => {
-        // 이미 열려있는 줄을 다시 누르면 닫기
         if (expandedRow === discount.discountNo) {
             setExpandedRow(null);
             setEditDiscount(null);
         } else {
-            // 다른 줄을 누르면 해당 줄 열고 수정 데이터 세팅
             setExpandedRow(discount.discountNo);
             setEditDiscount({ ...discount });
         }
@@ -85,34 +91,52 @@ export default function DiscountList() {
     // 🌟 6. 기존 edit 매핑을 재활용한 '수정 완료' 처리
     const handleEditSubmit = async () => {
         if (!editDiscount.discountName || editDiscount.discountValue <= 0) {
-            return alert("올바른 값을 입력해 주세요.");
+            Swal.fire({ icon: 'warning', text: '올바른 값을 입력해 주세요.', confirmButtonColor: '#3085d6' });
+            return;
         }
         try {
             await apiClient.put("/employee/payment/discount/edit", editDiscount);
-            alert("성공적으로 수정되었습니다.");
+            
+            // 🌟 성공 알림 (타이머 적용)
+            Swal.fire({ icon: 'success', title: '수정 완료', text: '성공적으로 수정되었습니다.', confirmButtonColor: '#3085d6', timer: 1500 });
+            
             setExpandedRow(null); // 패널 닫기
             fetchDiscounts(); // 목록 갱신
         } catch (error) {
             console.error("할인 수정 실패:", error);
-            alert("수정에 실패했습니다.");
+            Swal.fire({ icon: 'error', title: '수정 실패', text: '수정에 실패했습니다.', confirmButtonColor: '#d33' });
         }
     };
 
     // 🌟 7. 삭제 처리 (DELETE 매핑)
-    const handleDelete = async (discountNo) => {
-        if (!window.confirm("정말 이 할인을 삭제하시겠습니까?")) return;
-        try {
-            // params로 넘기면 URL 뒤에 ?discountNo=값 형태로 붙어서 전송됩니다.
-            await apiClient.delete("/employee/payment/discount/delete", {
-                params: { discountNo }
-            });
-            alert("삭제되었습니다.");
-            setExpandedRow(null);
-            fetchDiscounts();
-        } catch (error) {
-            console.error("할인 삭제 실패:", error);
-            alert("삭제에 실패했습니다.");
-        }
+    const handleDelete = (discountNo) => { // 🌟 비동기는 then 안으로 넘김
+        // 🌟 window.confirm 대체
+        Swal.fire({
+            title: '할인 혜택 삭제',
+            text: "정말 이 할인을 삭제하시겠습니까? (이미 적용 중인 학생의 데이터에는 영향을 주지 않습니다)",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // 삭제는 빨간색!
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '삭제',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await apiClient.delete("/employee/payment/discount/delete", {
+                        params: { discountNo }
+                    });
+                    
+                    Swal.fire({ icon: 'success', title: '삭제 완료', text: '정상적으로 삭제되었습니다.', confirmButtonColor: '#3085d6', timer: 1500 });
+                    
+                    setExpandedRow(null);
+                    fetchDiscounts();
+                } catch (error) {
+                    console.error("할인 삭제 실패:", error);
+                    Swal.fire({ icon: 'error', title: '삭제 실패', text: '삭제 중 오류가 발생했습니다.', confirmButtonColor: '#d33' });
+                }
+            }
+        });
     };
 
     // 신규 추가 폼 입력 핸들러

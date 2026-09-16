@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Table, Badge, Button, Row, Col, Spinner, Form } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
+import Swal from 'sweetalert2';
 
 export default function PaymentDetail() {
     const { paymentNo } = useParams(); 
@@ -17,31 +18,45 @@ export default function PaymentDetail() {
             setPaymentData(response.data);
         } catch (error) {
             console.error("수납 상세 정보 로딩 실패:", error);
-            alert("정보를 불러오는데 실패했습니다.");
+            // 🌟 alert 교체
+            Swal.fire({ icon: 'error', title: '로딩 실패', text: '정보를 불러오는데 실패했습니다.', confirmButtonColor: '#d33' });
         } finally {
             setLoading(false);
         }
     }, [paymentNo]);
 
     // 수납 처리 함수
-    const handlePay = async () => {
-        // 방어 로직: 숫자 미입력 또는 0원 이하 결제 방지
+    const handlePay = () => { // 🌟 async 제거 (내부 then 안에서 async 사용)
         const amount = parseInt(payAmount, 10);
         if (!amount || amount <= 0) {
-            return alert("올바른 수납 금액을 입력해 주세요.");
+            Swal.fire({ icon: 'warning', text: '올바른 수납 금액을 입력해 주세요.', confirmButtonColor: '#3085d6' });
+            return;
         }
 
-        if (!window.confirm(`₩${amount.toLocaleString()}원을 수납 처리하시겠습니까?`)) return;
-
-        try {
-            // x-www-form-urlencoded 형식으로 쿼리 파라미터 전송
-            await apiClient.post(`/employee/payment/pay?paymentNo=${paymentNo}&payAmount=${amount}`);
-            alert("수납이 완료되었습니다.");
-            setPayAmount(""); // 인풋창 비우기
-            fetchPaymentDetail(); // 화면 새로고침하여 바뀐 상태(완납/부분납)와 이력 표시
-        } catch (error) {
-            alert("수납 처리에 실패했습니다.");
-        }
+        // 🌟 window.confirm 대체
+        Swal.fire({
+            title: '수납 처리',
+            text: `₩${amount.toLocaleString()}원을 수납 처리하시겠습니까?`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754', // 수납(돈 받는 것)이니까 초록색 버튼!
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: '수납 확인',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            if (result.isConfirmed) {
+                try {
+                    await apiClient.post(`/employee/payment/pay?paymentNo=${paymentNo}&payAmount=${amount}`);
+                    
+                    Swal.fire({ icon: 'success', title: '수납 완료', text: '수납이 완료되었습니다.', confirmButtonColor: '#3085d6', timer: 1500 });
+                    
+                    setPayAmount(""); 
+                    fetchPaymentDetail(); 
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: '수납 실패', text: '수납 처리에 실패했습니다.', confirmButtonColor: '#d33' });
+                }
+            }
+        });
     };
 
     useEffect(() => {
@@ -246,37 +261,52 @@ export default function PaymentDetail() {
                                                                 size="sm"
                                                                 className="px-2 py-0"
                                                                 style={{ fontSize: "0.85rem" }}
-                                                                onClick={async () => {
-                                                                    // 1. 취소 사유 프롬프트 띄우기
-                                                                    const reason = window.prompt("결제 취소 사유를 입력해주세요.\n(예: 금액 오입력, 단순 환불 등)");
-                                                                    
-                                                                    if (reason === null) return; // 취소 버튼 누르면 중단
+                                                                onClick={() => {
+                                                                    // 🌟 window.prompt 대신 Swal 팝업 안에서 텍스트(사유)를 입력받습니다!
+                                                                    Swal.fire({
+                                                                        title: '결제 취소',
+                                                                        text: '결제 취소 사유를 입력해주세요.',
+                                                                        input: 'text', // 텍스트 입력창 활성화
+                                                                        inputPlaceholder: '예: 금액 오입력, 단순 환불 등',
+                                                                        icon: 'warning',
+                                                                        showCancelButton: true,
+                                                                        confirmButtonColor: '#dc3545',
+                                                                        cancelButtonColor: '#6c757d',
+                                                                        confirmButtonText: '결제 취소',
+                                                                        cancelButtonText: '닫기',
+                                                                    }).then(async (result) => {
+                                                                        // '결제 취소' 버튼을 눌렀을 때
+                                                                        if (result.isConfirmed) {
+                                                                            const reason = result.value; // 사용자가 입력한 텍스트
 
-                                                                    try {
-                                                                        // 2. 백엔드 취소 API 호출 (카카오페이 tid와 사유 함께 전송)
-                                                                        await apiClient.post('/employee/payment/cancel', null, {
-                                                                            params: {
-                                                                                paymentHistoryNo: history.paymentHistoryNo,
-                                                                                amount: history.paymentHistoryAmount,
-                                                                                paymentNo: history.paymentNo,
-                                                                                tid: history.paymentHistoryTid, // 카카오페이 건이면 tid 전송, 수기면 null
-                                                                                cancelReason: reason || "사유 미입력"
+                                                                            try {
+                                                                                // 백엔드 취소 API 호출
+                                                                                await apiClient.post('/employee/payment/cancel', null, {
+                                                                                    params: {
+                                                                                        paymentHistoryNo: history.paymentHistoryNo,
+                                                                                        amount: history.paymentHistoryAmount,
+                                                                                        paymentNo: history.paymentNo,
+                                                                                        tid: history.paymentHistoryTid, 
+                                                                                        cancelReason: reason || "사유 미입력"
+                                                                                    }
+                                                                                });
+
+                                                                                Swal.fire({ icon: 'success', title: '취소 완료', text: '결제 취소가 완료되었습니다.', confirmButtonColor: '#3085d6', timer: 1500 });
+                                                                                
+                                                                                // 화면 데이터 새로고침
+                                                                                if (typeof fetchPaymentDetail === 'function') {
+                                                                                    fetchPaymentDetail();
+                                                                                } else {
+                                                                                    window.location.reload(); 
+                                                                                }
+
+                                                                            } catch (error) {
+                                                                                console.error("결제 취소 실패:", error);
+                                                                                const errorMsg = error.response?.data || "결제 취소에 실패했습니다.";
+                                                                                Swal.fire({ icon: 'error', title: '취소 실패', text: errorMsg, confirmButtonColor: '#d33' });
                                                                             }
-                                                                        });
-
-                                                                        alert("결제 취소가 완료되었습니다.");
-                                                                        
-                                                                        // 3. 화면 데이터 새로고침 (상세 페이지 전체 갱신 함수 호출)
-                                                                        if (typeof fetchPaymentDetail === 'function') {
-                                                                            fetchPaymentDetail();
-                                                                        } else {
-                                                                            window.location.reload(); // 함수가 없으면 새로고침으로 대체
                                                                         }
-
-                                                                    } catch (error) {
-                                                                        console.error("결제 취소 실패:", error);
-                                                                        alert(error.response?.data || "결제 취소에 실패했습니다.");
-                                                                    }
+                                                                    });
                                                                 }}
                                                             >
                                                                 결제 취소
