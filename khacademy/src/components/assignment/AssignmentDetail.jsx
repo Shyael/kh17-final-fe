@@ -262,6 +262,16 @@ export default function AssignmentDetail() {
 
     return (
         <>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <Button
+                    variant="outline-secondary"
+                    size="sm"
+                    onClick={() => navigate("/employee/assignment")}>
+                    <FaListUl className="me-2" />
+                    목록으로
+                </Button>
+            </div>
+
             <Jumbotron title="과제 상세" />
 
             {/* 과제 정보 + 관리 버튼 */}
@@ -507,18 +517,6 @@ export default function AssignmentDetail() {
                             })}
                         </tbody>
                     </Table>
-                </Col>
-            </Row>
-
-            {/* 목록으로 */}
-            <Row className="mt-4 mb-4">
-                <Col className="text-end">
-                    <Button
-                        variant="outline-secondary"
-                        onClick={() => navigate("/employee/assignment")}>
-                        <FaListUl className="me-2" />
-                        목록으로
-                    </Button>
                 </Col>
             </Row>
         </>

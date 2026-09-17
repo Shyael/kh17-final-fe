@@ -805,6 +805,13 @@ export default function ExamManage() {
 
     return (
         <>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <Button variant="outline-secondary" size="sm" as={Link} to={`/employee/exam`}>
+                    <FaListUl className="me-2" />
+                    <span>목록으로</span>
+                </Button>
+            </div>
+
             <Jumbotron title={isEdit ? "시험 수정" : "시험 등록"} />
 
             {/* 시험 정보 */}
@@ -1090,10 +1097,6 @@ export default function ExamManage() {
 
             <Row className="mt-4 mb-4">
                 <Col className="text-end">
-                    <Button variant="outline-secondary" as={Link} to={`/employee/exam`} className="ms-2">
-                        <FaListUl className="me-2" />
-                        <span>목록으로</span>
-                    </Button>
                     <Button variant="secondary" onClick={saveQuestions} className="ms-2">
                         <span>임시저장</span>
                     </Button>

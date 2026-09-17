@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Container, Row, Col, Form, Button, Table } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Badge, Table } from 'react-bootstrap';
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -12,6 +12,13 @@ dayjs.locale(ko);
 import PaginationBar from "@templates/PaginationBar";
 
 const PAGE_SIZE = 10;
+
+const reservationStatusBadge = {
+    "0": <Badge bg="secondary">상담대기</Badge>,
+    "1": <Badge bg="success">예약확정</Badge>,
+    "2": <Badge bg="info">상담완료</Badge>,
+    "9": <Badge bg="danger">예약취소</Badge>,
+};
 
 export default function ConsultReservation() {
 
@@ -251,7 +258,11 @@ export default function ConsultReservation() {
                             <span>{dayjs(reservation.reservationTime).format('YYYY-MM-DD')}</span><br/>
                             <span>{dayjs(reservation.reservationTime).format('A hh시 mm분')}</span>
                         </td>
-                        <td>{reservation.reservationStatusString}</td>
+                        <td>
+                            {reservationStatusBadge[reservation.reservationStatus] ?? (
+                                <Badge bg="secondary">{reservation.reservationStatusString}</Badge>
+                            )}
+                        </td>
                         <td>
                             <div className={`d-flex ${classMap[reservation.reservationStatus] || ""} gap-2`}>
                                 {statusMap[reservation.reservationStatus]?.(reservation) || null}
