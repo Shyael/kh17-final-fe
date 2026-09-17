@@ -105,6 +105,9 @@ export const logoutActionState = atom(null, (get,set)=>{
     set(selectedChildNoState, RESET);
 });
 
+// 평소에는 null로 대기하다가, 특정 강사나 상담원 정보가 객체 형태로 들어오면 작동합니다.
+export const chatTriggerState = atom(null);
+
 
 //마지막에 개발자 도구에 표시될 라벨을 설정 (위치 무관)
 countState.debugLabel = "연습용 카운트";

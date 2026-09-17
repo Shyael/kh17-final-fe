@@ -41,6 +41,7 @@ const MENU = [
             { label: "채팅 관리", to: "/employee/consult/chat" },
         ],
     },
+    { type: "link", icon: "💬", label: "1:1 채팅", to: "/employee/chat/" },
     {
         type: "group", icon: "💳", label: "수납관리", children: [
             { label: "수납 목록", to: "/employee/payment/list" },
@@ -76,6 +77,8 @@ export default function EmployeeLayout({ children }) {
 
     const isAdmin =
         loginUser?.roleNames?.includes("ADMIN") ?? false;
+    const isTutor = 
+        loginUser?.roleNames?.includes("TUTOR") ?? false;
 
     const userName = loginUser?.accountName ?? loginUser?.name ?? "직원";
     const userDept = loginUser?.department ?? loginUser?.deptName ?? "";
@@ -142,7 +145,14 @@ export default function EmployeeLayout({ children }) {
                 </div>
 
                 <ul className="kh-gw-menu">
-                    {MENU.map(m => m.type === "link" ? (
+                    {MENU
+                        .filter(m => {
+                            if(m.label === "1:1 채팅") {
+                                return isTutor;
+                            }
+                            return true;
+                        })
+                        .map(m => m.type === "link" ? (
                         <li key={m.label}>
                             <NavLink
                                 to={m.to}
@@ -182,7 +192,6 @@ export default function EmployeeLayout({ children }) {
                                             ) {
                                                 return isAdmin;
                                             }
-
                                             return true;
                                         })
                                         //

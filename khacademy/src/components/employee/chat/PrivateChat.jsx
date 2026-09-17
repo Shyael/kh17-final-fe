@@ -13,7 +13,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/ko";
 dayjs.locale("ko");//한국어로 설정
 
-import './ConsultChat.css'
+import '../consult/ConsultChat.css'
 
 const badgeColorMap = {
     '학생': 'info',
@@ -21,7 +21,7 @@ const badgeColorMap = {
     '직원': 'warning'
 };
 
-export default function ConsultChat() {
+export default function PrivateChat() {
 
     // 메시지 입력 상태
     const [input, setInput] = useState('');
@@ -51,7 +51,7 @@ export default function ConsultChat() {
         loadRooms();//시작하자마자 방 목록을 불러온다
     }, []);
     const loadRooms = useCallback(async ()=>{
-        const { data } = await apiClient.get("/employee/room/")
+        const { data } = await apiClient.get("/employee/room/private")
         setRooms(data.rooms);
         setRoomCount(data.count);
         // console.log(data);
@@ -285,6 +285,25 @@ export default function ConsultChat() {
         }
     }, [history]);
 
+    const updateLastReadTime = useCallback(async (targetRoomNo) => {
+        if (!targetRoomNo) return;
+        try {
+            // 백엔드에 읽음 처리 요청
+            await apiClient.put(`/employee/room/${targetRoomNo}/read`);
+            
+            // 프론트엔드 화면의 안읽음 뱃지도 0으로 즉시 초기화
+            setRooms(prevRooms => 
+                prevRooms.map(r => 
+                    r.roomNo === targetRoomNo
+                        ? { ...r, unreadCnt: 0 } 
+                        : r
+                )
+            );
+        } catch (error) {
+            console.error("읽음 처리 실패", error);
+        }
+    }, []);
+
     // 방 선택 시 해당 방의 채팅 내역 조회
     const handleRoomSelect = useCallback(async (selectedRoom) => {
         setRoom(selectedRoom);
@@ -294,6 +313,9 @@ export default function ConsultChat() {
         setUsers([]);
         setHistory([]);
         setIsRoomLoading(true);
+
+        setRooms(prev => prev.map(r => r.roomNo === selectedRoom.roomNo ? { ...r, unreadCnt: 0 } : r));
+        updateLastReadTime(selectedRoom.roomNo);
 
         try {
             const { data } = await apiClient.get(`/employee/room/${selectedRoom.roomNo}`);
@@ -308,7 +330,7 @@ export default function ConsultChat() {
             // ✨ 요청이 끝나면 로딩 끄기
             setIsRoomLoading(false);
         }
-    }, []);
+    }, [updateLastReadTime]);
 
     //연결 상태 확인
     const isConnect = useMemo(()=>{
@@ -353,78 +375,6 @@ export default function ConsultChat() {
         }
     }, []);
 
-    const updateLastReadTime = useCallback(async (targetRoomNo) => {
-        if (!targetRoomNo) return;
-        try {
-            // 백엔드에 읽음 처리 요청
-            await apiClient.put(`/employee/room/${targetRoomNo}/read`);
-            
-            // 프론트엔드 화면의 안읽음 뱃지도 0으로 즉시 초기화
-            setRooms(prevRooms => 
-                prevRooms.map(r => 
-                    r.roomNo === targetRoomNo
-                        ? { ...r, unreadCnt: 0 } 
-                        : r
-                )
-            );
-        } catch (error) {
-            console.error("읽음 처리 실패", error);
-        }
-    }, []);
-
-    const enterRoom = useCallback(async (targetRoomNo) => {
-        try {
-            await apiClient.post(`/employee/room/${targetRoomNo}/enter`);
-            // 2. 요청 성공 시, 해당 방의 정보를 즉시 다시 불러옴
-            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
-            // 3. 참여자 목록(users) 상태를 업데이트 -> 화면(UI) 즉시 변경됨!
-            setUsers(data.users);
-            loadRooms();
-        } catch (error) {
-            console.error("참여 처리 실패", error);
-        }
-    }, []);
-    
-    const leaveRoom = useCallback(async (targetRoomNo) => {
-        try {
-            await apiClient.post(`/employee/room/${targetRoomNo}/leave`);
-            // 2. 요청 성공 시, 방 정보 다시 불러오기
-            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
-            // 3. 참여자 목록 갱신 -> 내가 빠진 목록이 세팅되므로 화면이 즉시 바뀜!
-            setUsers(data.users);
-            loadRooms();
-        } catch (error) {
-            console.error("퇴장 처리 실패", error);
-        }
-    }, []);
-    
-    // 🔴 관리자 전용: 특정 직원 강제 퇴장 처리
-    const kickEmployee = useCallback(async (targetRoomNo, targetAccountNo) => {
-        const result = await Swal.fire({
-            title: "직원 내보내기",
-            text: "해당 직원을 채팅방에서 내보내시겠습니까?",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonText: "내보내기",
-            confirmButtonColor: "#d33",
-            cancelButtonText: "취소"
-        });
-
-        if (!result.isConfirmed) return;
-
-        try {
-            await apiClient.post(`/employee/room/${targetRoomNo}/leave/${targetAccountNo}`);
-            
-            // 요청 성공 시, 방 정보 다시 불러오기
-            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
-            setUsers(data.users);
-            loadRooms(); // 목록 갱신
-        } catch (error) {
-            console.error("강제 퇴장 처리 실패", error);
-            Swal.fire("오류", "내보내기 처리에 실패했습니다.", "error");
-        }
-    }, [loadRooms]);
-
     const consultEmployee = users?.find(user => user.accountType === '직원');
 
     // ✨ 3. 뒤로가기(목록으로) 함수 추가
@@ -436,10 +386,9 @@ export default function ConsultChat() {
 
     // ✨ 1. 방 이동 시 깜빡임 방지용 로딩 상태 추가
     const [isRoomLoading, setIsRoomLoading] = useState(false);
-
-    return(<>
+    
+    return (<>
         {/* <Jumbotron title="채팅 관리" /> */}
-
         <Container fluid className="p-0 p-md-3 bg-light">
             <Row className="bg-white shadow-sm rounded overflow-hidden m-0">
                 
@@ -449,7 +398,7 @@ export default function ConsultChat() {
                     className={`p-0 border-end flex-column chat-col-height ${viewMode === 'chat' ? 'd-none d-md-flex' : 'd-flex'}`}
                 >
                 <div className="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">채팅 목록</h5>
+                    <h5 className="mb-0">1:1 채팅 목록</h5>
                     {totalUnreadCount > 0 && (
                         <Badge bg="danger" pill className="fs-6">
                             새 메시지 {totalUnreadCount}
@@ -474,27 +423,6 @@ export default function ConsultChat() {
                                 <h6 className="mb-0 fw-bold text-truncate">
                                     {room.accountName}
                                 </h6>
-
-                                {room.enter === 'Y' ? (
-                                    <Badge 
-                                        bg="primary" 
-                                        className="d-flex align-items-center justify-content-center rounded-pill bg-opacity-10 text-primary border border-primary-subtle fw-bold px-2"
-                                        style={{ fontSize: '0.65rem', height: '20px', lineHeight: '1' }}
-                                    >
-                                        참여중
-                                    </Badge>
-                                ) : (
-                                    room.cnt > 1 && (
-                                    <Badge 
-                                        bg="success" 
-                                        className="d-flex align-items-center justify-content-center rounded-pill bg-opacity-10 text-success border border-success-subtle fw-bold px-2"
-                                        style={{ fontSize: '0.65rem', height: '20px', lineHeight: '1' }}
-                                    >
-                                        상담중
-                                    </Badge>
-                                    )
-                                )
-                                }
                             </div>
                             
                             {/* 마지막 채팅 시간 표시 */}
@@ -548,67 +476,6 @@ export default function ConsultChat() {
                                     </div>
                                 </div>
                             </div>
-
-                            {/* 우측 상단 버튼 영역 (높이 42px로 통일하여 레이아웃 덜컹거림 방지) */}
-                            {isRoomLoading ? (
-                                /* 1. 로딩 스피너 (42px) */
-                                <div className="d-flex justify-content-center align-items-center" style={{ minWidth: "115px", height: "42px" }}>
-                                    <div className="spinner-border spinner-border-sm text-primary opacity-50" role="status">
-                                        <span className="visually-hidden">Loading...</span>
-                                    </div>
-                                </div>
-                            ) : consultEmployee ? (
-                                consultEmployee.accountNo === loginUser.accountNo ? (
-                                    /* 2. 내가 참가 중일 때 '나가기' 버튼 (py-2 제거하고 높이 42px 지정) */
-                                    <Button 
-                                        variant="outline-danger" 
-                                        className="fw-bold px-4 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm hover-elevate transition-all"
-                                        style={{ height: "42px" }}
-                                        onClick={() => leaveRoom(room.roomNo)}
-                                    >
-                                        <span>나가기</span>
-                                    </Button>
-                                ) : (
-                                    /* 3. 다른 직원이 참가 중일 때 '정보/내보내기' 영역 (높이 42px 지정, 내부 py-1 제거) */
-                                    <div 
-                                        className="d-flex align-items-center bg-white border border-light-subtle rounded-pill shadow-sm" 
-                                        style={{ height: "42px", padding: '0 6px 0 16px' }}
-                                    >
-                                        <div className={`d-flex align-items-center h-100 gap-2 ${loginUser?.roleNames?.includes('ADMIN') ? 'border-end border-light-subtle pe-3' : 'pe-2'}`}>
-                                            <Badge bg={badgeColorMap[consultEmployee.accountType] || 'secondary'} className="px-2 py-1 rounded-pill fw-normal">
-                                                {consultEmployee.accountType}
-                                            </Badge>
-                                            <div className="d-flex flex-column justify-content-center">
-                                                <span className="fw-bold text-dark fs-6" style={{ letterSpacing: '-0.5px' }}>
-                                                    {consultEmployee.accountName}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        
-                                        {loginUser?.roleNames?.includes('ADMIN') && (
-                                            <Button 
-                                                variant="outline-danger" 
-                                                className="border-0 rounded-pill fw-bold ms-2 px-3 d-flex align-items-center transition-all"
-                                                style={{ fontSize: '0.75rem', height: '30px' }}
-                                                onClick={() => kickEmployee(room.roomNo, consultEmployee.accountNo)}
-                                            >
-                                                내보내기
-                                            </Button>
-                                        )}
-                                    </div>
-                                )
-                            ) : (
-                                /* 4. 아무도 없을 때 '참가하기' 버튼 (py-2 제거하고 높이 42px 지정) */
-                                <Button 
-                                    variant="primary" 
-                                    className="fw-bold px-4 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm hover-elevate transition-all"
-                                    style={{ height: "42px" }}
-                                    onClick={() => enterRoom(room.roomNo)}
-                                >
-                                    <FaPaperPlane size={14} />
-                                    <span>참가하기</span>
-                                </Button>
-                            )}
                         </div>
                     </div>
                     <div className="p-4 flex-grow-1 overflow-auto d-flex flex-column gap-3"
@@ -726,6 +593,6 @@ export default function ConsultChat() {
                 </Col>
 
             </Row>
-            </Container>
+        </Container>
     </>)
 }
