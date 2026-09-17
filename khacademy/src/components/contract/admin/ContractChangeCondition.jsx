@@ -2,7 +2,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
-import { FaCheck, FaXmark } from "react-icons/fa6";
+import { FaArrowLeft, FaCheck, FaXmark } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
@@ -346,6 +346,19 @@ export default function ContractChangeCondition() {
     return (<>
         <Jumbotron title="근로조건 변경"
                 content="현재 계약을 보존하고 변경된 조건으로 새 근로계약을 작성합니다"/>
+
+             <Row>
+                <Col className="d-flex justify-content-start mb-3">
+                                    <Button
+                                        variant="outline-secondary"
+                                        className="d-flex align-items-center gap-2"
+                                        onClick={() => navigate(-1)}
+                                    >
+                                        <FaArrowLeft />
+                                        이전화면
+                                    </Button>
+                                </Col>
+                </Row>
 
         <Row className="mt-5">
             <Col sm={3} className="fw-bold text-info">현재 계약번호</Col>

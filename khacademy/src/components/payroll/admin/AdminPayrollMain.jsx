@@ -329,7 +329,7 @@ const AdminPayrollMain = () => {
     ) => {
 
         navigate(
-            `/admin/payroll/${employeeNo}/calculate`
+            `/admin/payroll/${employeeNo}/calculate/${payrollYear}/${payrollMonth}`
         );
     };
 

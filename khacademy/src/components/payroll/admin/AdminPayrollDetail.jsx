@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import {
     Badge,
@@ -17,10 +17,12 @@ import { toast } from "react-toastify";
 import { apiClient } from "@utils/reaxios";
 import { formatDateTime } from "@utils/format";
 import Jumbotron from "@templates/Jumbotron";
+import { FaListUl} from "react-icons/fa6";
 
 
 const AdminPayrollDetail = () => {
 
+    const navigate = useNavigate();
     const {
         employeeNo,
         payrollYear,
@@ -460,6 +462,20 @@ const AdminPayrollDetail = () => {
                 />
 
                 <Row>
+                    <Col className="d-flex justify-content-start mb-3">
+                        <Button
+                            variant="outline-secondary"
+                            className="d-flex align-items-center gap-2"
+                            onClick={() => navigate(-1)}
+                        >
+                            <FaListUl />
+                            목록으로
+                        </Button>
+                    </Col>
+                </Row>
+
+
+                <Row>
 
                     <Col className="text-center py-5">
 
@@ -486,6 +502,19 @@ const AdminPayrollDetail = () => {
                 <Jumbotron
                     title="급여 관리"
                 />
+
+                <Row>
+                    <Col className="d-flex justify-content-start mb-3">
+                        <Button
+                            variant="outline-secondary"
+                            className="d-flex align-items-center gap-2"
+                            onClick={() => navigate(-1)}
+                        >
+                            <FaListUl />
+                            목록으로
+                        </Button>
+                    </Col>
+                </Row>
 
                 <Card>
 
@@ -552,6 +581,18 @@ const AdminPayrollDetail = () => {
                 title="급여 관리"
             />
 
+            <Row>
+                <Col className="d-flex justify-content-start mb-3">
+                    <Button
+                        variant="outline-secondary"
+                        className="d-flex align-items-center gap-2"
+                        onClick={() => navigate(-1)}
+                    >
+                        <FaListUl />
+                        목록으로
+                    </Button>
+                </Col>
+            </Row>
 
             {/* ========================= */}
             {/* 급여 기본정보 */}
@@ -639,7 +680,7 @@ const AdminPayrollDetail = () => {
 
                                     {
                                         formatDateTime(
-                                        payroll.calculatedAt)
+                                            payroll.calculatedAt)
                                     }
 
                                 </Col>
@@ -655,7 +696,7 @@ const AdminPayrollDetail = () => {
 
                                 <Col>
 
-                                    {   formatDateTime(
+                                    {formatDateTime(
                                         payroll.confirmedAt)
                                     }
 

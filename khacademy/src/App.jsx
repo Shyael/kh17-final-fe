@@ -11,6 +11,7 @@ import Row from "react-bootstrap/esm/Row"
 import Col from "react-bootstrap/esm/Col"
 import { ToastContainer, Bounce } from "react-toastify";
 import { isLoginState, isEmployeeState } from "@utils/storage"
+import useAlarmSse from "@utils/alarm/useAlarmSse";
 
 // 헤더/푸터 없이 보여줄 인증 화면
 // logo: true / false / (location) => boolean
@@ -29,6 +30,9 @@ function App() {
   const isLogin = useAtomValue(isLoginState);
   const isEmployee = useAtomValue(isEmployeeState);
   const academyName = useAcademyName();
+
+  // 로그인 시 SSE 연결
+    useAlarmSse(isLogin);
 
   const isExamAttempt = matchPath(
     "/student/exam/:examNo/attempt/:attemptNo",

@@ -831,9 +831,9 @@ export default function ContractSign() {
             ===================================================== */}
 
             <Row className="mt-5 mb-5">
-
+                {!isAdmin&&
                 <Col className="text-end">
-
+                    
                     <Button
                         variant="secondary"
                         onClick={
@@ -847,8 +847,29 @@ export default function ContractSign() {
                         계약 상세
 
                     </Button>
-
+                    
                 </Col>
+                }
+
+                {isAdmin&&
+                <Col className="text-end">
+                    
+                    <Button
+                        variant="secondary"
+                        onClick={
+                            () =>
+                                navigate(
+                                    `/admin/contract/detail/${contractNo}`
+                                )
+                        }
+                    >
+
+                        계약 상세
+
+                    </Button>
+                    
+                </Col>
+                }
 
             </Row>
 

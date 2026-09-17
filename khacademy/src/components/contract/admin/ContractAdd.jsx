@@ -15,6 +15,7 @@ import {
 } from "react-bootstrap";
 
 import {
+    FaArrowLeft,
     FaCheck,
     FaMagnifyingGlass,
     FaXmark
@@ -471,8 +472,8 @@ export default function ContractAdd() {
                         ...prev,
 
                         [name]: value,
-            weeklyHolidayDay: name === "weeklyWorkHours" && Number(value) < 15
-                ? "" : name === "weeklyHolidayDay" ? value : prev.weeklyHolidayDay
+                        weeklyHolidayDay: name === "weeklyWorkHours" && Number(value) < 15
+                            ? "" : name === "weeklyHolidayDay" ? value : prev.weeklyHolidayDay
                     })
                 );
 
@@ -630,7 +631,7 @@ export default function ContractAdd() {
             ]
         );
 
-        
+
 
     // =========================================================
     // 계약 작성
@@ -815,6 +816,18 @@ export default function ContractAdd() {
 
                     <>
 
+                        <Row>
+                            <Col className="d-flex justify-content-start mb-3">
+                                <Button
+                                    variant="outline-secondary"
+                                    className="d-flex align-items-center gap-2"
+                                    onClick={() => navigate(-1)}
+                                >
+                                    <FaArrowLeft/>
+                                    이전화면
+                                </Button>
+                            </Col>
+                        </Row>
 
                         {/* =================================================
                             메인 2단 구조
@@ -1125,7 +1138,7 @@ export default function ContractAdd() {
                                                             }
                                                             onBlur={handleContractBlur}
 
-                                                            
+
                                                         />
 
                                                     </Col>
