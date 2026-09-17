@@ -115,6 +115,16 @@ export default function StudentAttendanceList() {
         }
     }, [courseNo, loadAttendanceData]);
 
+    // 상담하기 처리
+    const chatTutor = useCallback(async (employeeNo) => {
+        try {
+            const { data } = await apiClient.get(`/academy/room/check/${employeeNo}`);
+
+        } catch (error) {
+            console.error("참여 처리 실패", error);
+        }
+    }, []);
+
     // 4. 셀렉트 박스 강좌 변경
     const handleCourseChange = (e) => {
         const nextCourseNo = e.target.value;
@@ -215,7 +225,8 @@ export default function StudentAttendanceList() {
                                         size="sm"
                                         className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 shadow-none ms-1"
                                         style={{ fontSize: "0.78rem" }}
-                                        onClick={() => navigate(`${basePath}/tutor/${tutorNo}/chat`)}
+                                        //onClick={() => navigate(`${basePath}/tutor/${tutorNo}/chat`)}
+                                        onClick={() => chatTutor(tutorNo)}
                                         disabled={!tutorNo}
                                     >
                                         <FaRegMessage size={11} />

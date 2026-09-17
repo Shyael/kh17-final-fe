@@ -1,11 +1,12 @@
 /* 기본 높이 (화면이 좁을 때 - 모바일) */
 .chat-col-height {
-    height: 375px;
+    height: calc(100vh - 120px);
 }
 
 /* 화면 너비가 768px(Bootstrap의 md 기준) 이상일 때 (데스크탑) */
 @media (min-width: 768px) {
     .chat-col-height {
-        height: 750px;
+        /* 모바일 브라우저 상하단 바를 고려해 90vh~95vh 추천 */
+        height: calc(100vh - 150px);
     }
 }

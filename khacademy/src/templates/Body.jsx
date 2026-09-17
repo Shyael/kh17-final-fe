@@ -22,6 +22,8 @@ import ConsultReservation from "@components/employee/consult/ConsultReservation"
 import ConsultManage from "@components/employee/consult/ConsultManage";
 import ConsultChat from "@components/employee/consult/ConsultChat";
 
+import PrivateChat from "@components/employee/chat/PrivateChat";
+
 import EmployeeSearch from "@components/employee/EmployeeSearch";
 import EmployeeSearchDetail from "@components/employee/EmployeeSearchDetail";
 import AdminEmployeeDetail from "@components/admin/employee/AdminEmployeeDetail";
@@ -169,6 +171,8 @@ export default function Body() {
             <Route path="/employee/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />
             <Route path="/employee/consult/manage" element={<Employee><ConsultManage /></Employee>} />
             <Route path="/employee/consult/chat" element={<Employee><ConsultChat /></Employee>} />
+
+            <Route path="/employee/chat/" element={<PrivateChat />} />
 
             {/* 직원 - 학생 및 학부모 관리 */}
             <Route path="/student/list" element={<Employee><StudentList /></Employee>} />
