@@ -28,7 +28,7 @@
 /* 페이지 배경과 어울리는 밝은 헤더 (KH AX 사이트 톤) */
 .kh-topnav.navbar {
   background-color: var(--kh-bg) !important;
-  border-top: 3px solid var(--kh-primary);
+  /* border-top: 3px solid var(--kh-primary); */
   border-bottom: 1px solid var(--kh-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   min-height: 56px;
@@ -40,6 +40,9 @@
   margin-right: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
   padding-left: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
   padding-right: calc(var(--bs-gutter-x, 1.5rem) * 0.5);
+  margin-top: calc(var(--bs-gutter-x, 1.5rem) *-2.5);
+  margin-bottom: calc(var(--bs-gutter-x, 1.5rem) *-2.5);
+    
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 /* 스크롤이 맨 위일 때는 구분선/그림자 숨김 */

@@ -1,7 +1,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
-import { FaCheck, FaXmark } from "react-icons/fa6";
+import { FaArrowLeft, FaCheck, FaXmark } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { formatDate } from "@utils/format";
@@ -136,6 +136,19 @@ export default function ContractExtend() {
     return (<>
         <Jumbotron title="근로계약 기간 연장"
             content="현재 계약조건은 유지하고 계약 종료일만 연장합니다" />
+
+        <Row>
+            <Col className="d-flex justify-content-start mb-3">
+                <Button
+                    variant="outline-secondary"
+                    className="d-flex align-items-center gap-2"
+                    onClick={() => navigate(-1)}
+                >
+                    <FaArrowLeft />
+                    이전화면
+                </Button>
+            </Col>
+        </Row>
 
         {/* 현재 계약서 */}
         <ContractDocument contract={contract} />

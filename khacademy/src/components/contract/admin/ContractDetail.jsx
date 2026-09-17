@@ -2,7 +2,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Col, Row } from "react-bootstrap";
-import { FaDeleteLeft, FaLock, FaSquarePen, FaXmark } from "react-icons/fa6";
+import { FaDeleteLeft, FaListUl, FaLock, FaSquarePen, FaXmark } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { formatDateTime } from "@utils/format";
@@ -23,7 +23,7 @@ export default function ContractDetail() {
     const [loading, setLoading] = useState(true);
 
     //계약 조회
-    const loadData = useCallback(async ()=>{
+    const loadData = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -33,7 +33,7 @@ export default function ContractDetail() {
 
             setContract(data);
         }
-        catch(e) {
+        catch (e) {
             console.error(e);
             toast.error(
                 e?.response?.data?.message
@@ -45,52 +45,52 @@ export default function ContractDetail() {
         }
     }, [contractNo]);
 
-    useEffect(()=>{
+    useEffect(() => {
         loadData();
     }, [loadData]);
 
     //상태 한글 표시
-    const statusText = useCallback(status=>{
-        if(status === "pending") return "서명 대기";
-        if(status === "scheduled") return "시작 예정";
-        if(status === "active") return "진행 중";
-        if(status === "ended") return "종료";
+    const statusText = useCallback(status => {
+        if (status === "pending") return "서명 대기";
+        if (status === "scheduled") return "시작 예정";
+        if (status === "active") return "진행 중";
+        if (status === "ended") return "종료";
         return status;
     }, []);
 
     //상태 색상
-    const statusColor = useCallback(status=>{
-        if(status === "pending") return "warning";
-        if(status === "scheduled") return "info";
-        if(status === "active") return "success";
-        if(status === "ended") return "secondary";
+    const statusColor = useCallback(status => {
+        if (status === "pending") return "warning";
+        if (status === "scheduled") return "info";
+        if (status === "active") return "success";
+        if (status === "ended") return "secondary";
         return "dark";
     }, []);
 
     //주휴일 한글 표시
-    const weeklyHolidayDayText = useCallback(day=>{
-        if(day === "MONDAY") return "월요일";
-        if(day === "TUESDAY") return "화요일";
-        if(day === "WEDNESDAY") return "수요일";
-        if(day === "THURSDAY") return "목요일";
-        if(day === "FRIDAY") return "금요일";
-        if(day === "SATURDAY") return "토요일";
-        if(day === "SUNDAY") return "일요일";
+    const weeklyHolidayDayText = useCallback(day => {
+        if (day === "MONDAY") return "월요일";
+        if (day === "TUESDAY") return "화요일";
+        if (day === "WEDNESDAY") return "수요일";
+        if (day === "THURSDAY") return "목요일";
+        if (day === "FRIDAY") return "금요일";
+        if (day === "SATURDAY") return "토요일";
+        if (day === "SUNDAY") return "일요일";
         return day;
     }, []);
 
     //계약 종료
-    const exitContract = useCallback(async ()=>{
+    const exitContract = useCallback(async () => {
         const result = await Swal.fire({
-            title:"근로계약을 종료하시겠습니까?",
-            text:"중도 종료 후에는 되돌릴 수 없습니다",
-            icon:"warning",
-            showCancelButton:true,
-            confirmButtonText:"계약 종료",
-            cancelButtonText:"취소",
-            confirmButtonColor:"#d63031"
+            title: "근로계약을 종료하시겠습니까?",
+            text: "중도 종료 후에는 되돌릴 수 없습니다",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "계약 종료",
+            cancelButtonText: "취소",
+            confirmButtonColor: "#d63031"
         });
-        if(result.isConfirmed === false) return;
+        if (result.isConfirmed === false) return;
 
         try {
             await apiClient.patch(`/admin/contract/${contractNo}/exit`);
@@ -98,7 +98,7 @@ export default function ContractDetail() {
             toast.success("근로계약이 종료되었습니다");
             loadData();
         }
-        catch(e) {
+        catch (e) {
             console.error(e);
             toast.error(
                 e?.response?.data?.message
@@ -107,17 +107,17 @@ export default function ContractDetail() {
         }
     }, [contractNo, loadData]);
 
-    const cancelData =useCallback(async ()=>{
-     const result = await Swal.fire({
-            title:"근로계약을 취소하시겠습니까?",
-            text:"취소 후에는 되돌릴 수 없습니다",
-            icon:"danger",
-            showCancelButton:true,
-            confirmButtonText:"취소 하기",
-            cancelButtonText:"나가기",
-            confirmButtonColor:"#d63031"
+    const cancelData = useCallback(async () => {
+        const result = await Swal.fire({
+            title: "근로계약을 취소하시겠습니까?",
+            text: "취소 후에는 되돌릴 수 없습니다",
+            icon: "danger",
+            showCancelButton: true,
+            confirmButtonText: "취소 하기",
+            cancelButtonText: "나가기",
+            confirmButtonColor: "#d63031"
         });
-        if(result.isConfirmed === false) return;
+        if (result.isConfirmed === false) return;
 
         try {
             await apiClient.delete(`/admin/contract/${contractNo}`);
@@ -126,7 +126,7 @@ export default function ContractDetail() {
             loadData();
             navigate(`/admin/contract/list`)
         }
-        catch(e) {
+        catch (e) {
             console.error(e);
             toast.error(
                 e?.response?.data?.message
@@ -135,13 +135,26 @@ export default function ContractDetail() {
         }
     }, [contractNo, loadData]);
 
-    if(loading === true && contract === null) {
+    if (loading === true && contract === null) {
         return <h1>로딩중...</h1>
     }
 
-    if(contract === null) {
+    if (contract === null) {
         return (<>
-            <Jumbotron title="근로계약 상세"/>
+            <Jumbotron title="근로계약 상세" />
+            <Row>
+                <Col className="d-flex justify-content-start mb-3">
+                    <Button
+                        variant="outline-secondary"
+                        className="d-flex align-items-center gap-2"
+                        onClick={() => navigate(-1)}
+                    >
+                        <FaListUl />
+                        목록으로
+                    </Button>
+                </Col>
+            </Row>
+
             <Row className="mt-5">
                 <Col>근로계약 정보를 확인할 수 없습니다.</Col>
             </Row>
@@ -149,7 +162,20 @@ export default function ContractDetail() {
     }
 
     return (<>
-        <Jumbotron title="근로계약 상세" content="근로계약 내용과 현재 상태를 확인합니다"/>
+        <Jumbotron title="근로계약 상세" content="근로계약 내용과 현재 상태를 확인합니다" />
+
+        <Row>
+            <Col className="d-flex justify-content-start mb-3">
+                <Button
+                    variant="outline-secondary"
+                    className="d-flex align-items-center gap-2"
+                    onClick={() => navigate(-1)}
+                >
+                    <FaListUl />
+                    목록으로
+                </Button>
+            </Col>
+        </Row>
 
         <Row className="mt-5">
             <Col sm={3} className="fw-bold text-info">계약번호</Col>
@@ -187,69 +213,69 @@ export default function ContractDetail() {
         </Row>
 
         {/* 저장된 데이터로 완성된 근로계약서 출력 */}
-        <ContractDocument contract={contract}/>
+        <ContractDocument contract={contract} />
 
         {/* 계약 관련 기능 */}
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary"
-                        onClick={()=>navigate(`/admin/contract/history/${contract.employeeNo}`)}>
+                    onClick={() => navigate(`/employee/contract/history/${contract.employeeNo}`)}>
                     계약 이력
                 </Button>
 
                 {contract.contractStatus === "pending" && (
-                <>
-                    <Button variant="warning" className="ms-2"
-                            onClick={()=>navigate(`/admin/contract/before/${contractNo}`)}>
-                        <FaSquarePen/>
-                        <span className="ms-2">서명 전 수정</span>
-                    </Button>
+                    <>
+                        <Button variant="warning" className="ms-2"
+                            onClick={() => navigate(`/admin/contract/before/${contractNo}`)}>
+                            <FaSquarePen />
+                            <span className="ms-2">서명 전 수정</span>
+                        </Button>
+                        
+                        <Button variant="success" className="ms-2"
+                            onClick={() => navigate(`/employee/contract/sign/${contractNo}`)}>
+                            <FaLock />
+                            <span className="ms-2">계약 서명</span>
+                        </Button>
 
-                    <Button variant="success" className="ms-2"
-                            onClick={()=>navigate(`/employee/contract/sign/${contractNo}`)}>
-                        <FaLock/>
-                        <span className="ms-2">계약 서명</span>
-                    </Button>
-
-                    <Button variant="success" className="ms-2"
+                        <Button variant="danger" className="ms-2"
                             onClick={cancelData}>
-                        <FaDeleteLeft/>
-                        <span className="ms-2">계약 취소</span>
-                    </Button>
-                </>
+                            <FaDeleteLeft />
+                            <span className="ms-2">계약 취소</span>
+                        </Button>
+                    </>
                 )}
 
                 {contract.signedTime !== null && contract.signedTime !== undefined && (
-                <Button variant="outline-dark" className="ms-2"
-                        onClick={()=>navigate(`/employee/contract/sign/${contractNo}`)}>
-                    서명 보기
-                </Button>
+                    <Button variant="outline-dark" className="ms-2"
+                        onClick={() => navigate(`/employee/contract/sign/${contractNo}`)}>
+                        서명 보기
+                    </Button>
                 )}
 
                 {contract.contractStatus === "active" && contract.contractEnd !== null && (
-                <Button variant="info" className="ms-2"
-                        onClick={()=>navigate(`/admin/contract/extend/${contractNo}`)}>
-                    기간 연장
-                </Button>
+                    <Button variant="info" className="ms-2"
+                        onClick={() => navigate(`/admin/contract/extend/${contractNo}`)}>
+                        기간 연장
+                    </Button>
                 )}
 
-                {contract.contractStatus === "active" && (
-                <>
-                    <Button variant="warning" className="ms-2"
-                            onClick={()=>navigate(`/admin/contract/change-condition/${contractNo}`)}>
-                        <FaSquarePen/>
-                        <span className="ms-2">근로조건 변경</span>
-                    </Button>
+                {(contract.contractStatus === "active" || contract.contractStatus === "scheduled") &&(
+                    <>
+                        <Button variant="warning" className="ms-2"
+                            onClick={() => navigate(`/admin/contract/changeCondition/${contractNo}`)}>
+                            <FaSquarePen />
+                            <span className="ms-2">근로조건 변경</span>
+                        </Button>
 
-                    <Button variant="danger" className="ms-2"
+                        <Button variant="danger" className="ms-2"
                             onClick={exitContract}>
-                        <FaXmark/>
-                        <span className="ms-2">중도 종료</span>
-                    </Button>
-                </>
+                            <FaXmark />
+                            <span className="ms-2">중도 종료</span>
+                        </Button>
+                    </>
                 )}
 
-                
+
             </Col>
         </Row>
     </>)

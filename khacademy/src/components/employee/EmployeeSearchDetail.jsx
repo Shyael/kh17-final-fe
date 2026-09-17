@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAtomValue } from "jotai";
+import { FaListUl } from "react-icons/fa6";
 
 import {
     Badge,
@@ -438,8 +439,21 @@ export default function EmployeeSearchDetail() {
             {/* =====================================================
                 상단
             ===================================================== */}
+            <Row>
+                <Col className="d-flex justify-content-start mb-3">
+                    <Button
+                        variant="outline-secondary"
+                        className="d-flex align-items-center gap-2"
+                        onClick={() => navigate(-1)}
+                    >
+                        <FaListUl />
+                        목록으로
+                    </Button>
+                </Col>
+            </Row>
 
             <Row className="mb-4">
+
 
                 <Col>
 
@@ -487,6 +501,8 @@ export default function EmployeeSearchDetail() {
                     </div>
 
 
+
+
                     <div
                         className="
                             text-muted
@@ -505,23 +521,8 @@ export default function EmployeeSearchDetail() {
                 </Col>
 
 
-                <Col xs="auto">
 
-                    <Button
-                        variant="outline-secondary"
-                        onClick={
-                            () =>
-                                navigate(
-                                    -1
-                                )
-                        }
-                    >
 
-                        목록으로
-
-                    </Button>
-
-                </Col>
 
             </Row>
 

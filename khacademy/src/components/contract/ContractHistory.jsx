@@ -383,7 +383,7 @@ export default function ContractHistory() {
             <Col className="text-end">
 
                 <Button
-                    variant="secondary"
+                    variant="outline-secondary"
                     onClick={()=>navigate(-1)}
                 >
 
