@@ -20,13 +20,13 @@ const MENU = [
     { type: "link", icon: "📊", label: "대시보드", to: "/employeeDashboard" },
     {
         type: "group", icon: "🎓", label: "학생·수업관리", children: [
-            { label: "학생 목록", to: "/student/list" },
+            { label: "학생 목록", to: "/employee/student/list" },
             { label: "강의 관리", to: "/employee/course/list" },
             { label: "강의 출결 관리", to: "/employee/attendance" }, 
             { label: "강의 시간표", to: "/employee/timetable" },
             { label: "과제 관리", to: "/employee/assignment" },
             { label: "시험 관리", to: "/employee/exam" },
-            { label: "성적 관리", to: "/score/" },
+            { label: "성적 관리", to: "/employee/score" },
         ],
     },
     {
@@ -43,8 +43,8 @@ const MENU = [
     },
     {
         type: "group", icon: "💳", label: "수납관리", children: [
-            { label: "수납 목록", to: "/payment/list" },
-            { label: "할인 관리", to: "/payment/discount" },
+            { label: "수납 목록", to: "/employee/payment/list" },
+            { label: "할인 관리", to: "/employee/payment/discount" },
         ],
     },
     {

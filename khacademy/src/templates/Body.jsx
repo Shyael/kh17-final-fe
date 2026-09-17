@@ -162,17 +162,17 @@ export default function Body() {
             <Route path="/employee/exam/:examNo/result/:attemptNo" element={<ExamStudentResult />} />
 
             {/* 직원 - 성적, 수납, 상담 */}
-            <Route path="/score" element={<Employee><ScoreManagement /></Employee>} />
-            <Route path="/payment/list" element={<Employee><PaymentList /></Employee>} />
-            <Route path="/payment/discount" element={<Employee><DiscountList /></Employee>} />
-            <Route path="/payment/detail/:paymentNo" element={<Employee><PaymentDetail /></Employee>} />
+            <Route path="/employee/score" element={<Employee><ScoreManagement /></Employee>} />
+            <Route path="/employee/payment/list" element={<Employee><PaymentList /></Employee>} />
+            <Route path="/employee/payment/discount" element={<Employee><DiscountList /></Employee>} />
+            <Route path="employee/payment/detail/:paymentNo" element={<Employee><PaymentDetail /></Employee>} />
             <Route path="/employee/consult/reservation" element={<Employee><ConsultReservation /></Employee>} />
             <Route path="/employee/consult/manage" element={<Employee><ConsultManage /></Employee>} />
             <Route path="/employee/consult/chat" element={<Employee><ConsultChat /></Employee>} />
 
             {/* 직원 - 학생 및 학부모 관리 */}
-            <Route path="/student/list" element={<Employee><StudentList /></Employee>} />
-            <Route path="/student/detail/:studentNo" element={<Employee><StudentDetail /></Employee>} />
+            <Route path="/employee/student/list" element={<Employee><StudentList /></Employee>} />
+            <Route path="/employee/student/detail/:studentNo" element={<Employee><StudentDetail /></Employee>} />
             <Route path="/employee/parent/list" element={<ParentList />} />
             <Route path="/employee/parent/detail/:parentNo" element={<ParentDetail />} />
 

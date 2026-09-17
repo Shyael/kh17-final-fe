@@ -80,7 +80,7 @@ export default function PaymentDetail() {
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <div className="d-flex align-items-center gap-3">
                     <Button variant="outline-secondary" size="sm" onClick={() => navigate(-1)}>
-                        ← 뒤로가기
+                        ← 목록으로
                     </Button>
                     <h4 className="fw-bold mb-0 text-primary">
                         수납 상세 내역
