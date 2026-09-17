@@ -1,7 +1,7 @@
 import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge, Button, Card, Col, Row } from "react-bootstrap";
-import { FaArrowRight, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
+import { FaArrowRight, FaGraduationCap, FaLocationDot, FaPhone, FaUsers } from "react-icons/fa6";
 import { Link } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Carousel } from "react-bootstrap";
@@ -38,7 +38,12 @@ export default function AcademyInfo() {
 
     const [tutorList, setTutorList] = useState([]);
 
+    // 학원정보/강사목록 로딩 완료 여부 (완료 전에는 레이아웃이 실제보다 짧아서
+    // 스크롤 리빌 섹션들의 화면 안/밖 판정이 잘못될 수 있으므로 렌더링을 늦춤)
+    const [dataLoaded, setDataLoaded] = useState(false);
+
     // 섹션별 스크롤 리빌 (스크롤해서 보일 때 서서히 나타나는 연출)
+    const [photoRevealRef, photoVisible] = useScrollReveal();
     const [historyRevealRef, historyVisible] = useScrollReveal();
     const [locationRevealRef, locationVisible] = useScrollReveal();
     const [tutorRevealRef, tutorVisible] = useScrollReveal();
@@ -70,8 +75,7 @@ export default function AcademyInfo() {
     }, []);
 
     useEffect(() => {
-        loadAcademy();
-        loadTutor();
+        Promise.all([loadAcademy(), loadTutor()]).finally(() => setDataLoaded(true));
     }, [loadAcademy, loadTutor]);
 
     // 화면에 표시할 학원 기본정보
@@ -141,82 +145,129 @@ export default function AcademyInfo() {
     }, [mapReady, position]);
 
     return (
-        <div className="kh-external-content">
-            {/* 메인 배너 이미지 (Lorem Picsum 자리잡기) */}
-            <Row>
-                <Col>
-                    {academy.imageList?.length > 0 ? (
-                        <Carousel>
-                            {academy.imageList.map((image) => (
-                                <Carousel.Item key={image.attachNo}>
-                                    <img
-                                        src={`${import.meta.env.VITE_SERVER_URL}/api/attach/${image.attachNo}`}
-                                        alt={image.attachName}
-                                        className="d-block w-100 rounded-top"
-                                        style={{
-                                            height: "400px",
-                                            objectFit: "cover"
-                                        }}
-                                    />
-                                </Carousel.Item>
-                            ))}
-                        </Carousel>
-                    ) : (
-                        <div
-                            className="d-flex justify-content-center align-items-center bg-light rounded-top"
-                            style={{ height: "400px" }}
-                        >
-                            <span className="text-muted">
-                                등록된 이미지가 없습니다.
-                            </span>
-                        </div>
-                    )}
-                </Col>
-            </Row>
-
-            {/* 캐치프레이즈 + 과목 뱃지 + 소개글 : 캐러셀과 한 덩어리로 보이는 히어로 배너 */}
-            <Row className="g-0">
-                <Col>
-                    <div
-                        className="text-center px-4 py-5 shadow-sm"
-                        style={{
-                            background: "var(--kh-surface)",
-                            borderBottomLeftRadius: "var(--bs-card-border-radius)",
-                            borderBottomRightRadius: "var(--bs-card-border-radius)",
-                        }}
+        <>
+        {/* 캐치프레이즈 + 일러스트 : 사진 없이 텍스트/그래픽만으로 구성한 히어로
+            (브랜드 컬러로 화면 끝까지 꽉 채우는 풀블리드 배너. 상세 스타일은
+            index.css의 .kh-academy-hero / .kh-academy-hero-inner 참고) */}
+        <div className="kh-academy-hero">
+            <div className="kh-academy-hero-inner">
+            <Row className="align-items-center g-4">
+                <Col xs={12} md={7} className="text-center text-md-start">
+                    <h2
+                        className="fw-bolder mb-3 display-5"
+                        style={{ letterSpacing: "-0.02em", color: "#FFFFFF" }}
                     >
-                        <h2
-                            className="fw-bolder mb-3"
-                            style={{ letterSpacing: "-0.02em", color: "var(--kh-text)" }}
-                        >
-                            {info.academyTagline}
-                        </h2>
+                        {info.academyTagline}
+                    </h2>
 
-                        <div className="mb-3 d-flex justify-content-center flex-wrap gap-2">
-                            {academy.subjectList.map((subject, index) => (
-                                <Badge
-                                    key={subject.academySubjectNo ?? index}
-                                    pill
-                                    className="px-3 py-2 fw-semibold"
-                                    style={{
-                                        background: "var(--kh-primary-light)",
-                                        color: "var(--kh-primary-dark)",
-                                    }}
-                                >
-                                    {subject.academySubjectName}
-                                </Badge>
-                            ))}
-                        </div>
+                    <div className="mb-3 d-flex justify-content-center justify-content-md-start flex-wrap gap-2">
+                        {academy.subjectList.map((subject, index) => (
+                            <Badge
+                                key={subject.academySubjectNo ?? index}
+                                pill
+                                className="px-3 py-2 fw-semibold"
+                                style={{
+                                    background: "#FFFFFF",
+                                    color: "var(--kh-primary-dark)",
+                                }}
+                            >
+                                {subject.academySubjectName}
+                            </Badge>
+                        ))}
+                    </div>
 
-                        <p
-                            className="text-muted mb-0 mx-auto"
-                            style={{ whiteSpace: "pre-line", maxWidth: 640 }}
+                    <p
+                        className="mb-0 mx-auto mx-md-0 fs-5"
+                        style={{ whiteSpace: "pre-line", maxWidth: 520, color: "rgba(255, 255, 255, 0.85)" }}
+                    >
+                        {info.academyIntro}
+                    </p>
+                </Col>
+
+                <Col xs={12} md={5} className="d-flex justify-content-center">
+                    {/* 사진 대신 공통으로 쓰는 간단한 그래픽 (도형 + 아이콘) */}
+                    <div className="position-relative" style={{ width: 300, height: 300 }}>
+                        <svg
+                            viewBox="0 0 200 200"
+                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
                         >
-                            {info.academyIntro}
-                        </p>
+                            <path
+                                fill="rgba(255, 255, 255, 0.16)"
+                                d="M45.3,-58.5C58.6,-49.7,68.8,-34.5,72.6,-17.9C76.5,-1.3,74,16.7,65.4,31.2C56.8,45.7,42.1,56.7,25.8,63.2C9.5,69.7,-8.4,71.7,-24.6,66.8C-40.8,61.9,-55.3,50.1,-63.8,35.1C-72.3,20.1,-74.8,1.9,-70.9,-14.5C-67,-30.9,-56.7,-45.5,-43.2,-54.4C-29.7,-63.3,-14.8,-66.5,1.6,-68.6C18.1,-70.7,36.1,-71.7,45.3,-58.5Z"
+                                transform="translate(100 100)"
+                            />
+                        </svg>
+
+                        <FaGraduationCap
+                            size={128}
+                            style={{
+                                position: "absolute",
+                                top: "50%",
+                                left: "50%",
+                                transform: "translate(-50%, -50%)",
+                                color: "#FFFFFF",
+                            }}
+                        />
+
+                        <div
+                            style={{
+                                position: "absolute",
+                                top: 16,
+                                right: 24,
+                                width: 30,
+                                height: 30,
+                                borderRadius: "50%",
+                                background: "var(--kh-accent)",
+                            }}
+                        />
+                        <div
+                            style={{
+                                position: "absolute",
+                                bottom: 32,
+                                left: 8,
+                                width: 20,
+                                height: 20,
+                                borderRadius: "50%",
+                                background: "#FFFFFF",
+                            }}
+                        />
                     </div>
                 </Col>
             </Row>
+            </div>
+        </div>
+
+        <div className="kh-external-content">
+            {/* 데이터 로딩 완료 전에는 렌더링하지 않음
+                (로딩 중에는 레이아웃이 실제보다 짧아서 스크롤 리빌 섹션들의
+                화면 안/밖 판정이 잘못될 수 있으므로, 데이터가 준비된 뒤에 마운트되게 함) */}
+            {dataLoaded && (
+            <>
+            {/* 학원 사진 : 등록된 사진이 있을 때만 히어로 아래에 나타남 */}
+            {academy.imageList?.length > 0 && (
+                <>
+                    <div className="mt-5" />
+                    <Row ref={photoRevealRef} className={"kh-reveal" + (photoVisible ? " visible" : "")}>
+                        <Col>
+                            <Carousel>
+                                {academy.imageList.map((image) => (
+                                    <Carousel.Item key={image.attachNo}>
+                                        <img
+                                            src={`${import.meta.env.VITE_SERVER_URL}/api/attach/${image.attachNo}`}
+                                            alt={image.attachName}
+                                            className="d-block w-100 rounded"
+                                            style={{
+                                                height: "400px",
+                                                objectFit: "cover"
+                                            }}
+                                        />
+                                    </Carousel.Item>
+                                ))}
+                            </Carousel>
+                        </Col>
+                    </Row>
+                </>
+            )}
 
             <div className="mt-5" />
 
@@ -420,6 +471,9 @@ export default function AcademyInfo() {
                     </Card>
                 </Col>
             </Row>
+            </>
+            )}
         </div>
+        </>
     );
 }
