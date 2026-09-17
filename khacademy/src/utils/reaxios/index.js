@@ -52,6 +52,7 @@ apiClient.interceptors.response.use(
   response=>response,
   //요청이 실패한 경우만 분석해서 재작업을 지시
   async function (error) {
+
     // console.log(Object.keys(error));//error 객체의 모든 필드명을 배열로 출력
     // console.log(error?.response?.status);
     if(error?.response?.status !== 401) {

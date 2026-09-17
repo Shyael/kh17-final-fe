@@ -1,18 +1,12 @@
 import Jumbotron from "@templates/Jumbotron";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Button, Col, Form, Row } from "react-bootstrap";
-import { FaAsterisk, FaCheck, FaEye, FaEyeSlash, FaMagnifyingGlass, FaPaperPlane, FaRotateRight, FaSpinner, FaUserPlus, FaXmark } from "react-icons/fa6";
-import axios from "axios";
-import { useKakaoPostcodePopup } from "react-daum-postcode";
-import { toast } from "react-toastify";
+import { FaAsterisk, FaEye, FaEyeSlash, FaUserPlus } from "react-icons/fa6";
 import { useNavigate } from "react-router-dom";
-import { apiClient, certClient } from "../../utils/reaxios";
+import { apiClient } from "../../utils/reaxios";
 
 export default function EmployeeRegister() {
-    //kakao post
-    const open = useKakaoPostcodePopup(
-        "//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
-    );
+
     const today = new Date().toISOString().slice(0, 10);
 
     //state
@@ -37,7 +31,7 @@ export default function EmployeeRegister() {
         accountPhone: null,
         employeeType: null,
         employeeHtime: null,
-        accountStatus: null,
+        accountStatus: "is-valid",
         roleNos: [],
     });
 
@@ -92,6 +86,7 @@ export default function EmployeeRegister() {
                 accountId: { clazz: null, code: null }
             }));
         }
+
         setAccount(prev => ({
             ...prev,
             accountId: e.target.value
@@ -107,18 +102,49 @@ export default function EmployeeRegister() {
         if (valid === false) { //형식 위반
             setResult(prev => ({
                 ...prev,
-                accountId: { clazz: "is-invalid", code: "format" }
+                accountId: {
+                    clazz: "is-invalid",
+                    code: "format"
+                }
             }));
             return;
         }
-        //형식 통과 → 중복 검사
-        const { data } = await apiClient.get(`/account/check-id/${account.accountId}`);
-        const clazz = data ? "" : "is-invalid"; //형식과 중복검사를 통과하더라도 아직 인증번호가 남아있음
-        const code = data ? null : "duplicate";
-        setResult(prev => ({
-            ...prev,
-            accountId: { clazz: clazz, code: code }
-        }));
+        try {
+            // 이메일 중복 검사
+            const { data } = await apiClient.get(
+                `/account/check-id/${account.accountId}`
+            );
+
+            if (data) {
+                // 사용 가능 → 바로 통과
+                setResult(prev => ({
+                    ...prev,
+                    accountId: {
+                        clazz: "is-valid",
+                        code: null
+                    }
+                }));
+            }
+            else {
+                // 중복
+                setResult(prev => ({
+                    ...prev,
+                    accountId: {
+                        clazz: "is-invalid",
+                        code: "duplicate"
+                    }
+                }));
+            }
+        }
+        catch (e) {
+            setResult(prev => ({
+                ...prev,
+                accountId: {
+                    clazz: "is-invalid",
+                    code: "error"
+                }
+            }));
+        }
     }, [account]);
 
     //[2] 비밀번호 검사
@@ -151,11 +177,21 @@ export default function EmployeeRegister() {
 
     //[4] 생일
     const checkAccountBirth = useCallback(() => {
+        // 입력하지 않았으면 선택사항이므로 통과
+        if (account.accountBirth === "") {
+            setResult(prev => ({
+                ...prev,
+                accountBirth: null
+            }));
+            return;
+        }
         const regex = /^([0-9]{4})-(((02)-(0[1-9]|1[0-9]|2[0-9]))|((0[469]|11)-(0[1-9]|1[0-9]|2[0-9]|30))|((0[13578]|1[02])-(0[1-9]|1[0-9]|2[0-9]|3[01])))$/;
-        const valid = account.accountBirth.length !== "" || regex.test(account.accountBirth);
-        const clazz = valid ? "is-valid" : "is-invalid";
-        setResult(prev => ({ ...prev, accountBirth: clazz }));
-    }, [account]);
+        const valid = regex.test(account.accountBirth);
+        setResult(prev => ({
+            ...prev,
+            accountBirth: valid ? "is-valid" : "is-invalid"
+        }));
+    }, [account.accountBirth]);
 
     //[5] 연락처
     const checkAccountPhone = useCallback(() => {
@@ -197,76 +233,22 @@ export default function EmployeeRegister() {
         }), [account]);
     })
 
-    //아이디(이메일) 인증
-    const sendCert = useCallback(async () => {
-        //다시 보내기 일수도 있으니 result의 accountId의 상태를 초기화한다
-        setResult(prev => ({
-            ...prev,
-            accountId: { clazz: null, code: null }
-        }), []);
-        setCertNumberResult(null);
-        setCertNumber("");
-        try {
-            setSending(true);
-            const response = await certClient.post(
-                "/send",
-                { certEmail: account.accountId }
-            );
-            console.log("이메일 발송 완료");
-        }
-        catch (e) {
-            toast.error("이메일 발송 오류 발생");
-        }
-        finally {
-            setSending(false); //오류 여부 상관없이 false
-        }
-    }, [account.accountId]);
-
-    //인증번호 관련 state
-    const [certNumber, setCertNumber] = useState(""); //처음에 비어있다고 (문자열)
-    const [certNumberResult, setCertNumberResult] = useState(null);
-    const [sending, setSending] = useState(null); //이메일 발송중 여부 상태(null(발송중) / true(발송) / false(미발송))
-
-    const changeCertNumber = useCallback(e => {
-        const regex = /[^0-9]+/g;
-        const replacement = e.target.value.replace(regex, "");
-        setCertNumber(replacement);
-    }, []);
-
-    const checkCert = useCallback(async () => {
-        //data는 CertCheckResponseVO의 valid값
-        const { data } = await certClient.post(
-            "/check",
-            { certEmail: account.accountId, certNumber: certNumber }
-        );
-        // console.log("결과 : ", data.valid);
-        setCertNumberResult(data.valid ? "is-valid" : "is-invalid");
-        if (data.valid) { //인증결과가 성공이라면
-            // result에 있는 accountId clazz에 is-valid를 넣어라
-            setResult(prev => ({
-                ...prev,
-                accountId: { clazz: "is-valid", code: null }
-            }));
-        }
-    }, [account.accountId, certNumber]);
-
     //memo
     const allValid = useMemo(() => {
-        if (result.accountId.clazz !== "is-valid") return false; //필수
-        if (result.accountPassword !== "is-valid") return false; //필수
-        if (result.accountPassword2 !== "is-valid") return false; //필수
-        if (result.accountName !== "is-valid") return false; //필수
-        if (result.accountStatus !== "is-valid") return false; //필수
-        if (result.accountPhone !== "is-valid") return false; //필수
+        if (result.accountId.clazz !== "is-valid") return false;
+        if (result.accountPassword !== "is-valid") return false;
+        if (result.accountPassword2 !== "is-valid") return false;
+        if (result.accountName !== "is-valid") return false;
+        if (result.accountStatus !== "is-valid") return false;
+        if (result.accountPhone !== "is-valid") return false;
         if (result.employeeType !== "is-valid") return false;
         if (result.employeeHtime !== "is-valid") return false;
 
-        if (certNumberResult !== "is-valid") return false; //인증번호
-
-        if (result.accountBirth === "is-invalid") return false; //선택
+        // 생년월일은 선택
+        if (result.accountBirth === "is-invalid") return false;
 
         return true;
-    }, [result, certNumberResult]);
+    }, [result]);
 
     // 최종 가입
     const navigate = useNavigate();
@@ -293,66 +275,44 @@ export default function EmployeeRegister() {
                 <span>아이디</span>
                 <FaAsterisk className="text-danger" />
             </Form.Label>
+
             <Col sm={9}>
-                <div className="d-flex flex-wrap">
-                    <Form.Control type="text" inputMode="email" name="accountEmail"
-                        value={account.accountId}
-                        onChange={changeAccountId}
-                        onBlur={checkAccountId}
-                        className={`${result.accountId.clazz} w-auto d-inline-block`}
-                        readOnly={sending} />
-                    {/* 인증번호 발송버튼 */}
-                    <Button variant={sending === false ? "danger" : "info"}
-                        className="ms-2" onClick={sendCert}
-                        disabled={
-                            result.accountId.clazz === null//처음상태
-                            || result.accountId.clazz === "is-invalid" //형식오류 or 중복 문제 발생시
-                            || sending === true // 보내는 중일 때
-                        }>
-                        {sending === null && (<>
-                            <FaPaperPlane />
-                            <span className="ms-2 d-none d-sm-inline">인증번호 보내기</span>
-                        </>)}
-                        {sending === false && (<>
-                            <FaRotateRight />
-                            <span className="ms-2 d-none d-sm-inline">메일 다시보내기</span>
-                        </>)}
-                        {sending === true && (<>
-                            <FaSpinner className="spin" />
-                            <span className="ms-2 d-none d-sm-inline">인증번호 발송중</span>
-                        </>)}
-                    </Button>
-                    <div className="valid-feedback">사용가능한 이메일입니다</div>
-                    <div className="invalid-feedback">
-                        {result.accountId.code === "format" && (<>
+                <Form.Control
+                    type="text"
+                    inputMode="email"
+                    name="accountId"
+                    value={account.accountId}
+                    onChange={changeAccountId}
+                    onBlur={checkAccountId}
+                    className={result.accountId.clazz}
+                    placeholder="이메일을 입력하세요"
+                />
+
+                <div className="valid-feedback">
+                    사용 가능한 이메일입니다.
+                </div>
+
+                <div className="invalid-feedback">
+                    {result.accountId.code === "format" && (
+                        <>
                             올바르지 않은 이메일 형식입니다.
-                        </>)}
-                        {result.accountId.code === "duplicate" && (<>
-                            이미 사용중인 이메일입니다.
-                        </>)}
-                    </div>
+                        </>
+                    )}
+
+                    {result.accountId.code === "duplicate" && (
+                        <>
+                            이미 사용 중인 이메일입니다.
+                        </>
+                    )}
+
+                    {result.accountId.code === "error" && (
+                        <>
+                            이메일 중복 확인 중 오류가 발생했습니다.
+                        </>
+                    )}
                 </div>
             </Col>
         </Row>
-        {/* 인증번호 입력화면은 발송이 완료된 경우 + 인증완료가 안된 상황에서만 나와야 함 */}
-        {(certNumberResult !== "is-valid" && sending === false) && (
-            <Row className="mt-2">
-                <Col sm={{ span: 9, offset: 3 }}>
-                    <div className="d-flex flex-wrap">
-                        <Form.Control type="text" placeholder="인증번호"
-                            value={certNumber} onChange={changeCertNumber}
-                            className={`w-auto ${certNumberResult}`} />
-                        {/* 인증번호 확인버튼 */}
-                        <Button variant="success" className="ms-2" onClick={checkCert}>
-                            <FaCheck />
-                            <span className="ms-2 d-none d-sm-inline">인증번호 확인</span>
-                        </Button>
-                        <div className="valid-feedback">인증번호가 확인이 완료되었습니다</div>
-                        <div className="invalid-feedback">인증번호가 일치하지 않습니다</div>
-                    </div>
-                </Col>
-            </Row>
-        )}
 
         {/* 비밀번호 */}
         <Row className="mt-4">
@@ -412,9 +372,9 @@ export default function EmployeeRegister() {
         </Row>
         {/* 이름 */}
         <Row className="mt-4">
-            <Form.Check column sm={3}>
+            <Form.Label column sm={3}>
                 <span>이름</span>
-            </Form.Check>
+            </Form.Label>
             <Col sm={9}>
                 <Form.Control type="text" name="accountName"
                     value={account.accountName}
@@ -514,11 +474,11 @@ export default function EmployeeRegister() {
                     name="accountStatus"
                     value="Y"
                     checked={account.accountStatus === "Y"}
-                    onChange={e=>
-                        {
-                            changeStringValue(e);
-                            setResult(prev=>({...prev, accountStatus:"is-valid"}))}
-                        }
+                    onChange={e => {
+                        changeStringValue(e);
+                        setResult(prev => ({ ...prev, accountStatus: "is-valid" }))
+                    }
+                    }
                 />
                 <Form.Check
                     type="radio"
@@ -526,15 +486,15 @@ export default function EmployeeRegister() {
                     name="accountStatus"
                     value="N"
                     checked={account.accountStatus === "N"}
-                    onChange={e=>
-                    {
+                    onChange={e => {
                         changeStringValue(e);
-                        setResult(prev=>({...prev, accountStatus:"in-valid"}))}
+                        setResult(prev => ({ ...prev, accountStatus: "in-valid" }))
+                    }
                     }
                 />
             </Col>
         </Row>
-        
+
 
         {/* 버튼 */}
         <Row className="my-5">
