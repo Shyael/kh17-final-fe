@@ -230,14 +230,14 @@ export default function ContractDetail() {
                             <FaSquarePen />
                             <span className="ms-2">서명 전 수정</span>
                         </Button>
-
+                        
                         <Button variant="success" className="ms-2"
                             onClick={() => navigate(`/employee/contract/sign/${contractNo}`)}>
                             <FaLock />
                             <span className="ms-2">계약 서명</span>
                         </Button>
 
-                        <Button variant="success" className="ms-2"
+                        <Button variant="danger" className="ms-2"
                             onClick={cancelData}>
                             <FaDeleteLeft />
                             <span className="ms-2">계약 취소</span>
@@ -259,7 +259,7 @@ export default function ContractDetail() {
                     </Button>
                 )}
 
-                {contract.contractStatus === "active" && (
+                {(contract.contractStatus === "active" || contract.contractStatus === "scheduled") &&(
                     <>
                         <Button variant="warning" className="ms-2"
                             onClick={() => navigate(`/admin/contract/changeCondition/${contractNo}`)}>

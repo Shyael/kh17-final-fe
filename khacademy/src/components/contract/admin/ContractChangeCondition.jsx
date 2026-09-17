@@ -1,6 +1,6 @@
 
 import Jumbotron from "@templates/Jumbotron";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Alert, Button, Col, Form, Row } from "react-bootstrap";
 import { FaArrowLeft, FaCheck, FaXmark } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
@@ -161,28 +161,28 @@ export default function ContractChangeCondition() {
     const [sending, setSending] = useState(false);
 
     const [contract, setContract] = useState({
-        contractNo : contractNo ?? "",
-        employeeNo : "",
-        wageType : "",
-        baseWage : "",
-        dailyWorkHours : "",
-        weeklyWorkHours : "",
-        weeklyHolidayDay : "",
-        writtenBreakMinutes : "",
-        contractStart : "",
-        contractEnd : "",
-        payday : "",
-        contractContent : ""
+        contractNo: contractNo ?? "",
+        employeeNo: "",
+        wageType: "",
+        baseWage: "",
+        dailyWorkHours: "",
+        weeklyWorkHours: "",
+        weeklyHolidayDay: "",
+        writtenBreakMinutes: "",
+        contractStart: "",
+        contractEnd: "",
+        payday: "",
+        contractContent: ""
     });
 
     //날짜 input 형식으로 변경
-    const toDateInput = useCallback(value=>{
-        if(value === null || value === undefined) return "";
+    const toDateInput = useCallback(value => {
+        if (value === null || value === undefined) return "";
         return value.substring(0, 10);
     }, []);
 
     //현재 계약 조회
-    const loadData = useCallback(async ()=>{
+    const loadData = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -194,21 +194,21 @@ export default function ContractChangeCondition() {
 
             //현재 조건을 새 계약의 기본값으로 사용
             setContract({
-                contractNo : data.contractNo,
-                employeeNo : data.employeeNo,
-                wageType : data.wageType ?? "",
-                baseWage : data.baseWage ?? "",
-                dailyWorkHours : data.dailyWorkHours ?? "",
-                weeklyWorkHours : data.weeklyWorkHours ?? "",
-                weeklyHolidayDay : Number(data.weeklyWorkHours) < 15 ? "" : (data.weeklyHolidayDay ?? ""),
-                writtenBreakMinutes : data.writtenBreakMinutes ?? "",
-                contractStart : "",
-                contractEnd : toDateInput(data.contractEnd),
-                payday : data.payday ?? "",
-                contractContent : data.contractContent ?? ""
+                contractNo: data.contractNo,
+                employeeNo: data.employeeNo,
+                wageType: data.wageType ?? "",
+                baseWage: data.baseWage ?? "",
+                dailyWorkHours: data.dailyWorkHours ?? "",
+                weeklyWorkHours: data.weeklyWorkHours ?? "",
+                weeklyHolidayDay: Number(data.weeklyWorkHours) < 15 ? "" : (data.weeklyHolidayDay ?? ""),
+                writtenBreakMinutes: data.writtenBreakMinutes ?? "",
+                contractStart: "",
+                contractEnd: toDateInput(data.contractEnd),
+                payday: data.payday ?? "",
+                contractContent: data.contractContent ?? ""
             });
         }
-        catch(e) {
+        catch (e) {
             console.error(e);
             toast.error(
                 e?.response?.data?.message
@@ -221,14 +221,14 @@ export default function ContractChangeCondition() {
         }
     }, [contractNo, navigate, toDateInput]);
 
-    useEffect(()=>{
+    useEffect(() => {
         loadData();
     }, [loadData]);
 
     //입력
-    const changeStringValue = useCallback(e=>{
+    const changeStringValue = useCallback(e => {
         const { name, value } = e.target;
-        setContract(prev=>({
+        setContract(prev => ({
             ...prev,
             [name]: value,
             weeklyHolidayDay: name === "weeklyWorkHours" && Number(value) < 15
@@ -250,8 +250,8 @@ export default function ContractChangeCondition() {
     }, [contract]);
 
     //입력값 검사
-    const checkContract = useCallback(()=>{
-        if(currentContract?.contractStatus !== "active") {
+    const checkContract = useCallback(() => {
+        if ((currentContract?.contractStatus === "ended") || (currentContract?.contractStatus === "pending")) {
             toast.warning("진행 중인 계약만 근로조건을 변경할 수 있습니다");
             return false;
         }
@@ -262,24 +262,24 @@ export default function ContractChangeCondition() {
             return false;
         }
 
-        if(contract.contractStart === "") {
+        if (contract.contractStart === "") {
             toast.warning("새 계약 시작일을 입력해주세요");
             return false;
         }
 
-        if(contract.contractEnd !== "" && contract.contractStart > contract.contractEnd) {
+        if (contract.contractEnd !== "" && contract.contractStart > contract.contractEnd) {
             toast.warning("새 계약 종료일은 시작일보다 빠를 수 없습니다");
             return false;
         }
 
         const payday = Number(contract.payday);
 
-        if(contract.payday === "" || !Number.isInteger(payday) || payday < 1 || payday > 31) {
+        if (contract.payday === "" || !Number.isInteger(payday) || payday < 1 || payday > 31) {
             toast.warning("급여 지급일은 1일부터 31일 사이로 입력해주세요");
             return false;
         }
 
-        if(contract.contractContent.trim() === "") {
+        if (contract.contractContent.trim() === "") {
             toast.warning("근로계약 내용을 입력해주세요");
             return false;
         }
@@ -287,33 +287,44 @@ export default function ContractChangeCondition() {
         return true;
     }, [currentContract, contract]);
 
+    const convertLanguage = useMemo(() => {
+        const statusMap = {
+            ending: "종료 예정",
+            scheduled: "시작 예정",
+            active: "계약 중",
+            ended: "계약 종료"
+        };
+
+        return statusMap[currentContract?.contractStatus] ?? "알 수 없음";
+    }, [currentContract?.contractStatus]);
+
     //근로조건 변경
-    const sendData = useCallback(async ()=>{
-        if(checkContract() === false) return;
-        if(sending === true) return;
+    const sendData = useCallback(async () => {
+        if (checkContract() === false) return;
+        if (sending === true) return;
 
         const result = await Swal.fire({
-            title:"근로조건을 변경하시겠습니까?",
-            text:"기존 계약은 보존하고 변경된 조건으로 새 계약을 작성합니다",
-            icon:"warning",
-            showCancelButton:true,
-            confirmButtonText:"새 계약 작성",
-            cancelButtonText:"취소"
+            title: "근로조건을 변경하시겠습니까?",
+            text: "기존 계약은 보존하고 변경된 조건으로 새 계약을 작성합니다",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "새 계약 작성",
+            cancelButtonText: "취소"
         });
-        if(result.isConfirmed === false) return;
+        if (result.isConfirmed === false) return;
 
         const request = {
-            contractNo : contract.contractNo,
-            wageType : contract.wageType,
-            baseWage : contract.baseWage,
-            dailyWorkHours : contract.dailyWorkHours,
-            weeklyWorkHours : contract.weeklyWorkHours,
-            weeklyHolidayDay : Number(contract.weeklyWorkHours) < 15 ? null : contract.weeklyHolidayDay,
-            writtenBreakMinutes : contract.writtenBreakMinutes,
-            contractStart : contract.contractStart,
-            contractEnd : contract.contractEnd === "" ? null : contract.contractEnd,
-            payday : contract.payday,
-            contractContent : contract.contractContent
+            contractNo: contract.contractNo,
+            wageType: contract.wageType,
+            baseWage: contract.baseWage,
+            dailyWorkHours: contract.dailyWorkHours,
+            weeklyWorkHours: contract.weeklyWorkHours,
+            weeklyHolidayDay: Number(contract.weeklyWorkHours) < 15 ? null : contract.weeklyHolidayDay,
+            writtenBreakMinutes: contract.writtenBreakMinutes,
+            contractStart: contract.contractStart,
+            contractEnd: contract.contractEnd === "" ? null : contract.contractEnd,
+            payday: contract.payday,
+            contractContent: contract.contractContent
         };
 
         try {
@@ -327,7 +338,7 @@ export default function ContractChangeCondition() {
             toast.success("변경된 근로조건으로 새 계약이 작성되었습니다");
             navigate(`/employee/contract/sign/${data.contractNo}`);
         }
-        catch(e) {
+        catch (e) {
             console.error(e);
             toast.error(
                 e?.response?.data?.message
@@ -339,26 +350,26 @@ export default function ContractChangeCondition() {
         }
     }, [contract, contractNo, sending, checkContract, navigate]);
 
-    if(loading === true || currentContract === null) {
+    if (loading === true || currentContract === null) {
         return <h1>로딩중...</h1>
     }
 
     return (<>
         <Jumbotron title="근로조건 변경"
-                content="현재 계약을 보존하고 변경된 조건으로 새 근로계약을 작성합니다"/>
+            content="현재 계약을 보존하고 변경된 조건으로 새 근로계약을 작성합니다" />
 
-             <Row>
-                <Col className="d-flex justify-content-start mb-3">
-                                    <Button
-                                        variant="outline-secondary"
-                                        className="d-flex align-items-center gap-2"
-                                        onClick={() => navigate(-1)}
-                                    >
-                                        <FaArrowLeft />
-                                        이전화면
-                                    </Button>
-                                </Col>
-                </Row>
+        <Row>
+            <Col className="d-flex justify-content-start mb-3">
+                <Button
+                    variant="outline-secondary"
+                    className="d-flex align-items-center gap-2"
+                    onClick={() => navigate(-1)}
+                >
+                    <FaArrowLeft />
+                    이전화면
+                </Button>
+            </Col>
+        </Row>
 
         <Row className="mt-5">
             <Col sm={3} className="fw-bold text-info">현재 계약번호</Col>
@@ -372,17 +383,17 @@ export default function ContractChangeCondition() {
 
         <Row className="mt-4">
             <Col sm={3} className="fw-bold text-info">현재 계약상태</Col>
-            <Col sm={9} className="text-secondary">{currentContract.contractStatus}</Col>
+            <Col sm={9} className="text-secondary">{convertLanguage}</Col>
         </Row>
 
-        {currentContract.contractStatus !== "active" && (
-        <Row className="mt-4">
-            <Col>
-                <Alert variant="warning">
-                    진행 중인 계약만 근로조건을 변경할 수 있습니다.
-                </Alert>
-            </Col>
-        </Row>
+        {currentContract.contractStatus !== "active" || currentContract.contractStatus !== "scheduled" && (
+            <Row className="mt-4">
+                <Col>
+                    <Alert variant="warning">
+                        진행 중인 계약만 근로조건을 변경할 수 있습니다.
+                    </Alert>
+                </Col>
+            </Row>
         )}
 
         <Row className="mt-5">
@@ -399,8 +410,8 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>임금형태</Form.Label>
                 <Col sm={9}>
                     <Form.Select name="wageType" value={contract.wageType}
-                            onChange={changeStringValue}
-                            onBlur={handleContractBlur}>
+                        onChange={changeStringValue}
+                        onBlur={handleContractBlur}>
                         <option value="monthly">월급</option>
                         <option value="hourly">시급</option>
                         <option value="daily">일급</option>
@@ -412,9 +423,9 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>기본임금</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="number" min="1" name="baseWage"
-                            value={contract.baseWage}
-                            onChange={changeStringValue}
-                            onBlur={handleContractBlur}/>
+                        value={contract.baseWage}
+                        onChange={changeStringValue}
+                        onBlur={handleContractBlur} />
                 </Col>
             </Row>
 
@@ -422,10 +433,10 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>1일 소정근로시간</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="number" min="0.5" step="0.5"
-                            name="dailyWorkHours" max="8"
-                            value={contract.dailyWorkHours}
-                            onChange={changeStringValue}
-                            onBlur={handleContractBlur}/>
+                        name="dailyWorkHours" max="8"
+                        value={contract.dailyWorkHours}
+                        onChange={changeStringValue}
+                        onBlur={handleContractBlur} />
                 </Col>
             </Row>
 
@@ -433,10 +444,10 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>1주 소정근로시간</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="number" min="0.5" step="0.5"
-                            name="weeklyWorkHours" max="40"
-                            value={contract.weeklyWorkHours}
-                            onChange={changeStringValue}
-                            onBlur={handleContractBlur}/>
+                        name="weeklyWorkHours" max="40"
+                        value={contract.weeklyWorkHours}
+                        onChange={changeStringValue}
+                        onBlur={handleContractBlur} />
                 </Col>
             </Row>
 
@@ -444,9 +455,9 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>주휴일</Form.Label>
                 <Col sm={9}>
                     <Form.Select
-                            name="weeklyHolidayDay" disabled={Number(contract.weeklyWorkHours) < 15}
-                            value={contract.weeklyHolidayDay}
-                            onChange={changeStringValue}>
+                        name="weeklyHolidayDay" disabled={Number(contract.weeklyWorkHours) < 15}
+                        value={contract.weeklyHolidayDay}
+                        onChange={changeStringValue}>
                         <option value="">선택</option>
                         <option value="MONDAY">월요일</option>
                         <option value="TUESDAY">화요일</option>
@@ -463,10 +474,10 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>휴게시간</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="number" min="0" name="writtenBreakMinutes"
-                            value={contract.writtenBreakMinutes}
-                            onChange={changeStringValue}
-                            placeholder="분 단위로 입력해주세요"
-                            step={1}/>
+                        value={contract.writtenBreakMinutes}
+                        onChange={changeStringValue}
+                        placeholder="분 단위로 입력해주세요"
+                        step={1} />
                     <Form.Text className="text-muted">
                         4시간 이상 근무 시 30분 이상, 8시간 이상 근무 시 60분 이상
                     </Form.Text>
@@ -477,9 +488,9 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>새 계약 시작일</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="date" name="contractStart"
-                            value={contract.contractStart}
-                            onChange={changeStringValue}
-                            onBlur={handleContractBlur}/>
+                        value={contract.contractStart}
+                        onChange={changeStringValue}
+                        onBlur={handleContractBlur} />
                 </Col>
             </Row>
 
@@ -487,9 +498,9 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>새 계약 종료일</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="date" name="contractEnd"
-                            value={contract.contractEnd}
-                            onChange={changeStringValue}
-                            onBlur={handleContractBlur}/>
+                        value={contract.contractEnd}
+                        onChange={changeStringValue}
+                        onBlur={handleContractBlur} />
                     <Form.Text className="text-muted">
                         기간의 정함이 없는 계약은 비워두세요
                     </Form.Text>
@@ -500,9 +511,9 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>급여 지급일</Form.Label>
                 <Col sm={9}>
                     <Form.Control type="number" min="1" max="31" name="payday"
-                            value={contract.payday}
-                            onChange={changeStringValue}
-                            placeholder="1~31일 사이로 입력 해 주세요"/>
+                        value={contract.payday}
+                        onChange={changeStringValue}
+                        placeholder="1~31일 사이로 입력 해 주세요" />
                 </Col>
             </Row>
 
@@ -510,28 +521,28 @@ export default function ContractChangeCondition() {
                 <Form.Label column sm={3}>기타 근로조건</Form.Label>
                 <Col sm={9}>
                     <Form.Control as="textarea" rows={6} name="contractContent"
-                            value={contract.contractContent}
-                            onChange={changeStringValue}/>
+                        value={contract.contractContent}
+                        onChange={changeStringValue} />
                 </Col>
             </Row>
         </Form>
 
         {/* 변경될 새 계약 미리보기 */}
-        <ContractDocument contract={contract}/>
+        <ContractDocument contract={contract} />
 
         <Row className="mt-5 mb-5">
             <Col className="text-end">
                 <Button variant="secondary" size="lg"
-                        onClick={()=>navigate(`/admin/contract/detail/${contractNo}`)}
-                        disabled={sending === true}>
-                    <FaXmark/>
+                    onClick={() => navigate(`/admin/contract/detail/${contractNo}`)}
+                    disabled={sending === true}>
+                    <FaXmark />
                     <span className="ms-2">취소</span>
                 </Button>
 
                 <Button variant="warning" size="lg" className="ms-2"
-                        onClick={sendData}
-                        disabled={sending === true || currentContract.contractStatus !== "active"}>
-                    <FaCheck/>
+                    onClick={sendData}
+                    disabled={sending === true || currentContract.contractStatus === "ended"|| currentContract.contractStatus === "pending"}>
+                    <FaCheck />
                     <span className="ms-2">
                         {sending === true ? "작성중..." : "새 계약 작성"}
                     </span>

@@ -553,7 +553,7 @@ export default function ContractSign() {
                         {/* =============================================
                             직원 서명
                         ============================================= */}
-                {!isAdmin &&(<>
+                {!isAdmin &&(contract.employeeSignature===null)&&(<>
                         <Row className="mt-5">
 
                             <Col>
@@ -636,7 +636,7 @@ export default function ContractSign() {
                         {/* =============================================
                             원장 서명
                         ============================================= */}
-                        {isAdmin && (<>
+                        {(isAdmin && (contract.employerSignature===null))&&(<>
                         <Row className="mt-5">
 
                             <Col>
