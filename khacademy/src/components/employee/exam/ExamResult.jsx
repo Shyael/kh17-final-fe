@@ -176,6 +176,13 @@ export default function ExamResult() {
     };
     
     return (<>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+            <Button variant="outline-secondary" size="sm" as={Link} to={`/employee/exam`}>
+                <FaListUl className="me-2" />
+                <span>목록으로</span>
+            </Button>
+        </div>
+
         <Jumbotron title={isResultView ? "시험 결과" : "응시 현황"} />
 
         {/* 1. 시험 정보 */}
@@ -393,14 +400,5 @@ export default function ExamResult() {
             </Col>
         </Row>
 
-        {/* 6 · 7. 하단 버튼 */}
-        <Row className="mt-4 mb-4">
-            <Col className="text-end">
-                <Button variant="outline-secondary" as={Link} to={`/employee/exam`}>
-                    <FaListUl className="me-2" />
-                    <span>목록으로</span>
-                </Button>
-            </Col>
-        </Row>
     </>);
 }

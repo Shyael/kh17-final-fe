@@ -238,7 +238,7 @@ export default function MemberDashboard() {
                                     variant="outline-primary"
                                     size="sm"
                                     className="mt-2 align-self-end"
-                                    onClick={() => navigate(isParent ? "/parent/assignment" : "/student/assignment")}
+                                    onClick={() => navigate("/student/assignment")}
                                 >
                                     과제 전체보기 <FaArrowRight className="ms-1" />
                                 </Button>
@@ -280,7 +280,7 @@ export default function MemberDashboard() {
                                                     key={exam.examNo}
                                                     className="d-flex justify-content-between align-items-center py-2 border-bottom"
                                                     style={{ cursor: "pointer" }}
-                                                    onClick={() => navigate(isParent ? `/parent/exam/${exam.examNo}` : `/student/exam/${exam.examNo}`)}
+                                                    onClick={() => navigate(`/student/exam/${exam.examNo}`)}
                                                 >
                                                     <div>
                                                         <div className="fw-semibold small">
@@ -304,7 +304,7 @@ export default function MemberDashboard() {
                                     variant="outline-primary"
                                     size="sm"
                                     className="mt-2 align-self-end"
-                                    onClick={() => navigate(isParent ? "/parent/exam" : "/student/exam")}
+                                    onClick={() => navigate("/student/exam")}
                                 >
                                     시험 전체보기 <FaArrowRight className="ms-1" />
                                 </Button>

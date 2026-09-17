@@ -35,6 +35,30 @@ body {
   margin: 0 auto;
 }
 
+/* 학원소개 히어로 : 브랜드 컬러로 화면 끝까지 꽉 채우는 풀블리드 배너
+   - 상위 Container(fluid)의 좌우 padding 만큼만 상쇄(카드/스크롤 리빌과 동일한 원리로
+     kh-topnav에서 쓰는 방식과 동일 계산) 해서 배경이 뷰포트 끝까지 이어지게 함
+   - 내부 콘텐츠(kh-academy-hero-inner)는 다른 섹션과 동일한 1080px 폭으로 맞춰 정렬 */
+.kh-academy-hero {
+  margin-left: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+  margin-right: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+  background: var(--kh-primary);
+  min-height: max(420px, calc(100vh - 40px));
+  display: flex;
+  align-items: center;
+}
+.kh-academy-hero-inner {
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 3rem calc(var(--bs-gutter-x, 1.5rem) * 0.5 + 1rem);
+}
+@media (max-width: 767.98px) {
+  .kh-academy-hero-inner {
+    padding: 2rem 1rem;
+  }
+}
+
 /* 스크롤 시 서서히 나타나는 연출 (@utils/scrollReveal 훅과 함께 사용) */
 .kh-reveal {
   opacity: 0;
