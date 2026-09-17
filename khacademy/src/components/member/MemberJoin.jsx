@@ -9,10 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { apiClient, certClient } from "@utils/reaxios";
 
 export default function MemberJoin() {
-    //kakao post
-    const open = useKakaoPostcodePopup(
-        "//t1.kakaocdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"
-    );
+   
 
     const [accountType, setAccountType] = useState('STUDENT'); // student||parent
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useCallback, useEffect, useState } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Link } from "react-router-dom";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
@@ -12,7 +12,9 @@ import AcademyConsultReservation from "@components/academy/AcademyConsultReserva
 import useLogout from "@templates/menu/useLogout";
 import useAcademyName from "@templates/menu/useAcademyName";
 import "@templates/menu/menu.css";
-
+import { authClient } from "@utils/reaxios";
+import { loginActionState, logoutActionState } from "@utils/storage";
+import { FaUser } from "react-icons/fa6";
 /**
  * 외부/회원용 상단 메뉴바
  * - 비로그인
@@ -39,6 +41,21 @@ export default function TopMenu() {
     const [atTop, setAtTop] = useState(
         typeof window === "undefined" || window.scrollY <= 0
     );
+
+    const loginAction = useSetAtom(loginActionState);
+    const logoutAction = useSetAtom(logoutActionState);
+
+    //토큰 갱신 요청
+    const refresh = useCallback(async () => {
+        try {
+            const { data } = await authClient.post("/refresh");
+            loginAction(data);
+        }
+        catch (e) {
+            // 갱신이 안된 경우 (401 unauthorized)
+            logoutAction();
+        }
+    }, []);
     useEffect(() => {
         const onScroll = () => setAtTop(window.scrollY <= 0);
         onScroll();
@@ -83,6 +100,7 @@ export default function TopMenu() {
                                 <NavDropdown.Item as={Link} to="/academy/tutor">
                                     외부강사목록
                                 </NavDropdown.Item>
+
                             </NavDropdown>
                         </Nav>
 
@@ -125,22 +143,22 @@ export default function TopMenu() {
                                     내 시험
                                 </NavDropdown.Item>
                                 {children.length >= 1 && (
-                                <NavDropdown.Item as={Link} to="/parent/score">
-                                    내 성적
-                                </NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/parent/score">
+                                        내 성적
+                                    </NavDropdown.Item>
                                 )}
                                 {children.length == 0 && (
-                                <NavDropdown.Item as={Link} to="/student/score">
-                                    내 성적
-                                </NavDropdown.Item>
+                                    <NavDropdown.Item as={Link} to="/student/score">
+                                        내 성적
+                                    </NavDropdown.Item>
                                 )}
                             </NavDropdown>
 
                             {/* 학부모: 수납관리 */}
                             {children.length >= 1 && (
                                 <Nav.Link as={Link} to={"/parent/payment/list"}>
-                                수납관리
-                            </Nav.Link>
+                                    수납관리
+                                </Nav.Link>
                             )}
 
                             {/* 학부모: 자녀 선택 드롭다운 */}

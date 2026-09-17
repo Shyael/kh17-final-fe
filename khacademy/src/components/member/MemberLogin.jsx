@@ -77,6 +77,9 @@ export default function AccountLogin() {
             if (e.status === 403) {
                 navigate("/account/block");
             }
+            else if (e.response?.status === 401) {
+                await Swal.fire("아이디 또는 비밀번호가 올바르지 않습니다.");
+            }
             else if (e.status === 404) {
                 await Swal.fire("정보가 일치하지 않습니다");
             }

@@ -1,16 +1,19 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 
 import { FaUser, FaRightFromBracket } from "react-icons/fa6";
 
 import { loginUserState } from "@utils/storage";
+
+
 import AttendanceButton from "@templates/AttendanceButton";
 import useLogout from "@templates/menu/useLogout";
 import useAcademyName from "@templates/menu/useAcademyName";
 import "@templates/menu/menu.css";
 
 import Alarm from "@components/employee/alarm/Alarm";
+import { loginActionState, logoutActionState } from "@utils/storage";
 
 /* 직원 사이드바 메뉴 구성 (기존 Menu.jsx 직원 메뉴와 동일한 경로) */
 const MENU = [
@@ -78,6 +81,8 @@ export default function EmployeeLayout({ children }) {
     const userDept = loginUser?.department ?? loginUser?.deptName ?? "";
     const avatarText = userName.charAt(0) || "직";
 
+
+
     // 현재 경로가 포함된 그룹은 기본으로 펼침
     const initialOpen = useMemo(() => {
         const map = {};
@@ -101,7 +106,23 @@ export default function EmployeeLayout({ children }) {
     );
     const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
+    const loginAction = useSetAtom(loginActionState);
+    const logoutAction = useSetAtom(logoutActionState);
+
+    //토큰 갱신 요청
+    const refresh = useCallback(async ()=> {
+        try {
+            const {data} = await authClient.post("/refresh");
+            loginAction(data);
+        }
+        catch(e) {
+            // 갱신이 안된 경우 (401 unauthorized)
+            logoutAction();
+        }
+    }, []);
+
     //로그아웃 처리
+
 
     return (<>
         <Alarm />

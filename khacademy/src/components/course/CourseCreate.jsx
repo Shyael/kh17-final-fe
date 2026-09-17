@@ -64,6 +64,8 @@ export default function CourseCreate() {
 
     // [1] 선택된 강사
     const [selectedTutor, setSelectedTutor] = useState(null);
+    // [1-1] 선택된 강사의 기존 수업 일정
+    const [tutorSchedules, setTutorSchedules] = useState([]);
 
     // [2] 강좌 정보 State
     const [course, setCourse] = useState({
@@ -148,6 +150,79 @@ export default function CourseCreate() {
         loadFormData();
 
     }, [loadFormData]);
+
+    // ========================================================
+    // 선택된 강사의 기존 수업 일정 조회
+    // ========================================================
+    useEffect(() => {
+
+        if (!selectedTutor?.employeeNo) {
+            setTutorSchedules([]);
+            return;
+        }
+
+        const loadTutorSchedules = async () => {
+
+            try {
+
+                const { data } = await apiClient.get(
+                    `/employee/course/available-schedules/${selectedTutor.employeeNo}`
+                );
+
+                console.log("강사 기존 수업 일정", data);
+
+                setTutorSchedules(data);
+
+            } catch (e) {
+
+                console.error("강사 기존 일정 조회 오류", e);
+
+                setTutorSchedules([]);
+
+            }
+        };
+
+        loadTutorSchedules();
+
+    }, [selectedTutor]);
+
+    // ========================================================
+    // 강사의 기존 수업 일정을 요일별로 그룹화
+    // ========================================================
+    const tutorSchedulesByWeek = useMemo(() => {
+
+        const weekOrder = ["월", "화", "수", "목", "금", "토", "일"];
+
+        const grouped = {};
+
+        weekOrder.forEach(week => {
+            grouped[week] = [];
+        });
+
+        tutorSchedules.forEach(schedule => {
+
+            if (!grouped[schedule.scheduleWeek]) {
+                grouped[schedule.scheduleWeek] = [];
+            }
+
+            grouped[schedule.scheduleWeek].push(schedule);
+
+        });
+
+        // 시간순 정렬
+        Object.keys(grouped).forEach(week => {
+
+            grouped[week].sort((a, b) =>
+                (a.scheduleStart || "").localeCompare(
+                    b.scheduleStart || ""
+                )
+            );
+
+        });
+
+        return grouped;
+
+    }, [tutorSchedules]);
 
     // ========================================================
     // 강사 Modal
@@ -238,6 +313,78 @@ export default function CourseCreate() {
         "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
         "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"
     ];
+
+    // ========================================================
+    // 선택한 시작시간 ~ 종료시간이 강사 기존 수업과 겹치는지 확인
+    // ========================================================
+    const isTutorTimeRangeUnavailable = (week, startTime, endTime) => {
+
+        if (!week || !startTime || !endTime) {
+            return false;
+        }
+
+        // 시작시간보다 종료시간이 같거나 빠르면 사용할 수 없음
+        if (endTime <= startTime) {
+            return true;
+        }
+
+        return tutorSchedules.some(existing => {
+
+            if (existing.scheduleWeek !== week) {
+                return false;
+            }
+
+            // 기존 수업과 새 수업의 시간이 겹치는지 확인
+            return (
+                startTime < existing.scheduleEnd &&
+                endTime > existing.scheduleStart
+            );
+
+        });
+    };
+
+    const isDateRangeOverlap = (newSchedule, existingSchedule) => {
+        const newStart = newSchedule.scheduleOpen || "0000-01-01";
+        const newEnd = newSchedule.scheduleClose || "9999-12-31";
+
+        const existingStart = existingSchedule.scheduleOpen || "0000-01-01";
+        const existingEnd = existingSchedule.scheduleClose || "9999-12-31";
+
+        return newStart <= existingEnd && newEnd >= existingStart;
+    };
+
+    // ========================================================
+    // 선택한 일정 전체가 강사의 기존 수업과 겹치는지 확인
+    // ========================================================
+    const isTutorScheduleOverlap = (schedule) => {
+        if (
+            !schedule.scheduleWeek ||
+            !schedule.scheduleStart ||
+            !schedule.scheduleEnd
+        ) {
+            return false;
+        }
+
+        return tutorSchedules.some(existing => {
+
+            // 1. 요일이 다르면 겹치지 않음
+            if (existing.scheduleWeek !== schedule.scheduleWeek) {
+                return false;
+            }
+
+            // 2. 시간 겹침 확인
+            const timeOverlap =
+                schedule.scheduleStart < existing.scheduleEnd &&
+                schedule.scheduleEnd > existing.scheduleStart;
+
+            if (!timeOverlap) {
+                return false;
+            }
+
+            // 3. 날짜 범위 겹침 확인
+            return isDateRangeOverlap(schedule, existing);
+        });
+    };
 
     // 24시간제("18:30") -> 오전/오후 반환 ("AM" 또는 "PM")
     const getMeridiem = (timeStr) => {
@@ -402,14 +549,19 @@ export default function CourseCreate() {
                 !schedule.scheduleStart ||
                 !schedule.scheduleEnd
             ) {
-
                 await Swal.fire(
                     `${i + 1}번째 일정의 시간을 먼저 입력해주세요.`
                 );
-
                 return;
             }
-
+            if (isTutorScheduleOverlap(schedule)) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "강사 수업 시간이 겹칩니다.",
+                    text: `${schedule.scheduleWeek}요일 ${schedule.scheduleStart} ~ ${schedule.scheduleEnd} 일정이 기존 강사 수업과 겹칩니다.`,
+                });
+                return;
+            }
         }
 
         try {
@@ -654,7 +806,6 @@ export default function CourseCreate() {
 
         }
 
-
         // ----------------------------------------------------
         // 서버 등록
         // ----------------------------------------------------
@@ -667,15 +818,12 @@ export default function CourseCreate() {
                 courseLimit: Number(course.courseLimit),
                 courseFee: Number(course.courseFee),
                 schedules: course.schedules.map(schedule => ({
-                        ...schedule,
-                        classroomNo: Number(schedule.classroomNo)
-                    }))
+                    ...schedule,
+                    classroomNo: Number(schedule.classroomNo)
+                }))
             };
             console.log("강좌 등록 요청", request);
-            
-            // 강의 등록
-            await apiClient.post("/employee/course/", request);
-            
+
             // 등록 요청 및 응답에서 생성된 번호 수신
             const response = await apiClient.post("/employee/course/", request);
             const createdCourseNo = response.data.courseNo;
@@ -688,8 +836,8 @@ export default function CourseCreate() {
             });
             navigate(`/employee/course/detail/${createdCourseNo}`);
         }
-        catch (e) { 
-            console.error("강좌 등록 오류",e);
+        catch (e) {
+            console.error("강좌 등록 오류", e);
             const status = e.response?.status;
             if (status === 409) {
                 await Swal.fire(
@@ -1423,7 +1571,213 @@ export default function CourseCreate() {
                             padding: "20px"
                         }}
                     >
+                        {/* =================================================
+    선택 강사의 기존 수업 일정
+================================================= */}
+                        {selectedTutor && (
+                            <div
+                                style={{
+                                    marginBottom: "20px",
+                                    padding: "16px",
+                                    background: COLORS.bg,
+                                    border: `1px solid ${COLORS.border}`,
+                                    borderRadius: "9px"
+                                }}
+                            >
 
+                                <div
+                                    className="d-flex justify-content-between align-items-center"
+                                    style={{
+                                        marginBottom: "12px"
+                                    }}
+                                >
+
+                                    <div>
+
+                                        <div
+                                            style={{
+                                                fontSize: "14px",
+                                                fontWeight: "700",
+                                                marginBottom: "3px"
+                                            }}
+                                        >
+                                            {selectedTutor.accountName} 강사의 기존 수업 일정
+                                        </div>
+
+                                        <small
+                                            style={{
+                                                color: COLORS.muted
+                                            }}
+                                        >
+                                            기존 수업 시간과 겹치지 않도록 일정을 선택해주세요.
+                                        </small>
+
+                                    </div>
+
+                                    <span
+                                        style={{
+                                            fontSize: "11px",
+                                            color: COLORS.muted
+                                        }}
+                                    >
+                                        기존 일정 {tutorSchedules.length}개
+                                    </span>
+
+                                </div>
+
+
+                                {tutorSchedules.length === 0 ? (
+
+                                    <div
+                                        style={{
+                                            padding: "15px",
+                                            textAlign: "center",
+                                            background: COLORS.surface,
+                                            border: `1px dashed ${COLORS.border}`,
+                                            borderRadius: "7px",
+                                            color: COLORS.muted,
+                                            fontSize: "13px"
+                                        }}
+                                    >
+                                        등록된 기존 수업 일정이 없습니다.
+                                    </div>
+
+                                ) : (
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: "6px"
+                                        }}
+                                    >
+
+                                        {["월", "화", "수", "목", "금", "토", "일"].map(week => {
+
+                                            const schedules =
+                                                tutorSchedulesByWeek[week] || [];
+
+                                            return (
+                                                <div
+                                                    key={week}
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "stretch",
+                                                        minHeight: "42px",
+                                                        border: `1px solid ${COLORS.border}`,
+                                                        borderRadius: "7px",
+                                                        overflow: "hidden",
+                                                        background: COLORS.surface
+                                                    }}
+                                                >
+
+                                                    {/* 요일 */}
+                                                    <div
+                                                        style={{
+                                                            width: "55px",
+                                                            flexShrink: 0,
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontSize: "12px",
+                                                            fontWeight: "700",
+                                                            color: COLORS.primaryDark,
+                                                            background: COLORS.primaryLight,
+                                                            borderRight: `1px solid ${COLORS.border}`
+                                                        }}
+                                                    >
+                                                        {week}
+                                                    </div>
+
+
+                                                    {/* 일정 */}
+                                                    <div
+                                                        style={{
+                                                            flex: 1,
+                                                            padding: "6px 10px"
+                                                        }}
+                                                    >
+
+                                                        {schedules.length === 0 ? (
+
+                                                            <div
+                                                                style={{
+                                                                    color: COLORS.muted,
+                                                                    fontSize: "12px",
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    height: "100%"
+                                                                }}
+                                                            >
+                                                                수업 없음
+                                                            </div>
+
+                                                        ) : (
+
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    flexWrap: "wrap",
+                                                                    gap: "6px"
+                                                                }}
+                                                            >
+
+                                                                {schedules.map((schedule, scheduleIndex) => (
+
+                                                                    <div
+                                                                        key={
+                                                                            schedule.scheduleNo ||
+                                                                            scheduleIndex
+                                                                        }
+                                                                        style={{
+                                                                            display: "inline-flex",
+                                                                            alignItems: "center",
+                                                                            gap: "6px",
+                                                                            padding: "6px 9px",
+                                                                            background: "#F3F0EB",
+                                                                            border: `1px solid ${COLORS.border}`,
+                                                                            borderRadius: "6px",
+                                                                            fontSize: "12px"
+                                                                        }}
+                                                                    >
+
+                                                                        <strong>
+                                                                            {schedule.scheduleStart}
+                                                                            {" ~ "}
+                                                                            {schedule.scheduleEnd}
+                                                                        </strong>
+
+                                                                        {schedule.courseTitle && (
+                                                                            <span
+                                                                                style={{
+                                                                                    color: COLORS.muted
+                                                                                }}
+                                                                            >
+                                                                                {schedule.courseTitle}
+                                                                            </span>
+                                                                        )}
+
+                                                                    </div>
+
+                                                                ))}
+
+                                                            </div>
+
+                                                        )}
+
+                                                    </div>
+
+                                                </div>
+                                            );
+
+                                        })}
+
+                                    </div>
+
+                                )}
+
+                            </div>
+                        )}
                         {course.schedules.map(
                             (schedule, index) => (
 
@@ -1597,9 +1951,9 @@ export default function CourseCreate() {
                                                         }}
                                                     >
                                                         <option value="">시간 선택</option>
-                                                        {TIME_OPTIONS.map((t) => (
-                                                            <option key={t} value={t}>
-                                                                {t}
+                                                        {TIME_OPTIONS.map(time => (
+                                                            <option key={time} value={time}>
+                                                                {time}
                                                             </option>
                                                         ))}
                                                     </Form.Select>
@@ -1636,9 +1990,9 @@ export default function CourseCreate() {
                                                         }}
                                                     >
                                                         <option value="">시간 선택</option>
-                                                        {TIME_OPTIONS.map((t) => (
-                                                            <option key={t} value={t}>
-                                                                {t}
+                                                        {TIME_OPTIONS.map(time => (
+                                                            <option key={time} value={time}>
+                                                                {time}
                                                             </option>
                                                         ))}
                                                     </Form.Select>

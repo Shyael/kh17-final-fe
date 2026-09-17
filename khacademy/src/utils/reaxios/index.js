@@ -79,6 +79,8 @@ apiClient.interceptors.response.use(
     console.log("액세스 토큰 만료됨 → 갱신 요청 시작");
     try {
         const {data} = await authClient.post("/refresh");
+         // 갱신된 로그인 정보 반영
+        loginAction(data);
         //현재 화면은 로그인상태이므로 갱신이 필요하지 않음(필요하다면 해도 됨)
         return apiClient(originalRequest);//apiClient에 원래요청을 다시보낸 결과를 반환
     }
