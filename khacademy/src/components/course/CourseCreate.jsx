@@ -14,8 +14,6 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 
-import { ko } from "date-fns/locale";
-import DatePicker from "react-datepicker";
 import dayjs from "dayjs";
 import "dayjs/locale/ko";
 dayjs.locale("ko"); //한국어로 설정
@@ -37,7 +35,6 @@ const COLORS = {
     warning: "#C79A5E",
     danger: "#B86B6B"
 };
-
 
 // ============================================================
 // 기본 일정
@@ -282,7 +279,6 @@ export default function CourseCreate() {
 
     }, []);
 
-
     // ========================================================
     // 일정 삭제
     // ========================================================
@@ -296,7 +292,6 @@ export default function CourseCreate() {
 
             return;
         }
-
         setCourse(prev => ({
             ...prev,
             schedules: prev.schedules.filter(
@@ -395,7 +390,6 @@ export default function CourseCreate() {
 
             const schedule = course.schedules[i];
 
-
             if (!schedule.scheduleWeek) {
 
                 await Swal.fire(
@@ -404,8 +398,6 @@ export default function CourseCreate() {
 
                 return;
             }
-
-
             if (
                 !schedule.scheduleStart ||
                 !schedule.scheduleEnd
@@ -420,14 +412,11 @@ export default function CourseCreate() {
 
         }
 
-
         try {
-
             // ------------------------------------------------
             // 어떤 일정의 강의실을 선택하는지 저장
             // ------------------------------------------------
             setClassroomIndex(index);
-
 
             // ------------------------------------------------
             // 사용 가능 강의실 조회 요청
@@ -474,7 +463,6 @@ export default function CourseCreate() {
                 request
             );
 
-
             setClassrooms(data);
 
             setShowClassroomModal(true);
@@ -512,16 +500,13 @@ export default function CourseCreate() {
                 ...prev.schedules
             ];
 
-
             schedules[classroomIndex] = {
 
                 ...schedules[classroomIndex],
 
                 classroomNo:
                     classroom.classroomNo
-
             };
-
 
             return {
                 ...prev,
@@ -553,7 +538,6 @@ export default function CourseCreate() {
             return;
         }
 
-
         if (!course.academySubjectNo) {
 
             await Swal.fire(
@@ -562,7 +546,6 @@ export default function CourseCreate() {
 
             return;
         }
-
 
         if (!course.employeeNo) {
 
@@ -573,7 +556,6 @@ export default function CourseCreate() {
             return;
         }
 
-
         if (!course.courseTitle.trim()) {
 
             await Swal.fire(
@@ -582,7 +564,6 @@ export default function CourseCreate() {
 
             return;
         }
-
 
         if (course.schedules.length === 0) {
 
@@ -602,20 +583,16 @@ export default function CourseCreate() {
             i < course.schedules.length;
             i++
         ) {
-
             const schedule =
                 course.schedules[i];
-
 
             if (!schedule.scheduleWeek) {
 
                 await Swal.fire(
                     `${i + 1}번째 일정의 요일을 선택해주세요.`
                 );
-
                 return;
             }
-
 
             if (
                 !schedule.scheduleStart ||
@@ -689,97 +666,55 @@ export default function CourseCreate() {
                 gradeNo: Number(course.gradeNo),
                 courseLimit: Number(course.courseLimit),
                 courseFee: Number(course.courseFee),
-                schedules: course.schedules.map(schedule => (
-                    {
+                schedules: course.schedules.map(schedule => ({
                         ...schedule,
                         classroomNo: Number(schedule.classroomNo)
                     }))
             };
-
             console.log("강좌 등록 요청", request);
-
-
+            
+            // 강의 등록
             await apiClient.post("/employee/course/", request);
-
+            
+            // 등록 요청 및 응답에서 생성된 번호 수신
+            const response = await apiClient.post("/employee/course/", request);
+            const createdCourseNo = response.data.courseNo;
 
             await Swal.fire({
-
-                title:
-                    "등록 완료",
-
-                text:
-                    "강좌가 정상적으로 등록되었습니다.",
-
-                icon:
-                    "success",
-
-                confirmButtonColor:
-                    COLORS.primary
-
+                title: "등록 완료",
+                text: "강좌가 정상적으로 등록되었습니다.",
+                icon: "success",
+                confirmButtonColor: COLORS.primary
             });
-
-
-            navigate(
-                "/employee/course/detail/{"
-            );
-
+            navigate(`/employee/course/detail/${createdCourseNo}`);
         }
-        catch (e) {
-
-            console.error(
-                "강좌 등록 오류",
-                e
-            );
-
-
-            const status =
-                e.response?.status;
-
-
+        catch (e) { 
+            console.error("강좌 등록 오류",e);
+            const status = e.response?.status;
             if (status === 409) {
-
                 await Swal.fire(
-
                     "등록할 수 없습니다.",
-
                     e.response?.data?.message ||
                     "강사 또는 강의실의 수업 시간이 겹칩니다.",
-
                     "warning"
-
                 );
-
             }
             else if (status === 404) {
-
                 await Swal.fire(
-
                     "등록할 수 없습니다.",
-
                     e.response?.data?.message ||
                     "선택한 정보를 찾을 수 없습니다.",
-
                     "warning"
-
                 );
-
             }
             else {
-
                 await Swal.fire(
-
                     "등록 실패",
-
                     "일시적인 서버 오류가 발생했습니다.",
-
                     "error"
-
                 );
-
             }
-
         }
-
     }, [
         course,
         navigate
