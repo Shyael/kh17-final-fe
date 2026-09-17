@@ -32,7 +32,7 @@ function App() {
   const academyName = useAcademyName();
 
   // 로그인 시 SSE 연결
-    useAlarmSse(isLogin);
+    //useAlarmSse(isLogin);
 
   const isExamAttempt = matchPath(
     "/student/exam/:examNo/attempt/:attemptNo",
