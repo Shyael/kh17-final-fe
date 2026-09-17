@@ -3,10 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Table, Badge, Form, Button, Spinner, ProgressBar } from "react-bootstrap";
 import { FaCalendarCheck, FaChalkboardUser, FaUserTie, FaRegMessage } from "react-icons/fa6";
 import Swal from "sweetalert2";
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 
 import { apiClient } from "@utils/reaxios";
-import { isParentState, selectedChildNoState, selectedChildState } from "@utils/storage";
+import { isParentState, selectedChildNoState, selectedChildState, chatTriggerState } from "@utils/storage";
 import Jumbotron from "@templates/Jumbotron";
 
 export default function StudentAttendanceList() {
@@ -17,6 +17,9 @@ export default function StudentAttendanceList() {
     const isParent = useAtomValue(isParentState);
     const selectedChildNo = useAtomValue(selectedChildNoState);
     const selectedChild = useAtomValue(selectedChildState);
+
+    // ✨ [추가] 채팅창에 명령을 내리기 위한 세터 함수
+    const setChatTrigger = useSetAtom(chatTriggerState);
 
     const [myCourses, setMyCourses] = useState([]);
     const [attendanceData, setAttendanceData] = useState(null);
@@ -116,10 +119,22 @@ export default function StudentAttendanceList() {
     }, [courseNo, loadAttendanceData]);
 
     // 상담하기 처리
-    const chatTutor = useCallback(async (employeeNo) => {
+    const chatTutor = useCallback(async (tutorName, employeeNo) => {
         try {
             const { data } = await apiClient.get(`/academy/room/check/${employeeNo}`);
 
+            // AcademyChat 컴포넌트가 감지할 수 있도록 전역 상태에 강사/방 정보 쏘기!
+            setChatTrigger({
+                type: "tutor",
+                tutorInfo: {
+                    accountNo: employeeNo,
+                    accountName: tutorName,
+                    roomNo: data.room.roomNo,
+                    unreadCnt: data.room.unreadCnt,
+                    lastContent: data.room.lastContent,
+                    lastTime: data.room.lastTime
+                }
+            });
         } catch (error) {
             console.error("참여 처리 실패", error);
         }
@@ -226,7 +241,7 @@ export default function StudentAttendanceList() {
                                         className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 shadow-none ms-1"
                                         style={{ fontSize: "0.78rem" }}
                                         //onClick={() => navigate(`${basePath}/tutor/${tutorNo}/chat`)}
-                                        onClick={() => chatTutor(tutorNo)}
+                                        onClick={() => chatTutor(tutorName, tutorNo)}
                                         disabled={!tutorNo}
                                     >
                                         <FaRegMessage size={11} />

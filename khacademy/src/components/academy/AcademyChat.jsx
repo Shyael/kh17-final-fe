@@ -1,7 +1,7 @@
 import { Badge, Button, CloseButton, Form } from "react-bootstrap";
 import { FaPaperPlane, FaCommentDots, FaArrowLeft } from "react-icons/fa6";
-import { isLoginState, isEmployeeState, loginUserState } from "@utils/storage";
-import { useAtomValue } from "jotai";
+import { isLoginState, isEmployeeState, loginUserState, chatTriggerState } from "@utils/storage";
+import { useAtomValue, useAtom } from "jotai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
@@ -392,6 +392,46 @@ export default function AcademyChat() {
         return total;
     }, [consultRoom, rooms]);
 
+    const [chatTrigger, setChatTrigger] = useAtom(chatTriggerState);
+
+    // ✨ [추가] 채팅 트리거 감지 (다른 페이지에서 '질문하기' 버튼을 눌렀을 때 실행됨)
+    useEffect(() => {
+        const processTrigger = async () => {
+            if (chatTrigger !== null) {
+                // 1. 방이 새로 생성되었을 수도 있으므로, 좌측 강사 목록 갱신 (완료될 때까지 대기)
+                await loadTutorRooms();
+
+                // 2. 전달받은 타입에 따라 채팅방 내역 상세 조회 (완료될 때까지 대기)
+                if (chatTrigger.type === "tutor") {
+                    await handleSelectTutor(chatTrigger.tutorInfo);
+                } else if (chatTrigger.type === "consult") {
+                    await handleSelectConsult();
+                }
+
+                // 3. DB에서 내역을 완벽하게 다 받아온 후, 마지막에 채팅창을 스르륵 엽니다.
+                setIsChatOpen(true);
+
+                // 4. 모든 작업이 끝났으므로 트리거를 비워줍니다.
+                setChatTrigger(null);
+            }
+        };
+        processTrigger();
+    }, [chatTrigger, setChatTrigger, loadTutorRooms, handleSelectTutor, handleSelectConsult]);
+
+    useEffect(() => {
+        // 채팅 팝업이 열려있고, 선택된 방이 있으며, 우측 채팅 화면(viewMode === "chat")일 때
+        if (isChatOpen && room && viewMode === "chat") {
+            // 리액트가 화면(DOM)을 다 그린 직후에 실행되도록 아주 짧은 지연(setTimeout)을 줍니다.
+            const timer = setTimeout(() => {
+                if (inputRef.current) {
+                    inputRef.current.focus();
+                }
+            }, 100);
+            
+            return () => clearTimeout(timer); // 클린업 함수
+        }
+    }, [isChatOpen, room?.roomNo, viewMode]);
+
     return (<>
         {/* 채팅 플로팅 버튼 */}
         {isLogin && !isEmployee && !isChatOpen && (
@@ -617,6 +657,7 @@ export default function AcademyChat() {
                         <div className="p-3 border-top bg-white">
                             <div className="d-flex gap-2">
                                 <Form.Control 
+                                    ref={inputRef}
                                     type="text" 
                                     placeholder="메시지를 입력하세요"
                                     value={input}
