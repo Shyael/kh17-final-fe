@@ -8,6 +8,7 @@ import {
     FaArrowRight,
     FaClock,
     FaChalkboardUser,
+    FaFileInvoiceDollar // 미납 요약용 아이콘 추가
 } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
@@ -83,6 +84,22 @@ export default function EmployeeDashboard() {
         }
         return list; // 'ALL'
     }, [dashboard?.courses, courseTab]);
+
+    // 장기 미납(이번 달 제외) 데이터 필터링 및 정렬
+    const oldestUnpaidList = useMemo(() => {
+        const list = dashboard?.payments ?? []; // 백엔드 데이터에 맞게 키(payments) 수정 필요
+        const today = new Date();
+        const currentMonthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`; 
+
+        return list
+            // 미납(부분납 포함)이면서 이번 달이 아닌 내역만 필터링
+            .filter(p => 
+                // (p.paymentStatus === "미납" || p.paymentStatus === "부분납") && 
+                p.paymentMonth !== currentMonthStr
+            )
+            // 월(Month) 기준 오름차순 정렬 (가장 오래된 건부터)
+            .sort((a, b) => a.paymentMonth.localeCompare(b.paymentMonth)); 
+    }, [dashboard?.payments]);
 
     return (
         <>
@@ -220,7 +237,7 @@ export default function EmployeeDashboard() {
                         {/* =========================
                             과제 요약
                            ========================= */}
-                        <Col xs={12} lg={dashboard.courses !== undefined ? 6 : 12}>
+                        <Col xs={12} lg={6}>
                             <Card className="h-100 shadow-sm border-0">
                                 <Card.Body className="d-flex flex-column p-3">
                                     <div className="d-flex justify-content-between align-items-center mb-2">
@@ -351,6 +368,68 @@ export default function EmployeeDashboard() {
                                         onClick={() => navigate("/employee/exam")}
                                     >
                                         시험 전체보기 <FaArrowRight className="ms-1" />
+                                    </Button>
+                                </Card.Body>
+                            </Card>
+                        </Col>
+
+                        {/* =========================
+                            장기 미납 요약
+                           ========================= */}
+                        <Col xs={12} lg={6}>
+                            <Card className="h-100 shadow-sm border-0">
+                                <Card.Body className="d-flex flex-column p-3">
+                                    <div className="d-flex justify-content-between align-items-center mb-2">
+                                        <div className="d-flex align-items-center gap-2">
+                                            <FaFileInvoiceDollar className="text-primary fs-5" />
+                                            <span className="fw-bold">장기 미납 내역</span>
+                                        </div>
+                                        <Badge
+                                            bg={oldestUnpaidList.length > 0 ? "danger" : "secondary"}
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => navigate("/employee/payment/list")}
+                                        >
+                                            {oldestUnpaidList.length}건
+                                        </Badge>
+                                    </div>
+
+                                    {oldestUnpaidList.length === 0 ? (
+                                        <div className="text-muted text-center py-4 flex-grow-1 d-flex align-items-center justify-content-center">
+                                            미납액 없음
+                                        </div>
+                                    ) : (
+                                        <div className="flex-grow-1">
+                                            {/* 최대 4개 정도만 표시하여 다른 카드들과 높이를 맞춥니다 */}
+                                            {oldestUnpaidList.slice(0, 4).map((payments, idx) => (
+                                                <div
+                                                    key={payments.paymentNo || idx}
+                                                    className="d-flex justify-content-between align-items-center py-2 border-bottom"
+                                                    style={{ cursor: "pointer" }}
+                                                    onClick={() => navigate(`/employee/payment/detail/${payments.paymentNo}`)}
+                                                >
+                                                    <div>
+                                                        <div className="fw-semibold small text-dark">
+                                                            {payments.studentName} 학생
+                                                        </div>
+                                                        <div className="text-muted" style={{ fontSize: "0.75rem" }}>
+                                                            {payments.paymentMonth} 청구분
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-danger fw-bold text-nowrap small">
+                                                        {payments.remainingAmount?.toLocaleString()}원
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <Button
+                                        variant="outline-primary"
+                                        size="sm"
+                                        className="mt-2 align-self-end"
+                                        onClick={() => navigate("/employee/payment/list")}
+                                    >
+                                        수납 전체보기 <FaArrowRight className="ms-1" />
                                     </Button>
                                 </Card.Body>
                             </Card>
