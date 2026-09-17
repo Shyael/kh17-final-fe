@@ -1,8 +1,9 @@
 import { useEffect } from "react";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export default function useAlarmSse(isLogin) {
-
+const navigate = useNavigate();
     useEffect(() => {
 
         if (!isLogin) return;
@@ -19,11 +20,35 @@ export default function useAlarmSse(isLogin) {
             console.log("SSE 연결 성공", event.data);
         });
 
-        // 알림 수신
         eventSource.addEventListener("alarm", (event) => {
-            console.log("알림 도착", event.data);
 
-            toast.info(event.data);
+            console.log("원본 알림:", event.data);
+
+            let alarm;
+
+            try {
+                alarm = JSON.parse(event.data);
+            }
+            catch {
+                // 기존 단순 문자열 알림 처리
+                toast.info(event.data);
+                return;
+            }
+
+            // JSON 알림 처리
+            toast.info(alarm.message, {
+                onClick: () => {
+                    if (
+                        typeof alarm.targetUrl === "string" &&
+                        alarm.targetUrl.startsWith("/") &&
+                        !alarm.targetUrl.startsWith("//") &&
+                        !alarm.targetUrl.includes("\\")
+                    ) {
+                        navigate(alarm.targetUrl);
+                    }
+                }
+            });
+
         });
 
         // 연결 오류
