@@ -26,50 +26,18 @@ export default function AdminDashBoard({ dashboard }) {
     return (
         <Row className="g-3 mt-3">
             <div className="d-flex align-items-center gap-2 ms-auto">
-            <Button 
-
-                onClick={() => {
-
-                    navigate("/admin/contract/list")
-
-                }}
-
-                variant="info"
-            >
-
-                계약 관리
 
 
 
-            </Button>
 
 
-
-            <Button 
-                
-                onClick={() => {
-
-                    navigate("/admin/payroll")
-
-                }}
-
-                variant="info"
-            >
-
-                급여 관리
-
-
-
-            </Button>
-
-                </div>
+            </div>
 
             {/* 서명 대기 계약 */}
             <Col xs={12} lg={4}>
-                <Card className="h-100">
-                    <Card.Body>
-
-                        <div className="d-flex justify-content-between align-items-center mb-3">
+                <Card className="h-100 shadow-sm border-0">
+                    <Card.Body className="d-flex flex-column p-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
                             <div className="d-flex align-items-center gap-2">
                                 <FaFileSignature className="text-warning" />
                                 <span className="fw-bold">
@@ -108,6 +76,8 @@ export default function AdminDashBoard({ dashboard }) {
 
                                         <div>
                                             <div className="fw-semibold"
+                                                onClick={()=>navigate(`/admin/contract/detail/${contract.contractNo}`)}
+                                                style={{cursor : "pointer"}}
                                             >
 
                                                 {contract.employeeName}
@@ -127,6 +97,27 @@ export default function AdminDashBoard({ dashboard }) {
                             ))
                         )}
 
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="mt-2 align-self-end"
+
+                            onClick={() => {
+
+                                navigate("/admin/contract/list")
+
+                            }}
+
+
+                        >
+
+                            계약 관리<FaArrowRight className="ms-1" />
+
+
+
+                        </Button>
+
+
                     </Card.Body>
                 </Card>
             </Col>
@@ -134,11 +125,9 @@ export default function AdminDashBoard({ dashboard }) {
 
             {/* 계약 만료 임박 */}
             <Col xs={12} lg={4}>
-                <Card className="h-100">
-                    <Card.Body>
-
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-
+                <Card className="h-100 shadow-sm border-0">
+                    <Card.Body className="d-flex flex-column p-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
                             <div className="d-flex align-items-center gap-2">
                                 <FaCalendarXmark className="text-danger" />
 
@@ -155,6 +144,7 @@ export default function AdminDashBoard({ dashboard }) {
                                 }
                             >
                                 {dashboard.contractExpiringList?.length ?? 0}건
+
                             </Badge>
 
                         </div>
@@ -176,7 +166,9 @@ export default function AdminDashBoard({ dashboard }) {
                                 >
 
                                     <div>
-                                        <div className="fw-semibold">
+                                        <div className="fw-semibold"
+                                            onClick={()=>navigate(`/admin/contract/detail/${contract.contractNo}`)}
+                                            style={{cursor : "pointer"}}>
                                             {contract.employeeName}
                                         </div>
 
@@ -197,6 +189,27 @@ export default function AdminDashBoard({ dashboard }) {
                             ))
                         )}
 
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="mt-2 align-self-end"
+
+                            onClick={() => {
+
+                                navigate("/admin/contract/list")
+
+                            }}
+
+
+                        >
+
+                            계약 관리<FaArrowRight className="ms-1" />
+
+
+
+                        </Button>
+
+
                     </Card.Body>
                 </Card>
             </Col>
@@ -204,11 +217,9 @@ export default function AdminDashBoard({ dashboard }) {
 
             {/* 급여 지급 */}
             <Col xs={12} lg={4}>
-                <Card className="h-100">
-                    <Card.Body>
-
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-
+                <Card className="h-100 shadow-sm border-0">
+                    <Card.Body className="d-flex flex-column p-3">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
                             <div className="d-flex align-items-center gap-2">
                                 <FaMoneyBillWave className="text-success" />
 
@@ -246,7 +257,9 @@ export default function AdminDashBoard({ dashboard }) {
                                 >
 
                                     <div>
-                                        <div className="fw-semibold">
+                                        <div className="fw-semibold"
+                                            onClick={()=>navigate(`/admin/payroll/${payroll.employeeNo}/${payroll.payrollYear}/${payroll.payrollMonth}`)} 
+                                            style={{cursor:"pointer"}}>
                                             {payroll.employeeName}
                                         </div>
 
@@ -285,6 +298,25 @@ export default function AdminDashBoard({ dashboard }) {
 
                             ))
                         )}
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="mt-2 align-self-end"
+
+                            onClick={() => {
+
+                                navigate("/admin/payroll")
+
+                            }}
+
+
+                        >
+
+                            급여 관리<FaArrowRight className="ms-1" />
+
+
+
+                        </Button>
 
                     </Card.Body>
                 </Card>
