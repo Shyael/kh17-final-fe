@@ -4,6 +4,8 @@ import { FaCheck } from "react-icons/fa6";
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+import DatePicker from "react-datepicker";
+import './AcademyConsultReservation.css'
 
 //초기화
 const initReservation = {
@@ -12,6 +14,10 @@ const initReservation = {
     reservationType: "",
     reservationTime: ""
 };
+
+//시간 선택 시 현재 이후만 선택 가능
+const filterFutureTime = (time) => new Date().getTime() < new Date(time).getTime();
+
 export default function AcademyConsultReservation({ show, handleClose }) {
 
     const [reservation, setReservation] = useState(initReservation);
@@ -62,7 +68,8 @@ export default function AcademyConsultReservation({ show, handleClose }) {
             if(result.isConfirmed) inputRefs.current.reservationPhone?.focus();
             return false;
         }
-        if((reservation.reservationTime || "").trim().length === 0) {
+        //if((reservation.reservationTime || "").trim().length === 0) {
+        if((reservation.reservationTime || "") === "") {
             const result = await Swal.fire({
                 title: "상담 희망 일시를 입력하세요",
                 returnFocus: false
@@ -124,7 +131,7 @@ export default function AcademyConsultReservation({ show, handleClose }) {
                 {/* 상담 희망 시간 선택 */}
                 <Form.Group className="mb-4" controlId="formDateTime">
                     <Form.Label className="fw-bold small">상담 희망 일시</Form.Label>
-                    <Form.Control 
+                    {/* <Form.Control 
                         type="datetime-local"
                         name="reservationTime"
                         value={reservation.reservationTime}
@@ -132,14 +139,34 @@ export default function AcademyConsultReservation({ show, handleClose }) {
                         onChange={changeStringValue}
                         min={minDateTime}
                         className="py-2"
-                        /* 폰트와 줄간격을 시스템 기본으로 강제 초기화하여 내부 블록들의 높이를 맞춤 */
                         style={{ fontFamily: "sans-serif", lineHeight: "normal" }}
                         onKeyDown={(e) => {
                             if (e.key !== 'Tab') {
                                 e.preventDefault();
                             }
                         }}
-                    />
+                    /> */}
+                    <DatePicker
+                        selected={
+                            reservation.reservationTime
+                                ? new Date(reservation.reservationTime)
+                                : null
+                        }
+                        onChange={(date) => {
+                            setReservation(prev => ({
+                                ...prev,
+                                reservationTime: date
+                            }));
+                        }}
+                        showTimeSelect
+                        timeIntervals={10}
+                        minDate={minDateTime}
+                        filterTime={filterFutureTime}
+                        dateFormat="yyyy-MM-dd HH:mm"
+                        locale="ko"
+                        timeCaption="시간"
+                        wrapperClassName="w-100"
+                        className="form-control py-2" />
                 </Form.Group>
 
                 {/* 상담 방식 라디오 버튼 */}

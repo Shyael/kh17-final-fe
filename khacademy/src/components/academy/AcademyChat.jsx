@@ -186,27 +186,36 @@ export default function AcademyChat() {
 
                 const handleMessage = (message, targetRoomNo, isConsult) => {
                     const json = JSON.parse(message.body);
-                    // 현재 채팅창이 열려있고, 메세지가 온 방을 보고 있는지 판별 (최신 Ref 참조)
-                    const isOpenAndWatching = isChatOpenRef.current && sockRef.current === targetRoomNo;
+    
+                    // 1) 메세지가 온 방이 '현재 선택(세팅)된 방'인지 판별 (창이 닫혀있어도 true 가능)
+                    const isMatchingRoom = sockRef.current === targetRoomNo;
+                    
+                    // 2) 실제로 유저가 '화면을 열고 보고 있는 상태'인지 판별
+                    const isCurrentlyReading = isChatOpenRef.current && isMatchingRoom;
 
-                    // 1) 내가 보고 있는 방에 메세지가 온 경우: 대화 내역에 바로 추가
-                    if (isOpenAndWatching) {
+                    // ✨ [수정] 대화 내역(history) 업데이트: 방이 선택되어 있기만 하면(창이 닫혀도) 무조건 추가!
+                    if (isMatchingRoom) {
                         setHistory(prev => [...(prev || []), json]);
+                    }
 
+                    // ✨ 읽음 처리: 진짜로 화면을 열고 보고 있을 때만 서버에 읽음(0) 처리 요청
+                    if (isCurrentlyReading) {
                         updateLastReadTime(targetRoomNo, isConsult ? 'consult' : 'tutor');
                     }
 
-                    // 2) 목록 갱신: 내가 보고 있는 방이면 뱃지 0, 아니면 +1 증가
+                    // ✨ 목록 갱신 (뱃지 처리 로직 변경)
                     if (isConsult) {
                         setConsultRoom(prev => prev ? {
                             ...prev,
-                            unreadCnt: isOpenAndWatching ? 0 : (prev.unreadCnt || 0) + 1,
-                            lastContent: json.content
+                            // 화면을 열고 보는 중이면 뱃지 0, 닫혀있거나 다른 방이면 +1
+                            unreadCnt: isCurrentlyReading ? 0 : (prev.unreadCnt || 0) + 1,
+                            lastContent: json.content,
+                            lastTime: json.time || dayjs().format()
                         } : prev);
                     } else {
                         setRooms(prev => prev.map(r => r.roomNo === targetRoomNo ? {
                             ...r,
-                            unreadCnt: isOpenAndWatching ? 0 : (r.unreadCnt || 0) + 1,
+                            unreadCnt: isCurrentlyReading ? 0 : (r.unreadCnt || 0) + 1,
                             lastContent: json.content,
                             lastTime: json.time || dayjs().format()
                         } : r));
@@ -228,11 +237,10 @@ export default function AcademyChat() {
 
                 client.subscribe(`/public/room/check`, (message)=>{
                     const json = JSON.parse(message.body);
-                    
                     // 현재 내가 들고 있는 방 번호 목록(문자열)에 새로 날아온 방 번호가 없다면?
                     // (roomIds 변수는 '10,12,15' 형태로 되어 있음)
                     const isKnownRoom = roomIds.split(',').includes(String(json.roomNo));
-
+                
                     if (!isKnownRoom) {
                         console.log("AcademyChat: 신규 강사 채팅방 감지! 강사 목록을 갱신합니다.");
                         loadTutorRooms(); // 강사 채팅방 목록 재조회
@@ -260,8 +268,6 @@ export default function AcademyChat() {
 
     //연결 및 해제
     useEffect(()=>{
-        if (!consultRoomId) return;
-
         //최초 1회 실행해야할 작업
         const client = connectToServer();
         setClient(client);

@@ -1,0 +1,14 @@
+.react-datepicker__time-container .react-datepicker__header--time {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-top: 9.5px;
+    padding-bottom: 9.5px;
+}
+
+/* 한글 캡션 폰트 줄간격 초기화 */
+.react-datepicker-time__header {
+    line-height: 1; 
+    font-weight: bold;
+    font-size: 14px;
+}
