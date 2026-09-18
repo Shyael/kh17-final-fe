@@ -339,11 +339,10 @@ export default function CourseList() {
             </Row>
 
             {/* 강의 목록 테이블 */}
-            {/* 강의 목록 테이블 */}
             <Table
                 hover
                 responsive
-                className="kh-table mt-2 text-center align-middle"
+                className="kh-table mt-2 text-center align-middle "
             >
                 <thead>
                     <tr>

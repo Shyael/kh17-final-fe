@@ -1,0 +1,27 @@
+/* =========================================================
+   페이지 스크롤바
+   ========================================================= */
+
+html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--kh-primary) transparent;
+}
+
+::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--kh-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--kh-border);
+    border-radius: 999px;
+    border: 2px solid var(--kh-bg);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--kh-primary);
+}

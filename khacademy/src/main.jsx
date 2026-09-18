@@ -12,6 +12,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootswatch/dist/flatly/bootstrap.min.css";
 
 import './index.css'
+
+// 공용 스크롤바 디자인
+import '@templates/scroll.css'
 //공용 테이블 디자인 (모든 화면의 표에 kh-table 클래스로 적용)
 import '@templates/table.css'
 //공용 페이지네이션 디자인 (PaginationBar 에 kh-pagination 클래스로 적용)

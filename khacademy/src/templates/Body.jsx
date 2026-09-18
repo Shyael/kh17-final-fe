@@ -31,6 +31,7 @@ import AdminEmployeeDetail from "@components/admin/employee/AdminEmployeeDetail"
 import NotFound from "@error/NotFound";
 import Employee from "@guard/Employee";
 import Member from "@guard/Member";
+import AccountBlock from "@error/AccountBlock";
 
 import AcademyManage from "@components/employee/academy/AcademyManage";
 import TutorManage from "@components/employee/tutor/TutorManage";
@@ -246,6 +247,7 @@ export default function Body() {
 
             {/* 404 Fallback */}
             <Route path="*" element={<NotFound />} />
+            <Route path="/account/block" element={<AccountBlock />} />
         </Routes>
     );
 }
