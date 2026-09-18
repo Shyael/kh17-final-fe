@@ -189,7 +189,9 @@ export default function ContractEditBeforeSigned() {
             const { data } = await apiClient.get(
                 `/admin/contract/detail/${contractNo}`
             );
-
+            console.log("계약 전체 데이터", data);
+            console.log("주휴일", data.weeklyHolidayDay);
+            console.log("주간 근로시간", data.weeklyWorkHours);
             setContract({
                 contractNo: data.contractNo,
                 employeeNo: data.employeeNo,
