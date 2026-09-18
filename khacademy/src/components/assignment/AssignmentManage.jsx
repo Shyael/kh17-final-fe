@@ -306,7 +306,7 @@ export default function AssignmentManage() {
         <Row className="mt-4">
             <Col sm={6}>
                 <Form.Label>
-                    <span"강의</span>
+                    <span>"강의</span>
                 </Form.Label>
 
                 {!isEdit ? (
