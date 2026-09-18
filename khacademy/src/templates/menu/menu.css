@@ -31,9 +31,9 @@
   border-top: 3px solid var(--kh-primary);
   border-bottom: 1px solid var(--kh-border);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-  min-height: 56px;
-  padding-top: 0.25rem;
-  padding-bottom: 0.25rem;
+  min-height: 84px;
+  padding-top: 0.9rem;
+  padding-bottom: 0.9rem;
   /* 상위 Container fluid 의 좌우 padding 을 상쇄해 배경을 화면 끝까지 채우고,
      내부 콘텐츠(로고/로그인 등)는 같은 값만큼 padding 으로 되돌려 위치 유지 */
   margin-left: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
@@ -52,8 +52,11 @@
 }
 .kh-topnav .navbar-brand {
   font-weight: 700;
+  font-size: 1.5rem;
   letter-spacing: -0.2px;
   color: var(--kh-primary-dark);
+  margin-right: 2.5rem;
+  margin-left: 1.0rem;
 }
 .kh-topnav .nav-link {
   color: var(--kh-text);

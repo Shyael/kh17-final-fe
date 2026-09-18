@@ -95,10 +95,13 @@ export default function MemberDashboard() {
 
     return (
         <>
-            <Jumbotron
-                title={`${displayName}님, 안녕하세요`}
-                content={isParent ? "자녀의 오늘의 수업 일정과 과제·시험 현황을 확인해보세요." : "오늘의 수업 일정과 과제·시험을 확인해보세요."}
-            />
+            <div className="mt-4">
+                <Jumbotron 
+                    title={`${displayName}님, 안녕하세요`}
+                    content={isParent ? "자녀의 오늘의 수업 일정과 과제·시험 현황을 확인해보세요." : "오늘의 수업 일정과 과제·시험을 확인해보세요."}
+                />
+
+            </div>
 
             {!raw ? (
                 <p className="text-center text-muted py-5">

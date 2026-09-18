@@ -3,6 +3,14 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
+import {
+    FaXmark,
+    FaFloppyDisk,
+    FaLink,
+    FaKey,
+    FaPenToSquare,
+    FaCheck,
+} from "react-icons/fa6";
 
 export default function ParentMyInfo() {
 
@@ -425,11 +433,12 @@ export default function ParentMyInfo() {
                     {/* =========================
                         수정 화면
                     ========================= */}
-
-                    <Jumbotron
-                        title="내 정보 수정"
-                        content="개인정보를 수정할 수 있습니다."
-                    />
+                    <div className="mt-4">
+                        <Jumbotron
+                            title="내 정보 수정"
+                            content="개인정보를 수정할 수 있습니다."
+                        />
+                    </div>
 
                     <Row className="mt-5">
                         <Col md={8} className="mx-auto">
@@ -502,6 +511,7 @@ export default function ParentMyInfo() {
                                                 loadParent();
                                             }}
                                         >
+                                            <FaXmark className="me-1" />
                                             취소
                                         </Button>
 
@@ -509,6 +519,7 @@ export default function ParentMyInfo() {
                                             type="submit"
                                             variant="success"
                                         >
+                                            <FaFloppyDisk className="me-1" />
                                             수정
                                         </Button>
 
@@ -525,11 +536,12 @@ export default function ParentMyInfo() {
                     {/* =========================
                         조회 화면
                     ========================= */}
-
-                    <Jumbotron
-                        title="내 정보"
-                        content="내 계정 및 학부모 정보를 확인할 수 있습니다."
-                    />
+                    <div className="mt-4">
+                        <Jumbotron
+                            title="내 정보"
+                            content="내 계정 및 학부모 정보를 확인할 수 있습니다."
+                        />
+                    </div>
 
                     <Row className="mt-5">
                         <Col md={8} className="mx-auto">
@@ -623,6 +635,7 @@ export default function ParentMyInfo() {
 
                                                         }}
                                                     >
+                                                        <FaPenToSquare className="me-1" />
                                                         관계 수정
                                                     </Button>
 
@@ -776,6 +789,7 @@ export default function ParentMyInfo() {
                                             setLinkModal(true);
                                         }}
                                     >
+                                        <FaLink className="me-1" />
                                         학생 연동
                                     </Button>
 
@@ -792,6 +806,7 @@ export default function ParentMyInfo() {
                                             setChangePasswordModal(true);
                                         }}
                                     >
+                                        <FaKey className="me-1" />
                                         비밀번호 변경
                                     </Button>
 
@@ -806,6 +821,7 @@ export default function ParentMyInfo() {
                                             setPasswordModal(true);
                                         }}
                                     >
+                                        <FaPenToSquare className="me-1" />
                                         정보 수정
                                     </Button>
 
@@ -894,6 +910,7 @@ export default function ParentMyInfo() {
                         }}
                         disabled={linkLoading}
                     >
+                        <FaXmark className="me-1" />
                         취소
                     </Button>
 
@@ -905,6 +922,7 @@ export default function ParentMyInfo() {
                             linkCode.trim() === ""
                         }
                     >
+                        <FaLink className="me-1" />
                         {linkLoading ? "연동 중..." : "연동하기"}
                     </Button>
 
@@ -1028,6 +1046,7 @@ export default function ParentMyInfo() {
                         }}
                         disabled={relationshipLoading}
                     >
+                        <FaXmark className="me-1" />
                         취소
                     </Button>
 
@@ -1037,6 +1056,7 @@ export default function ParentMyInfo() {
                         onClick={updateRelationship}
                         disabled={relationshipLoading}
                     >
+                        <FaPenToSquare className="me-1" />
                         {relationshipLoading
                             ? "수정 중..."
                             : "수정"
@@ -1103,6 +1123,7 @@ export default function ParentMyInfo() {
                             setPasswordError(false);
                         }}
                     >
+                        <FaXmark className="me-1" />
                         취소
                     </Button>
 
@@ -1111,6 +1132,7 @@ export default function ParentMyInfo() {
                         onClick={checkPassword}
                         disabled={password === ""}
                     >
+                        <FaCheck className="me-1" />
                         확인
                     </Button>
 
@@ -1250,6 +1272,7 @@ export default function ParentMyInfo() {
                         }}
                         disabled={changePasswordLoading}
                     >
+                        <FaXmark className="me-1" />
                         취소
                     </Button>
 
@@ -1266,6 +1289,7 @@ export default function ParentMyInfo() {
                             newAccountPassword !== newAccountPasswordCheck
                         }
                     >
+                        <FaKey className="me-1" />
                         {changePasswordLoading
                             ? "변경 중..."
                             : "변경하기"

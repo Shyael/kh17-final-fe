@@ -534,6 +534,10 @@ export default function EmployeeMyInfo() {
                     </Row>
                 </>
             )}
+            <hr/>
+            <Jumbotron
+                title="근태이력"
+            />
 
             <WorkScheduleCalendar/>
             <Modal

@@ -341,7 +341,7 @@ export default function EmployeeDashboard() {
                                                         key={exam.examNo}
                                                         className="d-flex justify-content-between align-items-center py-2 border-bottom"
                                                         style={{ cursor: "pointer" }}
-                                                        onClick={() => navigate(`/employee/exam/${exam.examNo}`)}
+                                                        onClick={() => navigate(`/employee/exam/${exam.examNo}/result`)}
                                                     >
                                                         <div>
                                                             <div className="fw-semibold small">
