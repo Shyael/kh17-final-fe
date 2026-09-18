@@ -145,12 +145,12 @@ export default function EmployeeAttendanceList() {
                 {/* 1열: 강의 선택 (메인 드롭다운) */}
                 <Row className="mb-3">
                     <Col md={6}>
-                        <Form.Label className="fw-bold text-primary">진행 중인 강의 선택</Form.Label>
+                        <Form.Label className="fw-bold">진행 중인 강의 선택</Form.Label>
                         <Form.Select
                             name="courseNo"
                             value={search.courseNo}
                             onChange={handleCourseChange}
-                            className="form-select-lg"
+                            className="form-select"
                         >
                             <option value="">-- 진행 중인 전체 강의 보기 --</option>
                             {courses.map(c => (
@@ -206,7 +206,7 @@ export default function EmployeeAttendanceList() {
                         />
                     </Col>
                     <Col md={4}>
-                        <Form.Label className="fw-bold">조회 시작일</Form.Label>
+                        <Form.Label className="fw-bold">시작일</Form.Label>
                         <Form.Control
                             type="date"
                             name="startDate"
@@ -215,7 +215,7 @@ export default function EmployeeAttendanceList() {
                         />
                     </Col>
                     <Col md={4}>
-                        <Form.Label className="fw-bold">조회 종료일</Form.Label>
+                        <Form.Label className="fw-bold">종료일</Form.Label>
                         <Form.Control
                             type="date"
                             name="endDate"

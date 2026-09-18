@@ -19,6 +19,7 @@
     background: var(--kh-surface);
     border: 1px solid var(--kh-border);
     border-radius: 12px;
+    white-space: nowrap;
     /* 모서리를 둥글게 처리하려면 collapse 가 아니라 separate 여야 한다 */
     border-collapse: separate;
     border-spacing: 0;

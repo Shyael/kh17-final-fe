@@ -2055,7 +2055,7 @@ export default function CourseCreate() {
                     <Button
                         variant="outline-secondary"
                         size="lg"
-                        onClick={() => navigate("/employee/course")}
+                        onClick={() => navigate("/employee/course/list")}
                     >
                         취소
                     </Button>
