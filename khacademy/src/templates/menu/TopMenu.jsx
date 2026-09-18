@@ -14,7 +14,6 @@ import useAcademyName from "@templates/menu/useAcademyName";
 import "@templates/menu/menu.css";
 import { authClient } from "@utils/reaxios";
 import { loginActionState, logoutActionState } from "@utils/storage";
-import { FaUser } from "react-icons/fa6";
 /**
  * 외부/회원용 상단 메뉴바
  * - 비로그인
@@ -129,7 +128,15 @@ export default function TopMenu() {
 
                     <Navbar.Collapse id="basic-navbar-nav">
                         {/* 좌측: 메뉴 링크들 */}
-                        <Nav className="me-auto">
+                        <Nav className="me-auto gap-md-3">
+                            <Nav.Link as={Link} to="/academy">
+                                학원정보
+                            </Nav.Link>
+
+                            <Nav.Link as={Link} to="/academy/tutor">
+                                강사목록
+                            </Nav.Link>
+
                             <Nav.Link
                                 as={Link}
                                 to={isParent ? "/parent/attendance/list" : "/student/attendance/list"}
@@ -144,6 +151,8 @@ export default function TopMenu() {
                             <Nav.Link as={Link} to="/student/exam">
                                 시험
                             </Nav.Link>
+
+
 
                             {children.length >= 1 ? (
                                 <Nav.Link as={Link} to="/parent/score">
