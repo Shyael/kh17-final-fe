@@ -93,15 +93,12 @@ export default function TopMenu() {
 
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
-                            <NavDropdown title="외부페이지" id="public-nav-dropdown">
-                                <NavDropdown.Item as={Link} to="/academy">
+                                <Nav.Link as={Link} to="/academy">
                                     학원정보
-                                </NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/academy/tutor">
-                                    외부강사목록
-                                </NavDropdown.Item>
-
-                            </NavDropdown>
+                                </Nav.Link>
+                                <Nav.Link as={Link} to="/academy/tutor">
+                                    강사목록
+                                </Nav.Link>
                         </Nav>
 
                         <Nav className="align-items-md-center gap-md-2">
@@ -131,28 +128,32 @@ export default function TopMenu() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
                     <Navbar.Collapse id="basic-navbar-nav">
+                        {/* 좌측: 메뉴 링크들 */}
                         <Nav className="me-auto">
-                            <NavDropdown title="학습관리" id="student-nav-dropdown">
-                                <NavDropdown.Item as={Link} to={isParent ? "/parent/attendance/list" : "/student/attendance/list"}>
-                                    {isParent ? "자녀 강의" : "내 강의"}
-                                </NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/student/assignment">
-                                    내 과제
-                                </NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/student/exam">
-                                    내 시험
-                                </NavDropdown.Item>
-                                {children.length >= 1 && (
-                                    <NavDropdown.Item as={Link} to="/parent/score">
-                                        내 성적
-                                    </NavDropdown.Item>
-                                )}
-                                {children.length == 0 && (
-                                    <NavDropdown.Item as={Link} to="/student/score">
-                                        내 성적
-                                    </NavDropdown.Item>
-                                )}
-                            </NavDropdown>
+                            <Nav.Link
+                                as={Link}
+                                to={isParent ? "/parent/attendance/list" : "/student/attendance/list"}
+                            >
+                                강의
+                            </Nav.Link>
+
+                            <Nav.Link as={Link} to="/student/assignment">
+                                과제
+                            </Nav.Link>
+
+                            <Nav.Link as={Link} to="/student/exam">
+                                시험
+                            </Nav.Link>
+
+                            {children.length >= 1 ? (
+                                <Nav.Link as={Link} to="/parent/score">
+                                    성적
+                                </Nav.Link>
+                            ) : (
+                                <Nav.Link as={Link} to="/student/score">
+                                    성적
+                                </Nav.Link>
+                            )}
 
                             {/* 학부모: 수납관리 */}
                             {children.length >= 1 && (
@@ -180,9 +181,12 @@ export default function TopMenu() {
                                         </NavDropdown.Item>
                                     ))}
                                 </NavDropdown>
+
+
                             )}
                         </Nav>
 
+                        {/* 우측: 내정보 & 로그아웃 */}
                         <Nav className="align-items-md-center gap-md-2">
                             <Nav.Link as={Link} to={isParent ? "/Parent/myInfo" : "/student/myInfo"}>
                                 내정보

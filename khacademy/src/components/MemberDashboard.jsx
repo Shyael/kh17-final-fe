@@ -2,12 +2,12 @@ import Jumbotron from "@templates/Jumbotron";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge, Button, Card, Col, Row, Table } from "react-bootstrap";
-import { 
-    FaPen, 
-    FaClipboardCheck, 
-    FaArrowRight, 
-    FaClock, 
-    FaChalkboardUser 
+import {
+    FaPen,
+    FaClipboardCheck,
+    FaArrowRight,
+    FaClock,
+    FaChalkboardUser
 } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { toast } from "react-toastify";
@@ -64,10 +64,11 @@ export default function MemberDashboard() {
 
     // 강좌 상세 페이지 이동
     const moveToCourse = (courseNo) => {
+        if (!courseNo) return;
         navigate(
             isParent
-                ? `/parent/course/detail/${courseNo}`
-                : `/student/course/detail/${courseNo}`
+                ? `/parent/attendance/list/${courseNo}`
+                : `/student/attendance/list/${courseNo}`
         );
     };
 
@@ -140,9 +141,9 @@ export default function MemberDashboard() {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {courseList.map((course) => (
+                                                    {courseList.map((course, idx) => (
                                                         <tr
-                                                            key={course.scheduleNo}
+                                                            key={course.scheduleNo ?? course.courseNo ?? `course-${idx}`}
                                                             style={{ cursor: "pointer" }}
                                                             onClick={() => moveToCourse(course.courseNo)}
                                                         >
