@@ -17,52 +17,206 @@ import { loginActionState, logoutActionState } from "@utils/storage";
 
 /* 직원 사이드바 메뉴 구성 (기존 Menu.jsx 직원 메뉴와 동일한 경로) */
 const MENU = [
-    { type: "link", icon: "📊", label: "대시보드", to: "/employeeDashboard" },
+    // =========================
+    // 대시보드
+    // =========================
     {
-        type: "group", icon: "🎓", label: "학생·수업관리", children: [
-            { label: "학생 목록", to: "/employee/student/list" },
-            { label: "강의 관리", to: "/employee/course/list" },
-            { label: "강의 출결 관리", to: "/employee/attendance" }, 
-            { label: "강의 시간표", to: "/employee/timetable" },
-            { label: "과제 관리", to: "/employee/assignment" },
-            { label: "시험 관리", to: "/employee/exam" },
-            { label: "성적 관리", to: "/employee/score" },
+        type: "link",
+        icon: "📊",
+        label: "대시보드",
+        to: "/employeeDashboard",
+        roles: ["ADMIN", "DESK", "TUTOR"]
+    },
+
+    // =========================
+    // 학생·수업관리
+    // =========================
+    {
+        type: "group",
+        icon: "🎓",
+        label: "학생·수업관리",
+        roles: ["ADMIN", "DESK", "TUTOR"],
+        children: [
+            {
+                label: "학생 목록",
+                to: "/employee/student/list",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
+            {
+                label: "강의 관리",
+                to: "/employee/course/list",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
+            {
+                label: "강의 출결 관리",
+                to: "/employee/attendance",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
+            {
+                label: "강의 시간표",
+                to: "/employee/timetable",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
+            {
+                label: "과제 관리",
+                to: "/employee/assignment",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
+            {
+                label: "시험 관리",
+                to: "/employee/exam",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
+            {
+                label: "성적 관리",
+                to: "/employee/score",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
         ],
     },
+
+    // =========================
+    // 학부모 관리
+    // =========================
     {
-        type: "group", icon: "🎓", label: "학부모 관리", children: [
-            { label: "학부모 목록", to: "/employee/parent/list" },
+        type: "group",
+        icon: "👨‍👩‍👧",
+        label: "학부모 관리",
+        roles: ["ADMIN", "DESK", "TUTOR"],
+        children: [
+            {
+                label: "학부모 목록",
+                to: "/employee/parent/list",
+                roles: ["ADMIN", "DESK", "TUTOR"]
+            },
         ],
     },
+
+    // =========================
+    // 상담관리
+    // =========================
     {
-        type: "group", icon: "📅", label: "상담관리", children: [
-            { label: "상담 예약 목록", to: "/employee/consult/reservation" },
-            { label: "상담 관리", to: "/employee/consult/manage" },
-            { label: "채팅 관리", to: "/employee/consult/chat" },
+        type: "group",
+        icon: "📅",
+        label: "상담관리",
+        roles: ["ADMIN", "DESK"],
+        children: [
+            {
+                label: "상담 예약 목록",
+                to: "/employee/consult/reservation",
+                roles: ["ADMIN", "DESK"]
+            },
+            {
+                label: "상담 관리",
+                to: "/employee/consult/manage",
+                roles: ["ADMIN", "DESK"]
+            },
+            {
+                label: "채팅 관리",
+                to: "/employee/consult/chat",
+                roles: ["ADMIN", "DESK"]
+            },
         ],
     },
-    { type: "link", icon: "💬", label: "1:1 채팅", to: "/employee/chat/" },
+
+    // =========================
+    // 1:1 채팅
+    // =========================
     {
-        type: "group", icon: "💳", label: "수납관리", children: [
-            { label: "수납 목록", to: "/employee/payment/list" },
-            { label: "할인 관리", to: "/employee/payment/discount" },
+        type: "link",
+        icon: "💬",
+        label: "1:1 채팅",
+        to: "/employee/chat/",
+        roles: ["TUTOR"]
+    },
+
+    // =========================
+    // 수납관리
+    // =========================
+    {
+        type: "group",
+        icon: "💳",
+        label: "수납관리",
+        roles: ["ADMIN", "DESK"],
+        children: [
+            {
+                label: "수납 목록",
+                to: "/employee/payment/list",
+                roles: ["ADMIN", "DESK"]
+            },
+            {
+                label: "할인 관리",
+                to: "/employee/payment/discount",
+                roles: ["ADMIN", "DESK"]
+            },
         ],
     },
+
+    // =========================
+    // 직원·인사관리
+    // =========================
     {
-        type: "group", icon: "🧑‍🏫", label: "직원·인사관리", children: [
-            { label: "직원 목록", to: "/employee/search" },
-            { label: "직원 등록", to: "/employee/register" },
-            { label: "계약 관리", to: "/admin/contract/list" },
-            { label: "급여 관리", to: "/admin/payroll", end: true },
+        type: "group",
+        icon: "🧑‍🏫",
+        label: "직원·인사관리",
+        roles: ["ADMIN"],
+        children: [
+            {
+                label: "직원 목록",
+                to: "/employee/search",
+                roles: ["ADMIN"]
+            },
+            {
+                label: "직원 등록",
+                to: "/employee/register",
+                roles: ["ADMIN", "DESK"]
+            },
+            {
+                label: "계약 관리",
+                to: "/admin/contract/list",
+                roles: ["ADMIN"]
+            },
+            {
+                label: "급여 관리",
+                to: "/admin/payroll",
+                roles: ["ADMIN"],
+                end: true
+            },
         ],
     },
+
+    // =========================
+    // 학원정보관리
+    // =========================
     {
-        type: "group", icon: "🏫", label: "학원정보관리", children: [
-            { label: "학원 정보 관리", to: "/employee/academy" },
-            { label: "강사 소개 관리", to: "/employee/tutor" },
+        type: "group",
+        icon: "🏫",
+        label: "학원정보관리",
+        roles: ["ADMIN", "DESK"],
+        children: [
+            {
+                label: "학원 정보 관리",
+                to: "/employee/academy",
+                roles: ["ADMIN", "DESK"]
+            },
+            {
+                label: "강사 소개 관리",
+                to: "/employee/tutor",
+                roles: ["ADMIN", "DESK"]
+            },
         ],
     },
-    { type: "link", icon: "⚙️", label: "내 정보", to: "/employee/myInfo" },
+
+    // =========================
+    // 내 정보
+    // =========================
+    {
+        type: "link",
+        icon: "⚙️",
+        label: "내 정보",
+        to: "/employee/myInfo",
+        roles: ["ADMIN", "DESK", "TUTOR"]
+    },
 ];
 
 /**
@@ -75,10 +229,13 @@ export default function EmployeeLayout({ children }) {
     const loginUser = useAtomValue(loginUserState);
     const academyName = useAcademyName();
 
+    const roles = loginUser?.roleNames ?? [];
     const isAdmin =
-        loginUser?.roleNames?.includes("ADMIN") ?? false;
+        loginUser?.roleNames?.includes("ADMIN");
+    const isDesk =
+        loginUser?.roleNames?.includes("DESK");
     const isTutor = 
-        loginUser?.roleNames?.includes("TUTOR") ?? false;
+        loginUser?.roleNames?.includes("TUTOR");
 
     const userName = loginUser?.accountName ?? loginUser?.name ?? "직원";
     const userDept = loginUser?.department ?? loginUser?.deptName ?? "";
@@ -147,11 +304,8 @@ export default function EmployeeLayout({ children }) {
                 <ul className="kh-gw-menu">
                     {MENU
                         .filter(m => {
-                            if(m.label === "1:1 채팅") {
-                                return isTutor;
-                            }
-                            return true;
-                        })
+                            return m.roles?.some(role => roles.includes(role))
+                        })               
                         .map(m => m.type === "link" ? (
                         <li key={m.label}>
                             <NavLink
@@ -179,24 +333,9 @@ export default function EmployeeLayout({ children }) {
                             {open[m.label] && (
                                 <ul className="kh-gw-submenu">
                                     {m.children
-                                        
-                                        // 계약관리와 급여 관리는 원장 일때만 보이게
-                                        .filter(c => {
-
-                                            if (
-                                                c.label === "계약 관리"
-                                                ||
-                                                c.label === "급여 관리"
-                                                ||
-                                                c.label === "직원 등록"
-                                            ) {
-                                                return isAdmin;
-                                            }
-                                            return true;
-                                        })
-                                        //
-
-
+                                        .filter(c =>
+                                            c.roles?.some(role => roles.includes(role))
+                                        )
                                         .map(c => (
                                             <li key={c.to}>
                                                 <NavLink

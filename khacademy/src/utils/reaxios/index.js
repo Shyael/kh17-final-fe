@@ -3,6 +3,7 @@ import axios from "axios";
 //jotai에서 관리하는 통합 상태 저장소에 접근할 수 있는 명령(함수) 가져오기
 import { getDefaultStore } from "jotai";
 import { logoutActionState as logoutAction } from "@utils/storage";
+import { isEmployeeState} from "@utils/storage";
 const store = getDefaultStore();//저장소 불러오기
 
 //기본 정보 설정
@@ -101,12 +102,18 @@ function moveToLoginPage() {
     if (window.location.pathname.includes("/login")) {
         return;
     }
-    store.set(logoutAction);//jotai의 logoutActionState를 호출
 
-    // 현재 관리자/직원 상태인지 여부에 따라 경로 분기
-    // (jotai의 isEmployeeState 값을 읽어오거나 상황에 맞게 설정 가능합니다)
-    const storeState = store.get(isEmployeeState); // 필요 시 상태 참조
-    const loginUrl = storeState ? "/employee/login" : "/member/login";
+    // 로그아웃하기 전에 현재 직원인지 확인
+    const isEmployee = store.get(isEmployeeState);
+
+    // Jotai 로그인 정보 초기화
+    store.set(logoutAction);
+
+    // 직원 → 직원 로그인
+    // 학생/학부모 → 회원 로그인
+    const loginUrl = isEmployee
+        ? "/employee/login"
+        : "/member/login";
 
     window.location.replace(loginUrl);
 }
