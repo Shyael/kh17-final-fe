@@ -104,17 +104,8 @@ export default function StudentAttendanceList() {
             setAttendanceData(data);
             setFilterState("ALL");
         } catch (e) {
-            console.error("출결 상세 조회 실패");
-    console.error("status =", e.response?.status);
-    console.error("url =", e.config?.url);
-    console.error("method =", e.config?.method);
-    console.error("response =", e.response?.data);
-
-    Swal.fire(
-        "오류",
-        e.response?.data?.message || "출결 데이터를 불러오지 못했습니다.",
-        "error"
-    );
+            console.error("출결 상세 조회 실패:", e);
+            Swal.fire("오류", e.response?.data?.message || "출결 데이터를 불러오지 못했습니다.", "error");
         } finally {
             setLoadingData(false);
         }

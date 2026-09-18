@@ -23,9 +23,9 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     //cloudflare 배포시 활성화
-    // allowedHosts: [
-    //   ".trycloudflare.com"
-    // ]
+    allowedHosts: [
+      ".trycloudflare.com"
+    ]
   },
   base: '/',
   plugins: [react()],
