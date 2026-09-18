@@ -221,8 +221,6 @@ export default function ConsultChat() {
 
     //연결 및 해제
     useEffect(()=>{
-        if(rooms.length === 0) return;//방 정보가 존재하지 않으면 연결을 하지마라! (기존과 차이점)
-
         //최초 1회 실행해야할 작업
         const client = connectToServer();
         setClient(client);
@@ -450,11 +448,15 @@ export default function ConsultChat() {
                 >
                 <div className="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
                     <h5 className="mb-0">채팅 목록</h5>
-                    {totalUnreadCount > 0 && (
-                        <Badge bg="danger" pill className="fs-6">
-                            새 메시지 {totalUnreadCount}
-                        </Badge>
-                    )}
+                    <Badge 
+                        bg="danger" 
+                        pill 
+                        className="fs-6"
+                        // ✨ [수정] 요소는 항상 렌더링하되, 카운트가 0일 때는 투명하게 숨김 처리
+                        style={{ visibility: totalUnreadCount > 0 ? "visible" : "hidden" }}
+                    >
+                        새 메시지 {totalUnreadCount > 0 ? totalUnreadCount : 0}
+                    </Badge>
                 </div>
                 <ListGroup variant="flush" className="overflow-auto flex-grow-1">
                     {rooms.map((room) => (

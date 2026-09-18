@@ -48,10 +48,11 @@ export default function PrivateChat() {
     }, [rooms]);
 
     useEffect(()=>{
-        loadRooms();//시작하자마자 방 목록을 불러온다
+        loadRooms();
     }, []);
     const loadRooms = useCallback(async ()=>{
-        const { data } = await apiClient.get("/employee/room/private")
+        const { data } = await apiClient.get("/employee/room/private");
+        //const { data } = await apiClient.get("/employee/room/course");
         setRooms(data.rooms);
         setRoomCount(data.count);
         // console.log(data);
@@ -151,14 +152,6 @@ export default function PrivateChat() {
                             )
                         );
                     });
-                    client.subscribe(`/private/${r.roomNo}/action/${loginUser.accountNo}`, (message) => {
-                        const json = JSON.parse(message.body);
-                        switch(json) {
-                            case "leave":
-                                leaveRoom();
-                                break;
-                        }
-                    });
                 });
 
                 //신규채팅방 체크
@@ -221,8 +214,6 @@ export default function PrivateChat() {
 
     //연결 및 해제
     useEffect(()=>{
-        if(rooms.length === 0) return;//방 정보가 존재하지 않으면 연결을 하지마라! (기존과 차이점)
-
         //최초 1회 실행해야할 작업
         const client = connectToServer();
         setClient(client);
@@ -306,31 +297,45 @@ export default function PrivateChat() {
 
     // 방 선택 시 해당 방의 채팅 내역 조회
     const handleRoomSelect = useCallback(async (selectedRoom) => {
-        setRoom(selectedRoom);
-        setActiveRoomNo(selectedRoom.roomNo);
         setViewMode("chat"); // ✨ 방 선택 시 무조건 채팅 화면으로 전환
-
-        setUsers([]);
-        setHistory([]);
         setIsRoomLoading(true);
 
-        setRooms(prev => prev.map(r => r.roomNo === selectedRoom.roomNo ? { ...r, unreadCnt: 0 } : r));
-        updateLastReadTime(selectedRoom.roomNo);
-
+        let targetRoomNo = selectedRoom.roomNo;
         try {
-            const { data } = await apiClient.get(`/employee/room/${selectedRoom.roomNo}`);
+            if (!targetRoomNo) {
+                const { data } = await apiClient.get(`/employee/room/private/${selectedRoom.accountNo}`);
+                // 백엔드가 응답해준 생성된(혹은 기존의) 방 번호 추출
+                targetRoomNo = data.room.roomNo; 
+                // 방이 새로 생겼으므로 좌측 목록 전체를 최신화 (웹소켓 연결 등 동기화)
+                loadRooms();
+            }
+
+            const currentRoom = { ...selectedRoom, roomNo: targetRoomNo };
+            setRoom(currentRoom);
+            setActiveRoomNo(targetRoomNo);
+            setUsers([]);
+            setHistory([]);
+
+            setRooms(prev => prev.map(r => 
+                r.accountNo === selectedRoom.accountNo 
+                    ? { ...r, unreadCnt: 0, roomNo: targetRoomNo } 
+                    : r
+            ));
+
+            updateLastReadTime(targetRoomNo);
+
+            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
             setUsers(data.users);
             setHistory(data.history);
-            
-            // 안읽음 카운트 초기화
-            setRooms(prev => prev.map(r => r.roomNo === selectedRoom.roomNo ? { ...r, unreadCnt: 0 } : r));
         } catch(error) {
-            console.error("방 정보 불러오기 실패", error);
+            console.error("채팅방 입장/생성 실패", error);
+            Swal.fire("오류", "채팅방을 열 수 없습니다.", "error");
+            setViewMode("list"); // 에러 시 다시 목록으로 돌려보냄
         } finally {
             // ✨ 요청이 끝나면 로딩 끄기
             setIsRoomLoading(false);
         }
-    }, [updateLastReadTime]);
+    }, [updateLastReadTime, loadRooms]);
 
     //연결 상태 확인
     const isConnect = useMemo(()=>{
@@ -399,18 +404,22 @@ export default function PrivateChat() {
                 >
                 <div className="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
                     <h5 className="mb-0">1:1 채팅 목록</h5>
-                    {totalUnreadCount > 0 && (
-                        <Badge bg="danger" pill className="fs-6">
-                            새 메시지 {totalUnreadCount}
-                        </Badge>
-                    )}
+                    <Badge 
+                        bg="danger" 
+                        pill 
+                        className="fs-6"
+                        // ✨ [수정] 요소는 항상 렌더링하되, 카운트가 0일 때는 투명하게 숨김 처리
+                        style={{ visibility: totalUnreadCount > 0 ? "visible" : "hidden" }}
+                    >
+                        새 메시지 {totalUnreadCount > 0 ? totalUnreadCount : 0}
+                    </Badge>
                 </div>
                 <ListGroup variant="flush" className="overflow-auto flex-grow-1">
                     {rooms.map((room) => (
                     <ListGroup.Item
-                        key={room.roomNo}
+                        key={room.accountNo}
                         action
-                        active={activeRoomNo === room.roomNo}
+                        active={activeRoomNo !== null && activeRoomNo === room.roomNo}
                         onClick={() => handleRoomSelect(room)}
                         className="p-3 border-bottom"
                     >
@@ -433,8 +442,9 @@ export default function PrivateChat() {
 
                         {/* 하단: 마지막 대화 내용과 안읽음 뱃지 */}
                         <div className="d-flex w-100 justify-content-between align-items-center">
-                            <p className={`mb-0 small text-truncate pe-2 ${activeRoomNo === room.roomNo ? 'text-white' : 'text-muted'}`}>
-                                {room.lastContent}
+                            <p className={`mb-0 small text-truncate pe-2 ${activeRoomNo === room.roomNo ? 'text-white' : 'text-muted'}`}
+                                style={{ minHeight: "1.25rem" }} >
+                                {room.lastContent || '\u00A0'}
                             </p>
                             {room.unreadCnt > 0 && (
                                 <Badge bg="danger" pill>{room.unreadCnt}</Badge>
