@@ -251,21 +251,40 @@ export default function StudentList() {
                                     <Col xs={4}>
                                         <Card className="border-0 shadow-sm">
                                             <Card.Body className="p-3">
-                                                <div className="text-muted" style={{ fontSize: "0.8rem" }}>과제 제출</div>
-                                                <div className="fs-4 fw-bold text-dark">
-                                                    -<span className="fs-6 text-muted">/-</span>
+                                                <div className="text-muted" style={{ fontSize: "0.8rem" }}>이탈 위험</div>
+                                                <div className={`fs-4 fw-bold ${
+                                                    selectedStudent?.riskLevel === '위험' ? 'text-danger' : 
+                                                    selectedStudent?.riskLevel === '경고' ? 'text-warning' : 
+                                                    'text-dark'
+                                                }`}>
+                                                    {selectedStudent?.riskLevel}
                                                 </div>
                                             </Card.Body>
                                         </Card>
                                     </Col>
                                 </Row>
+                                
+                                {selectedStudent?.riskLevel==='위험' && (
+                                    <>
+                                        <h6 className="fw-bold mb-2">이탈 위험 기준 안내</h6>
+                                        <Card className="border-0 shadow-sm mb-4 flex-grow-1">
+                                            <Card.Body className="d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
+                                                <p className="text-muted small mb-0">출석률이 70%미만이며 미납액이 10만원 이상일 시 이탈위험 '위험'으로 판단합니다</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </>
+                                )}
 
-                                <h6 className="fw-bold mb-2">최근 과제 제출 내역</h6>
-                                <Card className="border-0 shadow-sm mb-4 flex-grow-1">
-                                    <Card.Body className="d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
-                                        <p className="text-muted small mb-0">아직 제출된 과제 상세 데이터가 없습니다.</p>
-                                    </Card.Body>
-                                </Card>
+                                {selectedStudent?.riskLevel==='경고' && (
+                                    <>
+                                        <h6 className="fw-bold mb-2">이탈 위험 기준 안내</h6>
+                                        <Card className="border-0 shadow-sm mb-4 flex-grow-1">
+                                            <Card.Body className="d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
+                                                <p className="text-muted small mb-0">출석률이 85%미만이며 미납액이 1원 이상일 시 이탈률 '경고'로 판단합니다</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </>
+                                )}
 
                                 <Button 
                                     as={Link} 
