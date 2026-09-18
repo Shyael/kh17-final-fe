@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 export default function EmployeeRegisterSuccess() {
     
     return(<>
-        <Jumbotron title="회원가입 완료"/>
+        <Jumbotron title="회원등록 완료"/>
 
         <Row className="mt-4">
             <Col>

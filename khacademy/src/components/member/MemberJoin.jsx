@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { apiClient, certClient } from "@utils/reaxios";
 
 export default function MemberJoin() {
-   
+
 
     const [accountType, setAccountType] = useState('STUDENT'); // student||parent
 
@@ -94,7 +94,7 @@ export default function MemberJoin() {
             }));
             return;
         }
-        
+
         //형식 통과 → 중복 검사
         const { data } = await apiClient.get(`/account/check-id/${account.accountId}`);
         const clazz = data ? "" : "is-invalid"; //형식과 중복검사를 통과하더라도 아직 인증번호가 남아있음
@@ -260,13 +260,11 @@ export default function MemberJoin() {
     const navigate = useNavigate();
     const sendRegister = useCallback(async () => {
         try {
-            // const copy = {...acount};
-            // delete copy.acountPassword2; //아래 구조분해 할당 or 두줄 코드
             const { accountPassword2, ...copy } = account;
             let response;
 
             if (accountType === 'STUDENT') {
-                //학생 회원가입 API 호출
+                // 학생 회원가입 API 호출
                 response = await apiClient.post("/academy/student/", copy);
             }
             else {
@@ -277,17 +275,17 @@ export default function MemberJoin() {
                     accountBirth: copy.accountBirth,
                     accountPhone: copy.accountPhone
                 };
-                response = await apiClient.post("/academy/parent/", parentPayload);
+                response = await apiClient.post("/academy/parent", parentPayload);
             }
 
             const msg = response.data?.message || "회원 등록 신청이 완료되었습니다.";
             navigate("/member/joinSuccess");
         }
         catch (e) {
-            // toast.error("회원 등록 과정에서 오류가 발생했습니다");
+            console.error("회원가입 실패 원인:", e.response || e);
             navigate("/member/joinFail");
         }
-    }, [account]);
+    }, [account, accountType, navigate]); 
 
     return (<>
         <Jumbotron title="회원가입" content="학생 및 학부모 회원가입 페이지입니다." />
@@ -441,9 +439,9 @@ export default function MemberJoin() {
         </Row>
         {/* 이름 */}
         <Row className="mt-4">
-            <Form.Check column sm={3}>
+            <Form.Label column sm={3}>
                 <span>이름</span>
-            </Form.Check>
+            </Form.Label>
             <Col sm={9}>
                 <Form.Control type="text" name="accountName"
                     value={account.accountName}
@@ -599,7 +597,7 @@ export default function MemberJoin() {
                     disabled={allValid === false} onClick={sendRegister}>
                     <FaUserPlus className="me-2 mb-1" />
                     <span>{accountType === 'STUDENT' ? '학생 회원가입 신청' : '학부모 회원가입 신청'}</span>
-                    </Button>
+                </Button>
             </Col>
         </Row>
     </>)

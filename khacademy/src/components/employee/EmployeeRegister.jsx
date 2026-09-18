@@ -259,7 +259,7 @@ export default function EmployeeRegister() {
             const { accountPassword2, ...copy } = account;
             const response = await apiClient.post("/employee/worker/", copy);
             //toast.success("회원 등록이 완료되었습니다");
-            navigate("/employee/registerSuccess");
+            navigate("/employee/search");
         }
         catch (e) {
             // toast.error("회원 등록 과정에서 오류가 발생했습니다");
