@@ -61,6 +61,7 @@
 .kh-topnav .nav-link {
   color: var(--kh-text);
   font-weight: 500;
+  white-space: nowrap;
 }
 .kh-topnav .nav-link:hover,
 .kh-topnav .nav-link:focus,

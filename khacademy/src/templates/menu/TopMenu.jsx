@@ -77,7 +77,7 @@ export default function TopMenu() {
 
     return (
         <Navbar
-            expand="md"
+            expand="lg"
             className={"kh-topnav sticky-top" + (atTop ? " at-top" : "")}
             data-bs-theme="light"
         >
@@ -100,7 +100,7 @@ export default function TopMenu() {
                                 </Nav.Link>
                         </Nav>
 
-                        <Nav className="align-items-md-center gap-md-2">
+                        <Nav className="align-items-lg-center gap-lg-2">
                             <Nav.Link onClick={() => setShowModal(true)}>
                                 상담신청
                             </Nav.Link>
@@ -128,7 +128,7 @@ export default function TopMenu() {
 
                     <Navbar.Collapse id="basic-navbar-nav">
                         {/* 좌측: 메뉴 링크들 */}
-                        <Nav className="me-auto gap-md-3">
+                        <Nav className="me-auto gap-lg-3">
                             <Nav.Link as={Link} to="/academy">
                                 학원정보
                             </Nav.Link>
@@ -196,7 +196,7 @@ export default function TopMenu() {
                         </Nav>
 
                         {/* 우측: 내정보 & 로그아웃 */}
-                        <Nav className="align-items-md-center gap-md-2">
+                        <Nav className="align-items-lg-center gap-lg-2">
                             <Nav.Link as={Link} to={isParent ? "/Parent/myInfo" : "/student/myInfo"}>
                                 내정보
                             </Nav.Link>
