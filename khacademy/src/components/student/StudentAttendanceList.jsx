@@ -44,7 +44,7 @@ export default function StudentAttendanceList() {
         return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
-    // 1. 강좌 목록 조회 (학부모인 경우 자녀 번호가 변경될 때마다 자동 재조회)
+    // 1. 강의 목록 조회 (학부모인 경우 자녀 번호가 변경될 때마다 자동 재조회)
     useEffect(() => {
         const loadMyCourses = async () => {
             // 학부모인데 아직 선택된 자녀 번호가 없으면 로딩 중단
@@ -74,8 +74,8 @@ export default function StudentAttendanceList() {
                     setAttendanceData(null);
                 }
             } catch (e) {
-                console.error("수강 강좌 목록 조회 실패:", e);
-                Swal.fire("오류", "수강 강좌 목록을 불러오지 못했습니다.", "error");
+                console.error("수강 강의 목록 조회 실패:", e);
+                Swal.fire("오류", "수강 강의 목록을 불러오지 못했습니다.", "error");
             } finally {
                 setLoadingCourses(false);
             }
@@ -140,7 +140,7 @@ export default function StudentAttendanceList() {
         }
     }, []);
 
-    // 4. 셀렉트 박스 강좌 변경
+    // 4. 셀렉트 박스 강의 변경
     const handleCourseChange = (e) => {
         const nextCourseNo = e.target.value;
         if (nextCourseNo) {
@@ -162,7 +162,7 @@ export default function StudentAttendanceList() {
         return (
             <Container className="py-5 text-center">
                 <Spinner animation="border" variant="primary" />
-                <p className="mt-2 text-muted small">수강 강좌 정보를 불러오는 중입니다...</p>
+                <p className="mt-2 text-muted small">수강 강의 정보를 불러오는 중입니다...</p>
             </Container>
         );
     }
@@ -172,12 +172,12 @@ export default function StudentAttendanceList() {
             <Container className="py-4">
                 <Jumbotron
                     title={isParent ? `${selectedChild?.studentName ?? "자녀"}의 출결 현황` : "내 출결 현황"}
-                    content="수강 중인 강좌별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
+                    content="수강 중인 강의별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
                 />
                 <Card className="shadow-sm border mt-4 text-center py-5">
                     <Card.Body>
-                        <h6 className="fw-bold text-secondary mb-2">현재 수강 중인 강좌가 없습니다.</h6>
-                        <p className="text-muted small mb-0">학원 데스크를 통해 강좌 수강 등록 여부를 확인해 주세요.</p>
+                        <h6 className="fw-bold text-secondary mb-2">현재 수강 중인 강의가 없습니다.</h6>
+                        <p className="text-muted small mb-0">학원 데스크를 통해 강의 수강 등록 여부를 확인해 주세요.</p>
                     </Card.Body>
                 </Card>
             </Container>
@@ -190,17 +190,17 @@ export default function StudentAttendanceList() {
         <Container className="py-4">
             <Jumbotron
                 title={isParent ? `${selectedChild?.studentName ?? "자녀"}의 출결 현황` : "내 출결 현황"}
-                content="수강 중인 강좌별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
+                content="수강 중인 강의별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
             />
 
-            {/* 강좌 선택 영역 */}
+            {/* 강의 선택 영역 */}
             <Card className="shadow-sm border mb-4 mt-4">
                 <Card.Body>
                     <Row className="align-items-center g-3">
                         <Col xs={12} md={7} lg={7}>
                             <Form.Group className="d-flex align-items-center gap-2">
                                 <Form.Label className="fw-bold mb-0 text-nowrap" style={{ minWidth: "75px" }}>
-                                    <FaChalkboardUser className="me-1 text-primary" /> 강좌
+                                    <FaChalkboardUser className="me-1 text-primary" /> 강의
                                 </Form.Label>
                                 <Form.Select
                                     value={courseNo || ""}
@@ -261,11 +261,11 @@ export default function StudentAttendanceList() {
                 </div>
             ) : !attendanceData ? (
                 <div className="text-center py-5 text-muted">
-                    강좌를 선택하시면 출결 데이터가 표시됩니다.
+                    강의를 선택하시면 출결 데이터가 표시됩니다.
                 </div>
             ) : (
                 <>
-                    {/* 선택 강좌 요약 통계 */}
+                    {/* 선택 강의 요약 통계 */}
                     <Card className="shadow-sm border mb-4">
                         <Card.Body className="p-4">
                             <div className="d-flex justify-content-between align-items-center mb-2">

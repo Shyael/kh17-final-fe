@@ -222,7 +222,7 @@ export default function StudentList() {
                                         {selectedStudent.studentName} <span className="fs-6 text-muted ms-2">{selectedStudent.studentGrade}</span>
                                     </h4>
                                     <p className="text-muted mb-0">
-                                        수강 강좌 : <strong>정보 없음</strong>
+                                        수강 강의 : <strong>정보 없음</strong>
                                     </p>
                                 </div>
 

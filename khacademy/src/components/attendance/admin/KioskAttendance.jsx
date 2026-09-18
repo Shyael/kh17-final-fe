@@ -325,7 +325,7 @@ export default function KioskAttendance() {
                                     </div>
                                     
                                     <div className="mb-3">
-                                        <div className="text-secondary small">수강 강좌</div>
+                                        <div className="text-secondary small">수강 강의</div>
                                         <div className="fw-bold fs-5 text-dark mt-1">
                                             {recentAttendance.courseTitle}
                                         </div>

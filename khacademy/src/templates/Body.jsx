@@ -143,7 +143,7 @@ export default function Body() {
             <Route path="/employee/tutor/add" element={<TutorManage />} />
             <Route path="/employee/tutor/:tutorNo" element={<TutorManage />} />
 
-            {/* 직원 - 강좌 및 시간표 */}
+            {/* 직원 - 강의 및 시간표 */}
             <Route path="/employee/course/create" element={<CourseCreate />} />
             <Route path="/employee/course/list" element={<CourseList />} />
             <Route path="/employee/course/detail/:courseNo" element={<CourseDetail />} />

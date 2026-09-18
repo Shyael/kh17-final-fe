@@ -62,7 +62,7 @@ export default function MemberDashboard() {
         );
     };
 
-    // 강좌 상세 페이지 이동
+    // 강의 상세 페이지 이동
     const moveToCourse = (courseNo) => {
         if (!courseNo) return;
         navigate(
@@ -134,7 +134,7 @@ export default function MemberDashboard() {
                                             <Table hover className="align-middle mb-0 text-center small">
                                                 <thead className="table-light text-secondary">
                                                     <tr>
-                                                        <th className="text-start ps-2">강좌</th>
+                                                        <th className="text-start ps-2">강의</th>
                                                         <th style={{ width: "95px" }}>시간</th>
                                                         <th style={{ width: "55px" }}>강의실</th>
                                                         <th style={{ width: "65px" }}>상태</th>
@@ -179,7 +179,7 @@ export default function MemberDashboard() {
                                         className="mt-2 align-self-end"
                                         onClick={() => navigate(isParent ? "/parent/attendance/list" : "/student/attendance/list")}
                                     >
-                                        강좌 목록 <FaArrowRight className="ms-1" />
+                                        강의 목록 <FaArrowRight className="ms-1" />
                                     </Button>
                                 </Card.Body>
                             </Card>

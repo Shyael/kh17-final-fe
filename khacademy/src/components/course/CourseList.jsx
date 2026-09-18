@@ -69,7 +69,7 @@ export default function CourseList() {
         }));
     }, []);
 
-    // 강좌 목록 조회
+    // 강의 목록 조회
     const loadCourseList = useCallback(async (
         targetPage = 1,
         targetSize = search.size,
@@ -99,10 +99,10 @@ export default function CourseList() {
             }));
 
         } catch (e) {
-            console.error("강좌 목록 조회 오류:", e);
+            console.error("강의 목록 조회 오류:", e);
             await Swal.fire(
                 "오류",
-                "강좌 목록을 불러오지 못했습니다.",
+                "강의 목록을 불러오지 못했습니다.",
                 "error"
             );
         }
@@ -143,22 +143,22 @@ export default function CourseList() {
     return (
         <>
             <Jumbotron
-                title="강좌 목록"
-                content="등록된 강좌를 조회합니다."
+                title="강의 목록"
+                content="등록된 강의를 조회합니다."
             />
 
             {/* 검색 영역 */}
             <div className="border rounded p-4 mt-4">
                 <Row className="mb-3">
-                    {/* 강좌명 */}
+                    {/* 강의명 */}
                     <Col md={5}>
-                        <Form.Label>강좌명</Form.Label>
+                        <Form.Label>강의명</Form.Label>
                         <Form.Control
                             type="text"
                             name="courseTitle"
                             value={search.courseTitle}
                             onChange={changeSearchValue}
-                            placeholder="강좌명을 입력하세요"
+                            placeholder="강의명을 입력하세요"
                             autoFocus
                             onKeyDown={(e) => {
                                 if (e.key === "Enter") {
@@ -284,13 +284,13 @@ export default function CourseList() {
                 {/* 검색 / 초기화 버튼 */}
                 <Row>
                     <Col className="d-flex justify-content-between align-items-center">
-                        {/* 왼쪽: 강좌 등록 버튼 */}
+                        {/* 왼쪽: 강의 등록 버튼 */}
                         <Button
                             variant="success"
                             onClick={() => navigate("/employee/course/create")} // 보통 등록 페이지는 insert/add 등을 사용합니다.
                         >
                             <FaPlus />
-                            <span className="ms-2">강좌 등록</span>
+                            <span className="ms-2">강의 등록</span>
                         </Button>
 
                         {/* 오른쪽: 초기화 및 검색 버튼 */}
@@ -320,7 +320,7 @@ export default function CourseList() {
             <Row className="mt-4 align-items-center">
                 <Col>
                     <span>
-                        총 <strong>{pageData.totalCount}</strong> 개의 강좌
+                        총 <strong>{pageData.totalCount}</strong> 개의 강의
                     </span>
                 </Col>
 
@@ -338,8 +338,8 @@ export default function CourseList() {
                 </Col>
             </Row>
 
-            {/* 강좌 목록 테이블 */}
-            {/* 강좌 목록 테이블 */}
+            {/* 강의 목록 테이블 */}
+            {/* 강의 목록 테이블 */}
             <Table
                 hover
                 responsive
@@ -348,7 +348,7 @@ export default function CourseList() {
                 <thead>
                     <tr>
                         <th>번호</th>
-                        <th>강좌명</th>
+                        <th>강의명</th>
                         <th>과목</th>
                         <th>학년</th>
                         <th>강사</th>
@@ -362,7 +362,7 @@ export default function CourseList() {
                     {pageData.list.length === 0 ? (
                         <tr>
                             <td colSpan={8} className="py-5">
-                                조회된 강좌가 없습니다.
+                                조회된 강의가 없습니다.
                             </td>
                         </tr>
                     ) : (

@@ -67,7 +67,7 @@ export default function CourseCreate() {
     // [1-1] 선택된 강사의 기존 수업 일정
     const [tutorSchedules, setTutorSchedules] = useState([]);
 
-    // [2] 강좌 정보 State
+    // [2] 강의 정보 State
     const [course, setCourse] = useState({
         employeeNo: 0,
         academySubjectNo: 0,
@@ -87,7 +87,7 @@ export default function CourseCreate() {
 
 
     // ========================================================
-    // 강좌 등록 초기 데이터
+    // 강의 등록 초기 데이터
     //
     // subjectList
     // gradeList
@@ -116,7 +116,7 @@ export default function CourseCreate() {
     const loadFormData = useCallback(async () => {
         try {
             const { data } = await apiClient.get("/employee/course/form-data");
-            console.log("강좌 등록 초기 데이터", data);
+            console.log("강의 등록 초기 데이터", data);
             setFormData(data);
 
             // 강사 계정인 경우 본인 정보 자동 매핑
@@ -139,8 +139,8 @@ export default function CourseCreate() {
                 }
             }
         } catch (e) {
-            console.error("강좌 등록 초기 데이터 조회 오류", e);
-            Swal.fire("등록 정보 조회 실패", "강좌 등록에 필요한 정보를 불러오지 못했습니다.", "error");
+            console.error("강의 등록 초기 데이터 조회 오류", e);
+            Swal.fire("등록 정보 조회 실패", "강의 등록에 필요한 정보를 불러오지 못했습니다.", "error");
         }
     }, [isTutor, currentEmployeeNo]);
 
@@ -501,7 +501,7 @@ export default function CourseCreate() {
     // ========================================================
     // 강의실 선택 Modal 열기
     //
-    // 현재 강좌의
+    // 현재 강의의
     // 1. 수강 정원
     // 2. 전체 일정
     //
@@ -711,7 +711,7 @@ export default function CourseCreate() {
         if (!course.courseTitle.trim()) {
 
             await Swal.fire(
-                "강좌명을 입력해주세요."
+                "강의명을 입력해주세요."
             );
 
             return;
@@ -777,10 +777,10 @@ export default function CourseCreate() {
         const result = await Swal.fire({
 
             title:
-                "강좌를 등록하시겠습니까?",
+                "강의를 등록하시겠습니까?",
 
             text:
-                "등록 후 강좌 정보가 저장됩니다.",
+                "등록 후 강의 정보가 저장됩니다.",
 
             icon:
                 "question",
@@ -822,7 +822,7 @@ export default function CourseCreate() {
                     classroomNo: Number(schedule.classroomNo)
                 }))
             };
-            console.log("강좌 등록 요청", request);
+            console.log("강의 등록 요청", request);
 
             // 등록 요청 및 응답에서 생성된 번호 수신
             const response = await apiClient.post("/employee/course/", request);
@@ -830,14 +830,14 @@ export default function CourseCreate() {
 
             await Swal.fire({
                 title: "등록 완료",
-                text: "강좌가 정상적으로 등록되었습니다.",
+                text: "강의가 정상적으로 등록되었습니다.",
                 icon: "success",
                 confirmButtonColor: COLORS.primary
             });
             navigate(`/employee/course/detail/${createdCourseNo}`);
         }
         catch (e) {
-            console.error("강좌 등록 오류", e);
+            console.error("강의 등록 오류", e);
             const status = e.response?.status;
             if (status === 409) {
                 await Swal.fire(
@@ -907,7 +907,7 @@ export default function CourseCreate() {
                                 marginBottom: "5px"
                             }}
                         >
-                            강좌 등록
+                            강의 등록
                         </h2>
 
                         <p
@@ -917,7 +917,7 @@ export default function CourseCreate() {
                                 marginBottom: 0
                             }}
                         >
-                            고등학교 강좌의 기본 정보와 수업 일정을 등록해주세요.
+                            고등학교 강의의 기본 정보와 수업 일정을 등록해주세요.
                         </p>
 
                     </div>
@@ -944,7 +944,7 @@ export default function CourseCreate() {
                                 "600"
                         }}
                     >
-                        신규 강좌
+                        신규 강의
                     </span>
 
                 </div>
@@ -998,7 +998,7 @@ export default function CourseCreate() {
                                             "3px"
                                     }}
                                 >
-                                    강좌 기본 정보
+                                    강의 기본 정보
                                 </h5>
 
 
@@ -1008,7 +1008,7 @@ export default function CourseCreate() {
                                             COLORS.muted
                                     }}
                                 >
-                                    강좌의 기본 정보를 입력해주세요.
+                                    강의의 기본 정보를 입력해주세요.
                                 </small>
 
                             </div>
@@ -1098,11 +1098,11 @@ export default function CourseCreate() {
 
                                 </Row>
 
-                                {/* 강좌명 */}
+                                {/* 강의명 */}
                                 <Form.Group className="mb-3">
 
                                     <Form.Label>
-                                        강좌명
+                                        강의명
                                     </Form.Label>
 
                                     <Form.Control
@@ -1126,7 +1126,7 @@ export default function CourseCreate() {
                                     <Col md={6}>
 
                                         <Form.Label>
-                                            강좌 유형
+                                            강의 유형
                                         </Form.Label>
 
 
@@ -1222,7 +1222,7 @@ export default function CourseCreate() {
                                 <Form.Group>
 
                                     <Form.Label>
-                                        강좌 설명
+                                        강의 설명
                                     </Form.Label>
 
 
@@ -1236,7 +1236,7 @@ export default function CourseCreate() {
                                         onChange={
                                             changeCourseValue
                                         }
-                                        placeholder="강좌에 대한 설명을 입력해주세요."
+                                        placeholder="강의에 대한 설명을 입력해주세요."
                                     />
 
                                 </Form.Group>
@@ -2078,7 +2078,7 @@ export default function CourseCreate() {
                             className="me-2"
                         />
 
-                        강좌 등록
+                        강의 등록
 
                     </Button>
 

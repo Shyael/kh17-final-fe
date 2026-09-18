@@ -27,7 +27,7 @@ export default function EmployeeDashboard() {
     // 대시보드 요약 정보
     const [dashboard, setDashboard] = useState(null);
 
-    // 강좌 상태 탭 필터 ('ALL', 'RUNNING', 'WAITING', 'FINISHED')
+    // 강의 상태 탭 필터 ('ALL', 'RUNNING', 'WAITING', 'FINISHED')
     const [courseTab, setCourseTab] = useState("ALL");
 
     // 대시보드 조회
@@ -70,7 +70,7 @@ export default function EmployeeDashboard() {
         };
     }, [dashboard?.courses]);
 
-    // 탭 선택에 따른 강좌 목록 필터링
+    // 탭 선택에 따른 강의 목록 필터링
     const filteredCourses = useMemo(() => {
         const list = dashboard?.courses ?? [];
         if (courseTab === "RUNNING") {
@@ -175,7 +175,7 @@ export default function EmployeeDashboard() {
                                                 <Table hover className="align-middle mb-0 text-center small">
                                                     <thead className="table-light text-secondary">
                                                         <tr>
-                                                            <th className="text-start ps-2">강좌 / 과목</th>
+                                                            <th className="text-start ps-2">강의 / 과목</th>
                                                             <th style={{ width: "105px" }}>시간</th>
                                                             <th style={{ width: "65px" }}>강의실</th>
                                                             <th style={{ width: "65px" }}>상태</th>
@@ -227,7 +227,7 @@ export default function EmployeeDashboard() {
                                             className="mt-2 align-self-end"
                                             onClick={() => navigate("/employee/course/list")}
                                         >
-                                            전체 강좌 <FaArrowRight className="ms-1" />
+                                            전체 강의 <FaArrowRight className="ms-1" />
                                         </Button>
                                     </Card.Body>
                                 </Card>

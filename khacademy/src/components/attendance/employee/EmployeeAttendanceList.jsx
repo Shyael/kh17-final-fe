@@ -7,7 +7,7 @@ import { apiClient } from "@utils/reaxios";
 import Jumbotron from "@templates/Jumbotron";
 
 const initialSearchState = {
-    courseNo: "",          // 선택된 강좌 번호 (핵심)
+    courseNo: "",          // 선택된 강의 번호 (핵심)
     studentName: "",       // 학생명
     startDate: "",         // 날짜
     endDate: "",
@@ -16,7 +16,7 @@ const initialSearchState = {
 };
 
 export default function EmployeeAttendanceList() {
-    // 1. 진행 중인 강좌 드롭다운 목록 State
+    // 1. 진행 중인 강의 드롭다운 목록 State
     const [courses, setCourses] = useState([]);
     
     // 2. 검색 조건 State
@@ -26,20 +26,20 @@ export default function EmployeeAttendanceList() {
     const [attendanceList, setAttendanceList] = useState([]);
     const [loading, setLoading] = useState(false);
 
-    // [초기 로딩] 진행 중인 강좌 셀렉트 박스 목록 가져오기
+    // [초기 로딩] 진행 중인 강의 셀렉트 박스 목록 가져오기
     useEffect(() => {
         const loadActiveCourses = async () => {
             try {
-                // 프로젝트의 실제 강좌 옵션 조회 URL로 지정해주세요.
+                // 프로젝트의 실제 강의 옵션 조회 URL로 지정해주세요.
                 const { data } = await apiClient.get("/employee/attendance/active-courses");
                 setCourses(data);
                 
-                // 만약 첫 번째 강좌를 기본 선택하고 싶다면:
+                // 만약 첫 번째 강의를 기본 선택하고 싶다면:
                 // if (data && data.length > 0) {
                 //     setSearch(prev => ({ ...prev, courseNo: data[0].courseNo }));
                 // }
             } catch (e) {
-                console.error("진행 중 강좌 목록 로드 실패:", e);
+                console.error("진행 중 강의 목록 로드 실패:", e);
             }
         };
         loadActiveCourses();
@@ -81,7 +81,7 @@ export default function EmployeeAttendanceList() {
         }
     }, [search]);
 
-    // 강좌 셀렉트 박스를 바꾸면 자동으로 해당 강좌 기준 목록 새로고침
+    // 강의 셀렉트 박스를 바꾸면 자동으로 해당 강의 기준 목록 새로고침
     const handleCourseChange = (e) => {
         const selectedNo = e.target.value;
         const nextSearch = {
@@ -97,7 +97,7 @@ export default function EmployeeAttendanceList() {
         loadAttendanceList();
     }, [loadAttendanceList]);
 
-    // 필터 조건 초기화 (강좌 선택은 유지할지 여부에 따라 조정 가능)
+    // 필터 조건 초기화 (강의 선택은 유지할지 여부에 따라 조정 가능)
     const resetSearch = useCallback(() => {
         setSearch(initialSearchState);
         loadAttendanceList(initialSearchState);
@@ -137,7 +137,7 @@ export default function EmployeeAttendanceList() {
         <>
             <Jumbotron
                 title="출결 관리"
-                content="진행 중인 강좌를 선택하고 수강생 출결 현황을 조회 및 필터링합니다."
+                content="진행 중인 강의를 선택하고 수강생 출결 현황을 조회 및 필터링합니다."
             />
 
             {/* 필터 및 검색 바 */}
@@ -145,14 +145,14 @@ export default function EmployeeAttendanceList() {
                 {/* 1열: 강의 선택 (메인 드롭다운) */}
                 <Row className="mb-3">
                     <Col md={6}>
-                        <Form.Label className="fw-bold text-primary">진행 중인 강좌 선택</Form.Label>
+                        <Form.Label className="fw-bold text-primary">진행 중인 강의 선택</Form.Label>
                         <Form.Select
                             name="courseNo"
                             value={search.courseNo}
                             onChange={handleCourseChange}
                             className="form-select-lg"
                         >
-                            <option value="">-- 진행 중인 전체 강좌 보기 --</option>
+                            <option value="">-- 진행 중인 전체 강의 보기 --</option>
                             {courses.map(c => (
                                 <option key={c.courseNo} value={c.courseNo}>
                                     [{c.courseNo}] {c.courseTitle}
@@ -264,7 +264,7 @@ export default function EmployeeAttendanceList() {
                     <tr>
                         <th>출결번호</th>
                         <th>세션번호</th>
-                        <th>강좌명</th>
+                        <th>강의명</th>
                         <th>과목</th>
                         <th>학생명(번호)</th>
                         <th>수업일시</th>

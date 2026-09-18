@@ -190,7 +190,7 @@ export default function AssignmentManage() {
     //등록
     const insertAssignment = async () => {
         if (!assignment.courseNo) {
-            toast.error("강좌를 선택해주세요.");
+            toast.error("강의를 선택해주세요.");
             return;
         }
 
@@ -306,7 +306,7 @@ export default function AssignmentManage() {
         <Row className="mt-4">
             <Col sm={6}>
                 <Form.Label>
-                    <span>강좌</span>
+                    <span"강의</span>
                 </Form.Label>
 
                 {!isEdit ? (
@@ -315,7 +315,7 @@ export default function AssignmentManage() {
                         value={assignment.courseNo}
                         onChange={changeAssignmentValue}>
                         <option value="">
-                            강좌 선택
+                            강의 선택
                         </option>
 
                         {courseList.map(course => (

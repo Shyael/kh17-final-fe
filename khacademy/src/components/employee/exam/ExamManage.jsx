@@ -829,12 +829,12 @@ export default function ExamManage() {
 
                             <Row>
                                 <Col sm={6}>
-                                    <Form.Label>강좌</Form.Label>
+                                    <Form.Label>강의</Form.Label>
                                     <Form.Select
                                         name="courseNo"
                                         value={exam.courseNo}
                                         onChange={changeExam}>
-                                        <option value="">강좌 선택</option>
+                                        <option value="">강의 선택</option>
                                         {courseList.map(course => (
                                             <option
                                                 key={course.courseNo}

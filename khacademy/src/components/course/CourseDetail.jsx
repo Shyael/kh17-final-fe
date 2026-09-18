@@ -76,8 +76,8 @@ export default function CourseDetail() {
             const { data } = await apiClient.get(`/employee/course/detail/${courseNo}`);
             setDetail(data);
         } catch (e) {
-            console.error("강좌 상세 조회 오류:", e);
-            await Swal.fire("오류", e.response?.data?.message || "강좌 상세 정보를 불러오지 못했습니다.", "error");
+            console.error("강의 상세 조회 오류:", e);
+            await Swal.fire("오류", e.response?.data?.message || "강의 상세 정보를 불러오지 못했습니다.", "error");
             navigate(-1);
         } finally {
             setLoading(false);
@@ -204,7 +204,7 @@ export default function CourseDetail() {
         return (
             <Container className="py-5 text-center">
                 <div className="spinner-border text-primary" role="status" />
-                <p className="mt-3 text-muted">강좌 상세 정보를 불러오는 중입니다...</p>
+                <p className="mt-3 text-muted">강의 상세 정보를 불러오는 중입니다...</p>
             </Container>
         );
     }
@@ -238,7 +238,7 @@ export default function CourseDetail() {
                 content={`담당 강사: ${tutorName || "미지정"} | 과목: ${courseInfo.courseSubject} | 상태: ${courseInfo.courseStatus}`}
             />
 
-            {/* 강좌 기본 정보 및 일정 요약 */}
+            {/* 강의 기본 정보 및 일정 요약 */}
             <div className="border rounded p-4 mt-4 bg-white shadow-sm">
                 <Row className="align-items-center mb-3">
                     <Col md={8}>
@@ -252,7 +252,7 @@ export default function CourseDetail() {
                             </Badge>
                             <Badge bg="info" text="dark">{courseInfo.courseType}</Badge>
                         </div>
-                        <div className="text-muted small mb-2">{courseInfo.courseInfo || "강좌 설명이 등록되지 않았습니다."}</div>
+                        <div className="text-muted small mb-2">{courseInfo.courseInfo || "강의 설명이 등록되지 않았습니다."}</div>
                         <div className="d-flex flex-wrap gap-3 text-secondary small">
                             <span><FaChalkboardUser className="me-1" /> 강사: <strong>{tutorName || "미지정"}</strong></span>
                             <span><FaUsers className="me-1" /> 수강 인원: <strong>{studentList?.length || courseInfo.courseCurrentCount} / {courseInfo.courseLimit}명</strong></span>
@@ -574,7 +574,7 @@ export default function CourseDetail() {
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6 className="fw-bold mb-0">
-                            강좌 등록 수강생 목록 ({studentList?.length || 0}명)
+                            강의 등록 수강생 목록 ({studentList?.length || 0}명)
                         </h6>
                     </div>
                     <Table hover responsive className="kh-table text-center align-middle">
