@@ -90,41 +90,17 @@ export default function AcademyChat() {
         loadConsultRoom();
     }, [loadConsultRoom]);
 
-    const loadTutorRoom = useCallback(async (selectedRoom) => {
-        setRoom(selectedRoom);
-        setActiveRoomNo(selectedRoom.roomNo);
-        setViewMode("chat"); // ✨ 방 선택 시 무조건 채팅 화면으로 전환
-
-        try {
-            const { data } = await apiClient.get(`/academy/room/${selectedRoom.roomNo}`);
-            setUsers(data.users);
-            setHistory(data.history);
-            
-            // 안읽음 카운트 초기화
-            setRooms(prev => prev.map(r => r.roomNo === selectedRoom.roomNo ? { ...r, unreadCnt: 0 } : r));
-        } catch(error) {
-            console.error("방 정보 불러오기 실패", error);
-        } finally {
-            // ✨ 요청이 끝나면 로딩 끄기
-            setIsRoomLoading(false);
-        }
-    }, []);
-
     const loadTutorRooms = useCallback(async ()=>{
         const { data } = await apiClient.get("/academy/room/tutor")
         setRooms(data.rooms);
         setRoomCount(data.count);
         // console.log(data);
+        return data.rooms;
     }, []);
 
     useEffect(()=>{
         loadTutorRooms();
     }, [loadTutorRooms]);
-
-    //로그인 정보가 변경되면 채팅창 닫음
-    useEffect(()=>{
-        setIsChatOpen(false);
-    }, [loginUser]);
 
     const updateLastReadTime = useCallback(async (targetRoomNo, type) => {
         if (!targetRoomNo) return;
@@ -142,6 +118,51 @@ export default function AcademyChat() {
             console.error("읽음 처리 실패", error);
         }
     }, []);
+
+    const loadTutorRoom = useCallback(async (selectedRoom) => {
+        setViewMode("chat"); // ✨ 방 선택 시 무조건 채팅 화면으로 전환
+        setIsRoomLoading(true);
+
+        let targetRoomNo = selectedRoom.roomNo;
+
+        try {
+            //const { data } = await apiClient.get(`/academy/room/${selectedRoom.roomNo}`);
+            if (!targetRoomNo) {
+                const { data } = await apiClient.get(`/academy/room/check/${selectedRoom.accountNo}`);
+                targetRoomNo = data.room.roomNo;
+
+                // 방이 새로 생겼으므로 좌측 강사 목록 전체를 다시 불러와 웹소켓을 동기화합니다.
+                loadTutorRooms(); 
+            }
+            
+            const currentRoom = { ...selectedRoom, roomNo: targetRoomNo };
+            setRoom(currentRoom);
+            setActiveRoomNo(targetRoomNo);
+
+            updateLastReadTime(targetRoomNo, 'tutor');
+
+            const { data } = await apiClient.get(`/academy/room/${targetRoomNo}`);
+            setUsers(data.users);
+            setHistory(data.history);
+            
+            setRooms(prev => prev.map(r => 
+                r.accountNo === selectedRoom.accountNo 
+                    ? { ...r, unreadCnt: 0, roomNo: targetRoomNo } 
+                    : r
+            ));
+        } catch(error) {
+            console.error("방 정보 불러오기 실패", error);
+            setViewMode("list"); // 에러 시 다시 목록으로 돌려보냄
+        } finally {
+            // ✨ 요청이 끝나면 로딩 끄기
+            setIsRoomLoading(false);
+        }
+    }, [loadTutorRooms, updateLastReadTime]);
+
+    //로그인 정보가 변경되면 채팅창 닫음
+    useEffect(()=>{
+        setIsChatOpen(false);
+    }, [loginUser]);
 
     const chatOpen = useCallback(()=>{
         setIsChatOpen(true);
@@ -204,6 +225,19 @@ export default function AcademyChat() {
                         client.subscribe(`/public/${numericId}/chat`, (msg) => handleMessage(msg, numericId, false));
                     });
                 }
+
+                client.subscribe(`/public/room/check`, (message)=>{
+                    const json = JSON.parse(message.body);
+                    
+                    // 현재 내가 들고 있는 방 번호 목록(문자열)에 새로 날아온 방 번호가 없다면?
+                    // (roomIds 변수는 '10,12,15' 형태로 되어 있음)
+                    const isKnownRoom = roomIds.split(',').includes(String(json.roomNo));
+
+                    if (!isKnownRoom) {
+                        console.log("AcademyChat: 신규 강사 채팅방 감지! 강사 목록을 갱신합니다.");
+                        loadTutorRooms(); // 강사 채팅방 목록 재조회
+                    }
+                });
             
                 // client.subscribe(`/public/${room.roomNo}/system`, (message)=>{
                 //     const json = JSON.parse(message.body);
@@ -216,7 +250,7 @@ export default function AcademyChat() {
 
         client.activate();
         return client;
-    }, [consultRoomId, roomIds, updateLastReadTime]);
+    }, [consultRoomId, roomIds, updateLastReadTime, loadTutorRooms]);
     //연결 종료 함수
     const disconnectFromServer = useCallback((client)=>{
         if(client) {//client가 존재한다면
@@ -341,14 +375,9 @@ export default function AcademyChat() {
     const handleSelectTutor = useCallback(async (tutor) => {
         setSelectedType("tutor");
         setSelectedTutor(tutor);
-        setViewMode("chat");
+        
         await loadTutorRoom(tutor);
-
-        // 로드 완료 후 확실하게 읽음 처리
-        if (tutor?.roomNo) {
-            updateLastReadTime(tutor.roomNo, 'tutor');
-        }
-    }, [loadTutorRoom, updateLastReadTime]);
+    }, [loadTutorRoom]);
 
     // 목록으로 돌아가기
     const handleBackToList = () => {
@@ -399,11 +428,14 @@ export default function AcademyChat() {
         const processTrigger = async () => {
             if (chatTrigger !== null) {
                 // 1. 방이 새로 생성되었을 수도 있으므로, 좌측 강사 목록 갱신 (완료될 때까지 대기)
-                await loadTutorRooms();
+                const latestRooms = await loadTutorRooms();
 
                 // 2. 전달받은 타입에 따라 채팅방 내역 상세 조회 (완료될 때까지 대기)
                 if (chatTrigger.type === "tutor") {
-                    await handleSelectTutor(chatTrigger.tutorInfo);
+                    const targetRoom = latestRooms?.find(
+                        r => r.roomNo === chatTrigger.tutorInfo.roomNo
+                    );
+                    await handleSelectTutor(targetRoom);
                 } else if (chatTrigger.type === "consult") {
                     await handleSelectConsult();
                 }
@@ -525,7 +557,7 @@ export default function AcademyChat() {
                     <div>
                         <div className="text-muted fw-bold px-2 mb-1 d-flex justify-content-between align-items-center" style={{ fontSize: '0.75rem' }}>
                             <span>강사 목록</span>
-                            <Badge bg="secondary" pill>{rooms.length}</Badge>
+                            {/* <Badge bg="secondary" pill>{rooms.length}</Badge> */}
                         </div>
                         <div className="d-flex flex-column gap-1">
                             {rooms.map((tutor) => {

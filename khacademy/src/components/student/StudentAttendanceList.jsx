@@ -121,7 +121,7 @@ export default function StudentAttendanceList() {
     // 상담하기 처리
     const chatTutor = useCallback(async (tutorName, employeeNo) => {
         try {
-            const { data } = await apiClient.get(`/academy/room/check/${employeeNo}`);
+            const { data } = await apiClient.get(`/academy/room/check/employee/${employeeNo}`);
 
             // AcademyChat 컴포넌트가 감지할 수 있도록 전역 상태에 강사/방 정보 쏘기!
             setChatTrigger({
