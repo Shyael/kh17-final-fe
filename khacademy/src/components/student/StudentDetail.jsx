@@ -335,13 +335,13 @@ export default function StudentDetail() {
                 <Card.Body className="p-4">
                     <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2">종합 개요</h6>
                     <Row className="g-3 mb-4 text-center">
-                        <Col md={4}>
+                        <Col md={6}>
                             <Card className="border-0 shadow-sm h-100 p-3">
                                 <div className="text-muted small fw-bold mb-2">출석률 (4주)</div>
                                 <h4 className="fw-bold mb-0">{student.attendanceRate}%</h4>
                             </Card>
                         </Col>
-                        <Col md={4}>
+                        <Col md={6}>
                             <Card className="border-0 shadow-sm h-100 p-3 bg-light">
                                 <div className="text-muted small fw-bold mb-2">총 미납액</div>
                                 <h4 className={`fw-bold mb-0 ${totalUnpaid > 0 ? 'text-danger' : 'text-success'}`}>
@@ -349,12 +349,18 @@ export default function StudentDetail() {
                                 </h4>
                             </Card>
                         </Col>
-                        <Col md={4}>
+                        {/* <Col md={4}>
                             <Card className="border-0 shadow-sm h-100 p-3">
-                                <div className="text-muted small fw-bold mb-2">과제 제출</div>
-                                <h4 className="fw-bold mb-0">- / -</h4>
+                                <div className="text-muted" style={{ fontSize: "0.8rem" }}>이탈 위험</div>
+                                                <div className={`fs-4 fw-bold ${
+                                                    student?.riskLevel === '위험' ? 'text-danger' : 
+                                                    student?.riskLevel === '경고' ? 'text-warning' : 
+                                                    'text-dark'
+                                                }`}>
+                                                    {student?.riskLevel}
+                                                </div>
                             </Card>
-                        </Col>
+                        </Col> */}
                     </Row>
 
                     <h6 className="fw-bold text-secondary mb-3 border-bottom pb-2 mt-4">최근 수납 내역</h6>
