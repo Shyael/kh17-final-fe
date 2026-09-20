@@ -76,8 +76,8 @@ export default function CourseDetail() {
             const { data } = await apiClient.get(`/employee/course/detail/${courseNo}`);
             setDetail(data);
         } catch (e) {
-            console.error("강좌 상세 조회 오류:", e);
-            await Swal.fire("오류", e.response?.data?.message || "강좌 상세 정보를 불러오지 못했습니다.", "error");
+            console.error("강의 상세 조회 오류:", e);
+            await Swal.fire("오류", e.response?.data?.message || "강의 상세 정보를 불러오지 못했습니다.", "error");
             navigate(-1);
         } finally {
             setLoading(false);
@@ -171,10 +171,11 @@ export default function CourseDetail() {
     const handleOpenEditModal = (session) => {
         setSelectedSession(session);
         setEditForm({
+            sessionNo: session.sessionNo,
             sessionStart: formatForInput(session.sessionStart),
             sessionEnd: formatForInput(session.sessionEnd),
             classroomNo: session.classroomNo || "",
-            sessionStatus: session.sessionStatus || "대기"
+            sessionStatus: session.sessionStatus || "진행중" // '대기' 제거
         });
         setShowEditModal(true);
     };
@@ -183,10 +184,17 @@ export default function CourseDetail() {
     const handleSaveSessionEdit = async () => {
         if (!selectedSession) return;
         try {
-            await apiClient.patch(`/employee/class-session/${selectedSession.sessionNo}`, editForm);
-            await Swal.fire("완료", "세션 정보가 수정되었습니다.", "success");
+            await apiClient.patch("/employee/class-session/status", {
+                sessionNo: selectedSession.sessionNo,
+                sessionStatus: editForm.sessionStatus,
+                classroomNo: editForm.classroomNo ? Number(editForm.classroomNo) : null,
+                sessionStart: editForm.sessionStart ? `${editForm.sessionStart}:00` : null,
+                sessionEnd: editForm.sessionEnd ? `${editForm.sessionEnd}:00` : null
+            });
+
+            await Swal.fire("완료", "수업 회차 정보가 수정되었습니다.", "success");
             setShowEditModal(false);
-            loadCourseDetail();
+            loadCourseDetail(); // DB 조회 후 화면 새로고침
         } catch (e) {
             await Swal.fire("오류", e.response?.data?.message || "세션 수정에 실패했습니다.", "error");
         }
@@ -196,7 +204,7 @@ export default function CourseDetail() {
         return (
             <Container className="py-5 text-center">
                 <div className="spinner-border text-primary" role="status" />
-                <p className="mt-3 text-muted">강좌 상세 정보를 불러오는 중입니다...</p>
+                <p className="mt-3 text-muted">강의 상세 정보를 불러오는 중입니다...</p>
             </Container>
         );
     }
@@ -230,7 +238,7 @@ export default function CourseDetail() {
                 content={`담당 강사: ${tutorName || "미지정"} | 과목: ${courseInfo.courseSubject} | 상태: ${courseInfo.courseStatus}`}
             />
 
-            {/* 강좌 기본 정보 및 일정 요약 */}
+            {/* 강의 기본 정보 및 일정 요약 */}
             <div className="border rounded p-4 mt-4 bg-white shadow-sm">
                 <Row className="align-items-center mb-3">
                     <Col md={8}>
@@ -244,7 +252,7 @@ export default function CourseDetail() {
                             </Badge>
                             <Badge bg="info" text="dark">{courseInfo.courseType}</Badge>
                         </div>
-                        <div className="text-muted small mb-2">{courseInfo.courseInfo || "강좌 설명이 등록되지 않았습니다."}</div>
+                        <div className="text-muted small mb-2">{courseInfo.courseInfo || "강의 설명이 등록되지 않았습니다."}</div>
                         <div className="d-flex flex-wrap gap-3 text-secondary small">
                             <span><FaChalkboardUser className="me-1" /> 강사: <strong>{tutorName || "미지정"}</strong></span>
                             <span><FaUsers className="me-1" /> 수강 인원: <strong>{studentList?.length || courseInfo.courseCurrentCount} / {courseInfo.courseLimit}명</strong></span>
@@ -291,6 +299,7 @@ export default function CourseDetail() {
                     </div>
 
                     <div>
+                        {/* 1. 세션이 아직 없는 경우 (수업 시작 버튼) */}
                         {!todaySession && (
                             <Button
                                 variant="primary"
@@ -302,6 +311,8 @@ export default function CourseDetail() {
                                 <FaPlay className="me-1" /> 수업 시작
                             </Button>
                         )}
+
+                        {/* 2. 수업 진행 중인 경우 (수업 종료 버튼) */}
                         {todaySession && todaySession.sessionStatus === "진행중" && (
                             <Button
                                 variant="danger"
@@ -314,9 +325,18 @@ export default function CourseDetail() {
                                 <FaStop className="me-1" /> 수업 종료
                             </Button>
                         )}
+
+                        {/* 3. 오늘 수업 종료된 경우 */}
                         {todaySession && todaySession.sessionStatus === "종료" && (
                             <Button variant="secondary" size="sm" className="fw-bold px-3" disabled>
                                 오늘 수업 종료됨
+                            </Button>
+                        )}
+
+                        {/* 4. 오늘 수업 취소(휴강)된 경우 */}
+                        {todaySession && todaySession.sessionStatus === "취소" && (
+                            <Button variant="outline-danger" size="sm" className="fw-bold px-3" disabled>
+                                휴강 (수업 취소)
                             </Button>
                         )}
                     </div>
@@ -420,9 +440,9 @@ export default function CourseDetail() {
                                 <Col xs={4} md={2}><div className="p-3 bg-light rounded border"><div className="text-muted small">미출결</div><div className="fs-5 fw-bold text-muted">{attendanceDetail.uncheckedCount}명</div></div></Col>
                             </Row>
 
-                            <Table bordered hover responsive className="text-center align-middle mb-0">
+                            <Table hover responsive className="kh-table text-center align-middle">
                                 <thead>
-                                    <tr className="table-light">
+                                    <tr>
                                         <th>학생명 (학번)</th>
                                         <th>연락처</th>
                                         <th>태그 시각</th>
@@ -484,7 +504,7 @@ export default function CourseDetail() {
                             </div>
                         </div>
 
-                        <Table bordered hover responsive size="sm" className="text-center align-middle mb-0">
+                        <Table hover responsive size="sm" className="kh-table text-center align-middle">
                             <thead>
                                 <tr className="table-light text-secondary small">
                                     <th style={{ width: "70px" }}>회차</th>
@@ -554,12 +574,12 @@ export default function CourseDetail() {
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                         <h6 className="fw-bold mb-0">
-                            강좌 등록 수강생 목록 ({studentList?.length || 0}명)
+                            강의 등록 수강생 목록 ({studentList?.length || 0}명)
                         </h6>
                     </div>
-                    <Table bordered hover responsive className="text-center align-middle mb-0">
+                    <Table hover responsive className="kh-table text-center align-middle">
                         <thead>
-                            <tr className="table-light">
+                            <tr>
                                 <th style={{ width: "60px" }}>No</th>
                                 <th style={{ width: "90px" }}>학번</th>
                                 <th>이름</th>
@@ -606,14 +626,14 @@ export default function CourseDetail() {
                         <Button
                             variant="outline-primary"
                             size="sm"
-                            onClick={() => navigate("/student/assignment")}
+                            onClick={() => navigate("/employee/assignment")}
                         >
                             과제 전체 목록 가기 &rarr;
                         </Button>
                     </div>
-                    <Table bordered hover responsive className="text-center align-middle mb-0">
+                    <Table hover responsive className="kh-table text-center align-middle">
                         <thead>
-                            <tr className="table-light">
+                            <tr>
                                 <th>번호</th>
                                 <th>과제 제목</th>
                                 <th>출제자</th>
@@ -628,8 +648,12 @@ export default function CourseDetail() {
                                     <td colSpan={6} className="py-4 text-muted">등록된 과제가 없습니다.</td>
                                 </tr>
                             ) : (
-                                assignmentList.map(item => (
-                                    <tr key={item.assignmentNo}>
+                                assignmentList.map((item, idx) => (
+                                    <tr
+                                        key={item.assignmentNo ?? `assignment-${idx}`}
+                                        style={{ cursor: "pointer" }}
+                                        onClick={() => navigate(`/employee/assignment/${item.assignmentNo}`)}
+                                    >
                                         <td>{item.assignmentNo}</td>
                                         <td className="text-start fw-semibold">{item.assignmentTitle}</td>
                                         <td>{item.accountName || "담당 강사"}</td>
@@ -654,10 +678,19 @@ export default function CourseDetail() {
             {/* [탭 4] 시험 관리 */}
             {activeTab === "exam" && (
                 <div className="border border-top-0 rounded-bottom p-4 bg-white shadow-sm">
-                    <h6 className="fw-bold mb-3">등록된 시험 목록 ({examList?.length || 0}건)</h6>
-                    <Table bordered hover responsive className="text-center align-middle mb-0">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                        <h6 className="fw-bold mb-0">등록된 시험 목록 ({examList?.length || 0}건)</h6>
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            onClick={() => navigate("/employee/exam")}
+                        >
+                            시험 전체 목록 가기 &rarr;
+                        </Button>
+                    </div>
+                    <Table hover responsive className="kh-table text-center align-middle">
                         <thead>
-                            <tr className="table-light">
+                            <tr>
                                 <th>번호</th>
                                 <th>시험명</th>
                                 <th>출제자</th>
@@ -673,32 +706,45 @@ export default function CourseDetail() {
                                     <td colSpan={7} className="py-4 text-muted">등록된 시험이 없습니다.</td>
                                 </tr>
                             ) : (
-                                examList.map(item => (
-                                    <tr key={item.examNo}>
-                                        <td>{item.examNo}</td>
-                                        <td className="text-start fw-semibold">{item.examTitle}</td>
-                                        <td>{item.accountName || "담당 강사"}</td>
-                                        <td className="small">
-                                            {formatDateTime(item.examStart)} ~ <br />
-                                            {formatDateTime(item.examEnd)}
-                                        </td>
-                                        <td>{item.examLimit ? `${item.examLimit}분` : "제한 없음"}</td>
-                                        <td className="text-muted small">{formatDateTime(item.examWtime)}</td>
-                                        <td>
-                                            <Badge bg={
-                                                item.examStatus === "공개" ? "danger" :
-                                                    item.examStatus === "마감" ? "secondary" : "warning"
-                                            }>
-                                                {item.examStatus}
-                                            </Badge>
-                                        </td>
-                                    </tr>
-                                ))
+                                examList.map((item, idx) => {
+                                    const isWriting = item.examStatus === "작성중";
+                                    const targetUrl = isWriting
+                                        ? `/employee/exam/${item.examNo}`
+                                        : `/employee/exam/${item.examNo}/result`;
+
+                                    return (
+                                        <tr
+                                            key={item.examNo ?? `exam-${idx}`}
+                                            style={{ cursor: "pointer" }}
+                                            onClick={() => navigate(targetUrl)}
+                                        >
+                                            <td>{item.examNo}</td>
+                                            <td className="text-start fw-semibold">{item.examTitle}</td>
+                                            <td>{item.accountName || "담당 강사"}</td>
+                                            <td className="small">
+                                                {formatDateTime(item.examStart)} ~ <br />
+                                                {formatDateTime(item.examEnd)}
+                                            </td>
+                                            <td>{item.examLimit ? `${item.examLimit}분` : "제한 없음"}</td>
+                                            <td className="text-muted small">{formatDateTime(item.examWtime)}</td>
+                                            <td>
+                                                <Badge bg={
+                                                    item.examStatus === "공개" ? "success" :
+                                                        item.examStatus === "마감" ? "secondary" :
+                                                            item.examStatus === "작성중" ? "info" : "warning"
+                                                }>
+                                                    {item.examStatus}
+                                                </Badge>
+                                            </td>
+                                        </tr>
+                                    );
+                                })
                             )}
                         </tbody>
                     </Table>
                 </div>
             )}
+            
 
             {/* 회차 일정 및 상태 수정 모달 */}
             <Modal show={showEditModal} onHide={() => setShowEditModal(false)} centered>
@@ -738,7 +784,6 @@ export default function CourseDetail() {
                                 value={editForm.sessionStatus}
                                 onChange={(e) => setEditForm({ ...editForm, sessionStatus: e.target.value })}
                             >
-                                <option value="대기">대기</option>
                                 <option value="진행중">진행중</option>
                                 <option value="취소">취소 (휴강)</option>
                                 <option value="종료">종료</option>

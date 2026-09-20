@@ -16,10 +16,58 @@
   --bs-link-color-rgb: var(--kh-primary-rgb);
   --bs-link-hover-color: var(--kh-primary-hover);
   --bs-link-hover-color-rgb: var(--kh-primary-rgb);
+
+  /* 카드 모서리를 트렌드에 맞게 더 둥글게 (기본 0.375rem → 0.75rem) */
+  --bs-card-border-radius: 0.75rem;
+  --bs-card-inner-border-radius: calc(0.75rem - 1px);
 }
 
 body {
   background-color: var(--kh-bg);
+  font-family: "Spoqa Han Sans Neo", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* 외부(비로그인) 마케팅 화면 전용 폭 제한
+   - 상위 Container가 fluid라 넓은 화면에서 콘텐츠가 끝까지 늘어나 여백만 커지고 빈약해 보임
+   - 학원소개/강사목록/강사상세 등 홍보성 페이지만 이 클래스로 감싸서 가운데 정렬 + 폭 제한 */
+.kh-external-content {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+/* 학원소개 히어로 : 브랜드 컬러로 화면 끝까지 꽉 채우는 풀블리드 배너
+   - 상위 Container(fluid)의 좌우 padding 만큼만 상쇄(카드/스크롤 리빌과 동일한 원리로
+     kh-topnav에서 쓰는 방식과 동일 계산) 해서 배경이 뷰포트 끝까지 이어지게 함
+   - 내부 콘텐츠(kh-academy-hero-inner)는 다른 섹션과 동일한 1080px 폭으로 맞춰 정렬 */
+.kh-academy-hero {
+  margin-left: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+  margin-right: calc(var(--bs-gutter-x, 1.5rem) * -0.5);
+  background: var(--kh-primary);
+  min-height: max(560px, 110vh);
+  display: flex;
+  align-items: center;
+}
+.kh-academy-hero-inner {
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 5rem calc(var(--bs-gutter-x, 1.5rem) * 0.5 + 1rem);
+}
+@media (max-width: 767.98px) {
+  .kh-academy-hero-inner {
+    padding: 2rem 1rem;
+  }
+}
+
+/* 스크롤 시 서서히 나타나는 연출 (@utils/scrollReveal 훅과 함께 사용) */
+.kh-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.kh-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .btn-primary {
@@ -36,6 +84,25 @@ body {
   --bs-btn-disabled-color: #fff;
   --bs-btn-disabled-bg: var(--kh-primary);
   --bs-btn-disabled-border-color: var(--kh-primary);
+}
+
+/* 외부(비로그인) 마케팅 화면 전용 CTA 강조색
+   - 내부 관리자 화면의 --kh-primary(차분한 슬레이트톤)와 구분되는 포인트 컬러
+   - variant는 그대로 두고 className="btn-kh-accent"만 얹어서 색만 대체 (예: 전화 걸기, 신청하기) */
+.btn-kh-accent {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--kh-accent);
+  --bs-btn-border-color: var(--kh-accent);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--kh-accent-hover);
+  --bs-btn-hover-border-color: var(--kh-accent-hover);
+  --bs-btn-focus-shadow-rgb: var(--kh-accent-rgb);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--kh-accent-hover);
+  --bs-btn-active-border-color: var(--kh-accent-hover);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--kh-accent);
+  --bs-btn-disabled-border-color: var(--kh-accent);
 }
 
 .btn-outline-primary {

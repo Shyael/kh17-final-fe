@@ -1,13 +1,14 @@
 import Jumbotron from "@templates/Jumbotron";
 import PaginationBar from "@templates/PaginationBar";
 import { useCallback, useEffect, useState } from "react";
-import { Button, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
+import { Button, Col, Form, InputGroup, Row } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
-import { Link } from "react-router-dom";
-import { FaChevronRight, FaMagnifyingGlass } from "react-icons/fa6";
-import NoImage from "@assets/no-image.png";
+import { FaMagnifyingGlass } from "react-icons/fa6";
+import TutorCard from "./TutorCard";
 
-const PAGE_SIZE = 10;
+// 카드 그리드가 화면 크기별 컬럼 수(1/2/3/4/6)로 나눠떨어지도록 12의 배수로 설정
+// (예: 10개면 4열 화면에서 마지막 줄이 2장만 남아 오른쪽이 허전하게 비어 보임)
+const PAGE_SIZE = 12;
 
 export default function AcademyTutorList() {
     //state
@@ -75,8 +76,8 @@ export default function AcademyTutorList() {
 
     const tutorList = pageResponse.list ?? [];
 
-    return (<>
-        <Jumbotron title="비로그인이 보는 강사목록" />
+    return (<div className="kh-external-content">
+        <Jumbotron title="강사진 소개" />
 
         <Row className="mt-4 g-2">
             <Col md={6} lg={4}>
@@ -133,41 +134,8 @@ export default function AcademyTutorList() {
                 </Col>
             ) : (
                 tutorList.map((tutor) => (
-                    <Col key={tutor.tutorNo} xs={12}>
-                        <Card
-                            as={Link}
-                            to={`/academy/tutor/${tutor.tutorNo}`}
-                            className="text-decoration-none text-reset">
-                            <Card.Body className="d-flex align-items-center">
-                                <img
-                                    src={
-                                        tutor.image
-                                            ? `${import.meta.env.VITE_SERVER_URL}/api/attach/${tutor.image.attachNo}`
-                                            : NoImage
-                                    }
-                                    alt={`${tutor.accountName} 강사`}
-                                    className="rounded-circle me-4"
-                                    width={100}
-                                    height={100}
-                                    style={{ objectFit: "cover" }}
-                                />
-
-                                <div className="flex-grow-1">
-                                    <Card.Title className="fw-bold mb-2">
-                                        {tutor.accountName} 강사
-                                    </Card.Title>
-
-                                    <Card.Text className="text-muted mb-0">
-                                        {tutor.tutorTagline}
-                                    </Card.Text>
-                                </div>
-
-                                <FaChevronRight
-                                    className="text-muted ms-3"
-                                    size={20}
-                                />
-                            </Card.Body>
-                        </Card>
+                    <Col key={tutor.tutorNo} xs={12} sm={6} md={4} lg={3} xl={2}>
+                        <TutorCard tutor={tutor} />
                     </Col>
                 ))
             )}
@@ -182,5 +150,5 @@ export default function AcademyTutorList() {
             next={pageResponse.next}
             onChange={handlePageChange}
         />
-    </>)
+    </div>)
 }

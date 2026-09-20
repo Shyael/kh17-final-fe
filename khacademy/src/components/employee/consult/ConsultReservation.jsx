@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Container, Row, Col, Form, Button, Table } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Badge, Table } from 'react-bootstrap';
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
@@ -8,6 +8,17 @@ import Jumbotron from "@templates/Jumbotron";
 import dayjs from 'dayjs';
 import ko from 'dayjs/locale/ko';
 dayjs.locale(ko);
+
+import PaginationBar from "@templates/PaginationBar";
+
+const PAGE_SIZE = 10;
+
+const reservationStatusBadge = {
+    "0": <Badge bg="secondary">상담대기</Badge>,
+    "1": <Badge bg="success">예약확정</Badge>,
+    "2": <Badge bg="info">상담완료</Badge>,
+    "9": <Badge bg="danger">예약취소</Badge>,
+};
 
 export default function ConsultReservation() {
 
@@ -18,15 +29,51 @@ export default function ConsultReservation() {
         searchStatus : "",
     });
 
-    const [reservationList, setReservationList] = useState([]);
+    // 백엔드 PageResponseVO 응답
+    const [pageResponse, setPageResponse] = useState({
+        list: [],
+        totalCount: 0,
+        page: 1,
+        size: PAGE_SIZE,
+        totalPages: 0,
+        startBlock: 1,
+        endBlock: 0,
+        prev: false,
+        next: false,
+    });
+
+    const [params, setParams] = useState({
+        page: 1,
+        size: PAGE_SIZE,
+        searchName : "",
+        searchPhone : "",
+        searchType : "",
+        searchStatus : "",
+    });
 
     const loadList = useCallback(async ()=>{
-        const { data } = await apiClient.post("/employee/consult/reservation", search);
-        setReservationList(data.items);
+        const response = await apiClient.post("/employee/consult/reservation", params);
+        setPageResponse(response.data);
+    }, [search, params]);
+
+    const handleSearch = useCallback(() => {
+        setParams({
+            ...search,
+            page: 1,
+            size: PAGE_SIZE
+        });
     }, [search]);
+
     useEffect(()=>{
         loadList();
+    }, [params]);
+
+    // 페이지 이동
+    const handlePageChange = useCallback((page) => {
+        setParams((prev) => ({ ...prev, page }));
     }, []);
+
+    const reservationList = pageResponse.list ?? [];
 
     const changeStringValue = useCallback((e)=>{
         const { name, value } = e.target;
@@ -131,7 +178,7 @@ export default function ConsultReservation() {
 
     return (<>
         <Jumbotron title="상담 예약 목록" content="고객이 신청한 상담 예약 목록" />
-        <Container className="p-4">
+        <Container fluid className="p-4">
             {/* 1. 상단 검색 및 필터 영역 */}
             <Row className="mb-4 align-items-end">
                 <Col xs="auto" className="pe-0">
@@ -180,14 +227,14 @@ export default function ConsultReservation() {
                 </Col>
                 <Col xs="auto">
                 <Button variant="info"
-                    onClick={loadList}>
+                    onClick={handleSearch}>
                     조회
                 </Button>
                 </Col>
             </Row>
 
             {/* 2. 데이터 테이블 영역 */}
-            <Table bordered hover responsive>
+            <Table hover responsive className="kh-table">
                 <thead>
                 <tr>
                     <th className="py-3" style={{ minWidth: '50px', width: '10%' }}>No.</th>
@@ -211,7 +258,11 @@ export default function ConsultReservation() {
                             <span>{dayjs(reservation.reservationTime).format('YYYY-MM-DD')}</span><br/>
                             <span>{dayjs(reservation.reservationTime).format('A hh시 mm분')}</span>
                         </td>
-                        <td>{reservation.reservationStatusString}</td>
+                        <td>
+                            {reservationStatusBadge[reservation.reservationStatus] ?? (
+                                <Badge bg="secondary">{reservation.reservationStatusString}</Badge>
+                            )}
+                        </td>
                         <td>
                             <div className={`d-flex ${classMap[reservation.reservationStatus] || ""} gap-2`}>
                                 {statusMap[reservation.reservationStatus]?.(reservation) || null}
@@ -221,6 +272,16 @@ export default function ConsultReservation() {
                     )})}
                 </tbody>
             </Table>
+
+            <PaginationBar
+                page={pageResponse.page}
+                totalPages={pageResponse.totalPages}
+                startBlock={pageResponse.startBlock}
+                endBlock={pageResponse.endBlock}
+                prev={pageResponse.prev}
+                next={pageResponse.next}
+                onChange={handlePageChange}
+            />
         </Container>
     </>)
 }

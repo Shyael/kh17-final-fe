@@ -17,7 +17,7 @@ export default function MemberJoinSuccess() {
         <Row className="mt-4">
             <Col>
                 <Button variant="info" className="w-100"
-                    as={Link} to={`/employee/login`}>
+                    as={Link} to={`/member/login`}>
                     <FaRightFromBracket/>
                     <span className="ms-2">로그인하기</span>
                 </Button>

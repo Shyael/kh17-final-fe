@@ -3,6 +3,15 @@ import { useCallback, useEffect, useState } from "react";
 import { Button, Col, Form, Modal, Row } from "react-bootstrap";
 import { apiClient } from "@utils/reaxios";
 import Swal from "sweetalert2";
+import {
+    FaXmark,
+    FaFloppyDisk,
+    FaLink,
+    FaKey,
+    FaPenToSquare,
+    FaCheck,
+    FaCopy,
+} from "react-icons/fa6";
 
 export default function StudentMyInfo() {
 
@@ -311,10 +320,12 @@ export default function StudentMyInfo() {
             {editMode ? (
 
                 <>
-                    <Jumbotron
-                        title="내 정보 수정"
-                        content="개인정보를 수정할 수 있습니다."
-                    />
+                    <div className="mt-4">
+                        <Jumbotron
+                            title="내 정보 수정"
+                            content="개인정보를 수정할 수 있습니다."
+                        />
+                    </div>
 
                     <Form onSubmit={sendUpdate}>
 
@@ -416,6 +427,7 @@ export default function StudentMyInfo() {
                                         loadStudent();
                                     }}
                                 >
+                                    <FaXmark className="me-1" />
                                     취소
                                 </Button>
 
@@ -423,6 +435,7 @@ export default function StudentMyInfo() {
                                     variant="success"
                                     type="submit"
                                 >
+                                    <FaFloppyDisk className="me-1" />
                                     저장
                                 </Button>
 
@@ -439,10 +452,12 @@ export default function StudentMyInfo() {
                 /* ================================================= */
 
                 <>
-                    <Jumbotron
-                        title="내 정보"
-                        content="내 계정 및 학생 정보를 확인할 수 있습니다."
-                    />
+                    <div className="mt-4">
+                        <Jumbotron
+                            title="내 정보"
+                            content="내 계정 및 학생 정보를 확인할 수 있습니다."
+                        />
+                    </div>
 
                     <Row className="mt-5">
                         <Col md={8} className="mx-auto">
@@ -718,6 +733,7 @@ export default function StudentMyInfo() {
                                         className="me-2"
                                         onClick={createLinkCode}
                                     >
+                                        <FaLink className="me-1" />
                                         학부모 연동 코드
                                     </Button>
                                     {/* 비밀번호 변경 */}
@@ -733,6 +749,7 @@ export default function StudentMyInfo() {
                                             setChangePasswordModal(true);
                                         }}
                                     >
+                                        <FaKey className="me-1" />
                                         비밀번호 변경
                                     </Button>
 
@@ -745,6 +762,7 @@ export default function StudentMyInfo() {
                                             setPasswordModal(true);
                                         }}
                                     >
+                                        <FaPenToSquare className="me-1" />
                                         정보 수정
                                     </Button>
 
@@ -817,6 +835,7 @@ export default function StudentMyInfo() {
                             setPasswordError(false);
                         }}
                     >
+                        <FaXmark className="me-1" />
                         취소
                     </Button>
 
@@ -825,6 +844,7 @@ export default function StudentMyInfo() {
                         onClick={checkPassword}
                         disabled={password === ""}
                     >
+                        <FaCheck className="me-1" />
                         확인
                     </Button>
 
@@ -869,6 +889,7 @@ export default function StudentMyInfo() {
                             });
                         }}
                     >
+                        <FaCopy className="me-1" />
                         코드 복사
                     </Button>
 
@@ -882,6 +903,7 @@ export default function StudentMyInfo() {
                         variant="secondary"
                         onClick={() => setLinkModal(false)}
                     >
+                        <FaXmark className="me-1" />
                         닫기
                     </Button>
                 </Modal.Footer>
@@ -1020,6 +1042,7 @@ export default function StudentMyInfo() {
                         }}
                         disabled={changePasswordLoading}
                     >
+                        <FaXmark className="me-1" />
                         취소
                     </Button>
 
@@ -1036,6 +1059,7 @@ export default function StudentMyInfo() {
                             newAccountPassword !== newAccountPasswordCheck
                         }
                     >
+                        <FaKey className="me-1" />
                         {changePasswordLoading
                             ? "변경 중..."
                             : "변경하기"

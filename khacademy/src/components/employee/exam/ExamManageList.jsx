@@ -1,10 +1,11 @@
 import Jumbotron from "@templates/Jumbotron";
 import PaginationBar from "@templates/PaginationBar";
 import { useCallback, useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Col, Form, InputGroup, Row, Table } from "react-bootstrap";
-import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
+import { FaPlus, FaMagnifyingGlass, FaPen } from "react-icons/fa6";
+import { formatDateTime } from "@utils/format";
 
 const PAGE_SIZE = 10;
 
@@ -24,6 +25,11 @@ const PHASE_FILTERS = ["예정", "응시가능", "종료"];
 export default function ExamManageList() {
     const navigate = useNavigate();
 
+    // 대시보드 등 다른 화면에서 넘어올 때 필터를 미리 선택해서 진입할 수 있도록
+    // (예: /employee/exam?examPhase=응시가능)
+    const [searchParams] = useSearchParams();
+    const initialPhase = searchParams.get("examPhase") ?? "";
+
     // 시험명 입력값(draft)
     const [examTitle, setExamTitle] = useState("");
 
@@ -32,7 +38,7 @@ export default function ExamManageList() {
         page: 1,
         examTitle: "",
         examStatus: "",
-        examPhase: "",
+        examPhase: initialPhase,
         courseNo: null,
     });
 
@@ -161,7 +167,8 @@ export default function ExamManageList() {
                     variant="outline-primary"
                     onClick={() => navigate(`/employee/exam/${exam.examNo}`)}
                 >
-                    수정
+                    <FaPen className="me-2" />
+                    <span>수정</span>
                 </Button>
             );
         }
@@ -182,26 +189,12 @@ export default function ExamManageList() {
         );
     };
 
-    // 날짜 출력
-    const formatDate = (date) => {
-
-        if (!date) return "-";
-
-        return new Date(date).toLocaleString("ko-KR", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    };
-
     // 응시기간(시작~종료) 출력
     const formatDateRange = (start, end) => (
         <>
-            {formatDate(start)}
+            {formatDateTime(start)}
             <span className="text-muted"> ~ </span>
-            {formatDate(end)}
+            {formatDateTime(end)}
         </>
     );
 
@@ -212,7 +205,7 @@ export default function ExamManageList() {
 
         <Row className="mt-4">
             <Col className="text-end">
-                <Button as={Link} to={`/employee/exam/add`} variant="success" className="ms-2">
+                <Button as={Link} to={`/employee/exam/add`} variant="primary" className="ms-2">
                     <FaPlus className="me-2" />
                     <span>신규시험생성</span>
                 </Button>
@@ -296,7 +289,7 @@ export default function ExamManageList() {
 
         <Row>
             <Col>
-                <Table responsive striped hover className="text-nowrap">
+                <Table responsive hover className="kh-table text-nowrap">
                     <thead>
                         <tr>
                             <th className="d-none d-md-table-cell">번호</th>

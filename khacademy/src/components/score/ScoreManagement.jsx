@@ -2,6 +2,8 @@ import React, { useState, useCallback } from "react";
 import { Button, Card, Col, Form, Row, Table, Modal, Badge, InputGroup } from "react-bootstrap";
 import { FaSearch, FaList, FaTrash, FaEdit, FaTimes } from "react-icons/fa";
 import { apiClient } from "@utils/reaxios"; 
+import Swal from 'sweetalert2';
+import PaginationBar from "@templates/PaginationBar";
 
 export default function ScoreManagement() {
     // ==========================================
@@ -9,7 +11,9 @@ export default function ScoreManagement() {
     // ==========================================
     const [searchKeyword, setSearchKeyword] = useState("");
     const [student, setStudent] = useState(null); 
-    const [searchResults, setSearchResults] = useState([]); 
+    const [pageData, setPageData] = useState({
+        list: [], page: 1, totalPages: 0, startBlock: 1, endBlock: 0, prev: false, next: false, totalCount: 0
+    }); 
     const [showSearchModal, setShowSearchModal] = useState(false);
 
     const [scoreForm, setScoreForm] = useState({
@@ -30,42 +34,45 @@ export default function ScoreManagement() {
     // ==========================================
     // 2. API 호출 및 이벤트 핸들러
     // ==========================================
-    const handleSearchStudent = async () => {
-        if (!searchKeyword.trim()) return alert("학생 이름이나 번호를 입력해주세요.");
+    // 🌟 매개변수로 targetPage를 받습니다. (기본값 1)
+    // 🌟 1. 매개변수로 targetPage를 받습니다. 기본값은 1페이지입니다.
+    const handleSearchStudent = async (targetPage = 1) => { 
         try {
             const response = await apiClient.get("/employee/student/list", {
                 params: {
-                    filter: '전체', // 전체 학생 대상 검색
-                    searchKeyword: searchKeyword
+                    filter: '전체', 
+                    searchKeyword: searchKeyword.trim(),
+                    // 🌟 2. 백엔드로 현재 클릭한 페이지 번호를 함께 보냅니다!
+                    page: targetPage 
                 }
             });
-            
-            if (response.data && response.data.length > 0) {
-                // 검색 결과가 있으면 모달을 열고 데이터를 채워줍니다.
-                setSearchResults(response.data);
+
+            if (response.data && response.data.list && response.data.list.length > 0) {
+                // 🌟 3. 기존 setSearchResults 대신, 페이지 정보 전체를 담는 setSearchPageData 사용!
+                setPageData(response.data); 
                 setShowSearchModal(true); 
             } else {
-                alert("검색된 학생이 없습니다.");
-                setSearchResults([]);
+                Swal.fire({ icon: 'info', title: '검색 결과 없음', text: '검색된 학생이 없습니다.', confirmButtonColor: '#3085d6' });
+                // 🌟 4. 데이터가 없으면 빈 리스트로 초기화
+                setPageData({ list: [], totalPages: 0, totalCount: 0 }); 
             }
         } catch (error) {
             console.error("학생 검색 실패:", error);
-            alert("학생 검색 중 오류가 발생했습니다.");
+            Swal.fire({ icon: 'error', title: '검색 실패', text: '학생 검색 중 오류가 발생했습니다.', confirmButtonColor: '#d33' });
         }
     };
 
-    // 🌟 추가: 모달에서 [선택] 버튼을 눌렀을 때 실행될 함수
+
     const handleSelectStudent = (selected) => {
-        setStudent(selected);            // 1. 선택한 학생 정보를 화면에 세팅
-        fetchScores(selected.studentNo); // 2. 해당 학생의 성적 목록 불러오기
-        resetForm();                     // 3. 입력 폼 초기화
-        setShowSearchModal(false);       // 4. 검색 모달 닫기
+        setStudent(selected);            
+        fetchScores(selected.studentNo); 
+        resetForm();                     
+        setShowSearchModal(false);       
     };
 
     const fetchScores = useCallback(async (studentNo) => {
         try {
-            // 🌟 /api 제거
-            const response = await apiClient.get(`/score/list/${studentNo}`); 
+            const response = await apiClient.get(`/employee/score/list/${studentNo}`); 
             setRawScores(response.data || []);
         } catch (error) {
             console.error("성적 로딩 실패:", error);
@@ -85,28 +92,31 @@ export default function ScoreManagement() {
     };
 
     const handleSaveScore = async () => {
-        if (!student) return alert("먼저 학생을 검색하고 선택해주세요.");
+        if (!student) {
+            Swal.fire({ icon: 'warning', text: '먼저 학생을 검색하고 선택해주세요.', confirmButtonColor: '#3085d6' });
+            return;
+        }
         if (!scoreForm.scoreName || !scoreForm.scoreScore || !scoreForm.scoreDate) {
-            return alert("시험명, 점수, 시험일은 필수 입력값입니다.");
+            Swal.fire({ icon: 'warning', text: '시험명, 점수, 시험일은 필수 입력값입니다.', confirmButtonColor: '#3085d6' });
+            return;
         }
 
-        // 🌟 방어 로직 추가: 점수 검증 (0 ~ 100)
         const scoreNum = Number(scoreForm.scoreScore);
         if (scoreNum < 0 || scoreNum > 100) {
-            return alert("점수는 0점에서 100점 사이로 입력해주세요.");
+            Swal.fire({ icon: 'warning', text: '점수는 0점에서 100점 사이로 입력해주세요.', confirmButtonColor: '#3085d6' });
+            return;
         }
 
-        // 🌟 방어 로직 추가: 등급/석차 검증 (입력된 경우만 1 ~ 9)
         if (scoreForm.scoreRank) {
             const rankNum = Number(scoreForm.scoreRank);
             if (rankNum < 1 || rankNum > 9) {
-                return alert("등급은 1등급에서 9등급 사이로 입력해주세요.");
+                Swal.fire({ icon: 'warning', text: '등급은 1등급에서 9등급 사이로 입력해주세요.', confirmButtonColor: '#3085d6' });
+                return;
             }
         }
 
         const isEditMode = scoreForm.scoreNo !== null; 
-        // 🌟 /api 제거
-        const apiUrl = isEditMode ? "/score/edit" : "/score/add";
+        const apiUrl = isEditMode ? "/employee/score/edit" : "/employee/score/add";
         const method = isEditMode ? "put" : "post";
 
         try {
@@ -115,7 +125,13 @@ export default function ScoreManagement() {
                 ...scoreForm
             });
             
-            alert(isEditMode ? "성적이 성공적으로 수정되었습니다." : "성적이 성공적으로 등록되었습니다.");
+            // 🌟 성공 alert 교체
+            Swal.fire({ 
+                icon: 'success', 
+                title: '성공', 
+                text: isEditMode ? "성적이 성공적으로 수정되었습니다." : "성적이 성공적으로 등록되었습니다.", 
+                confirmButtonColor: '#3085d6' 
+            });
             
             if (isEditMode) {
                 resetForm();
@@ -125,7 +141,13 @@ export default function ScoreManagement() {
             
             fetchScores(student.studentNo); 
         } catch (error) {
-            alert(isEditMode ? "성적 수정에 실패했습니다." : "성적 등록에 실패했습니다.");
+            // 🌟 실패 alert 교체
+            Swal.fire({ 
+                icon: 'error', 
+                title: '실패', 
+                text: isEditMode ? "성적 수정에 실패했습니다." : "성적 등록에 실패했습니다.", 
+                confirmButtonColor: '#d33' 
+            });
         }
     };
 
@@ -144,23 +166,40 @@ export default function ScoreManagement() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
-    const handleDeleteScore = async (scoreNo) => {
-        if (!window.confirm("이 과목 성적을 삭제하시겠습니까?")) return;
-        try {
-            // 🌟 /api 제거
-            await apiClient.delete(`/score/delete/${scoreNo}`);
-            fetchScores(student.studentNo);
-            
-            if (selectedExam) {
-                setSelectedExam(prev => ({
-                    ...prev,
-                    subjects: prev.subjects.filter(s => s.scoreNo !== scoreNo)
-                }));
+    // 🌟 window.confirm 대신 Swal.fire 적용! (비동기 처리 구조 변경)
+    const handleDeleteScore = (scoreNo) => {
+        Swal.fire({
+            title: '정말 삭제하시겠습니까?',
+            text: "삭제한 성적 데이터는 복구할 수 없습니다.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545', // Danger 색상
+            cancelButtonColor: '#6c757d',  // Secondary 색상
+            confirmButtonText: '삭제',
+            cancelButtonText: '취소'
+        }).then(async (result) => {
+            // '삭제' 버튼을 눌렀을 때만 아래 로직 실행
+            if (result.isConfirmed) {
+                try {
+                    await apiClient.delete(`/employee/score/delete/${scoreNo}`);
+                    fetchScores(student.studentNo);
+                    
+                    if (selectedExam) {
+                        setSelectedExam(prev => ({
+                            ...prev,
+                            subjects: prev.subjects.filter(s => s.scoreNo !== scoreNo)
+                        }));
+                    }
+                    
+                    Swal.fire({ icon: 'success', title: '삭제 완료', text: '성적이 성공적으로 삭제되었습니다.', confirmButtonColor: '#3085d6' });
+                } catch (error) {
+                    Swal.fire({ icon: 'error', title: '삭제 실패', text: '삭제 중 오류가 발생했습니다.', confirmButtonColor: '#3085d6' });
+                }
             }
-        } catch (error) {
-            alert("삭제에 실패했습니다.");
-        }
+        });
     };
+
+    
 
     // ==========================================
     // 3. 데이터 가공 (시험별 그룹화)
@@ -190,6 +229,7 @@ export default function ScoreManagement() {
         setScoreForm(prev => ({ ...prev, [name]: value }));
     };
 
+
     // ==========================================
     // 4. 화면 렌더링
     // ==========================================
@@ -208,9 +248,9 @@ export default function ScoreManagement() {
                                 placeholder="이름 또는 학생번호 입력" 
                                 value={searchKeyword}
                                 onChange={(e) => setSearchKeyword(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && handleSearchStudent()}
+                                onKeyDown={(e) => e.key === 'Enter' && handleSearchStudent(1)}
                             />
-                            <Button variant="primary" onClick={handleSearchStudent}>
+                            <Button variant="primary" onClick={()=>handleSearchStudent(1)}>
                                 <FaSearch className="me-1" /> 검색
                             </Button>
                         </InputGroup>
@@ -326,10 +366,9 @@ export default function ScoreManagement() {
                             <span className="small text-muted">총 {examList.length}건의 시험</span>
                         </Card.Header>
                         <Card.Body>
-                            <Table hover responsive className="align-middle text-center border-top">
-                                <thead className="bg-light">
+                            <Table hover responsive className="kh-table align-middle text-center">
+                                <thead>
                                     <tr>
-                                        <th>시험일</th>
                                         <th>유형</th>
                                         <th className="text-start">시험명</th>
                                         <th>응시 과목 수</th>
@@ -344,7 +383,6 @@ export default function ScoreManagement() {
                                     ) : (
                                         examList.map((exam, idx) => (
                                             <tr key={idx}>
-                                                <td className="text-muted small">{exam.examDate}</td>
                                                 <td><Badge bg="secondary">{exam.examType}</Badge></td>
                                                 <td className="fw-bold text-start">{exam.examName}</td>
                                                 <td>{exam.subjects.length}과목</td>
@@ -370,9 +408,10 @@ export default function ScoreManagement() {
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body className="p-0">
-                    <Table hover responsive className="align-middle text-center mb-0">
-                        <thead className="bg-white border-bottom">
+                    <Table hover responsive className="kh-table kh-table-flat align-middle text-center">
+                        <thead>
                             <tr>
+                                <th>시험일</th>
                                 <th>과목</th>
                                 <th>점수</th>
                                 <th>등급/석차</th>
@@ -382,6 +421,7 @@ export default function ScoreManagement() {
                         <tbody>
                             {selectedExam?.subjects.map(subject => (
                                 <tr key={subject.scoreNo}>
+                                    <td className="text-muted small">{subject.scoreDate}</td>
                                     <td className="fw-bold text-dark">{subject.scoreSubject}</td>
                                     <td className="text-primary fw-bold">{subject.scoreScore}점</td>
                                     <td>{subject.scoreRank ? `${subject.scoreRank}` : '-'}</td>
@@ -410,43 +450,66 @@ export default function ScoreManagement() {
             <Modal show={showSearchModal} onHide={() => setShowSearchModal(false)} size="lg" centered>
                 <Modal.Header closeButton className="bg-light">
                     <Modal.Title className="fw-bold fs-5 text-dark">
-                        [{searchKeyword}] 검색 결과 목록 ({searchResults.length}건)
+                        {/* 🌟 searchPageData.totalCount 로 진짜 전체 검색 건수를 표시합니다! */}
+                        [{searchKeyword}] 검색 결과 목록 ({pageData.totalCount || 0}건)
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body className="p-0" style={{ maxHeight: '60vh', overflowY: 'auto' }}>
-                    <Table hover responsive className="align-middle text-center mb-0">
-                        <thead className="bg-white border-bottom sticky-top">
-                            <tr>
-                                <th>번호</th>
-                                <th>이름</th>
-                                <th>학교</th>
-                                <th>학년</th>
-                                <th>상태</th>
-                                <th>선택</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {searchResults.map(res => (
-                                <tr key={res.studentNo}>
-                                    <td className="text-muted">{res.studentNo}</td>
-                                    <td className="fw-bold text-dark">{res.studentName}</td>
-                                    <td>{res.studentSchool || '-'}</td>
-                                    <td>{res.studentGrade || '-'}</td>
-                                    <td>
-                                        <Badge bg={res.studentAcademicStatus === '재원' ? 'success' : 'secondary'}>
-                                            {res.studentAcademicStatus}
-                                        </Badge>
-                                    </td>
-                                    <td>
-                                        <Button variant="outline-primary" size="sm" onClick={() => handleSelectStudent(res)}>
-                                            선택
-                                        </Button>
-                                    </td>
+                
+                {/* 🌟 d-flex flex-column 을 줘서 테이블과 페이지네이션 바를 위아래로 분리 */}
+                <Modal.Body className="p-0 d-flex flex-column" style={{ maxHeight: '70vh' }}>
+                    <div style={{ overflowY: 'auto' }}>
+                        <Table hover responsive className="kh-table kh-table-flat align-middle text-center mb-0">
+                            <thead className="sticky-top bg-white">
+                                <tr>
+                                    <th>번호</th>
+                                    <th>이름</th>
+                                    <th>학교</th>
+                                    <th>학년</th>
+                                    <th>상태</th>
+                                    <th>선택</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </Table>
+                            </thead>
+                            <tbody>
+                                {/* 🌟 searchResults 대신 searchPageData.list 사용! */}
+                                {pageData.list.map(res => (
+                                    <tr key={res.studentNo}>
+                                        <td className="text-muted">{res.studentNo}</td>
+                                        <td className="fw-bold text-dark">{res.studentName}</td>
+                                        <td>{res.studentSchool || '-'}</td>
+                                        <td>{res.studentGrade || '-'}</td>
+                                        <td>
+                                            <Badge bg={res.studentAcademicStatus === '재원' ? 'success' : 'secondary'}>
+                                                {res.studentAcademicStatus}
+                                            </Badge>
+                                        </td>
+                                        <td>
+                                            <Button variant="outline-primary" size="sm" onClick={() => handleSelectStudent(res)}>
+                                                선택
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
+                    </div>
+
+                    {/* 🌟 페이지네이션 바 부착 영역 (2페이지 이상일 때만 표시) */}
+                    {pageData.totalPages > 1 && (
+                        <div className="py-3 bg-white border-top d-flex justify-content-center mt-auto">
+                            <PaginationBar 
+                                page={pageData.page}
+                                totalPages={pageData.totalPages}
+                                startBlock={pageData.startBlock}
+                                endBlock={pageData.endBlock}
+                                prev={pageData.prev}
+                                next={pageData.next}
+                                // 🌟 번호를 누르면 해당 번호를 넣어서 검색 함수를 다시 실행!
+                                onChange={(targetPage) => handleSearchStudent(targetPage)} 
+                            />
+                        </div>
+                    )}
                 </Modal.Body>
+                
                 <Modal.Footer className="border-0 bg-light">
                     <Button variant="secondary" onClick={() => setShowSearchModal(false)}>닫기</Button>
                 </Modal.Footer>

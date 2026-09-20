@@ -96,8 +96,17 @@ const AdminPayrollCalculate = () => {
 
             if (error.response?.status === 403) {
 
+                const responseData = error.response?.data;
+
+                const serverMessage =
+                    typeof responseData === "string"
+                        ? responseData
+                        : responseData?.message;
+
                 toast.error(
-                    "급여를 계산할 수 없습니다"
+                    typeof serverMessage === "string" && serverMessage.trim()
+                        ? serverMessage.trim()
+                        : "급여를 계산할 수 없습니다"
                 );
 
                 return;
@@ -267,8 +276,8 @@ const AdminPayrollCalculate = () => {
 
                                 {
                                     loading
-                                    ? "계산중..."
-                                    : "급여 계산"
+                                        ? "계산중..."
+                                        : "급여 계산"
                                 }
 
                             </Button>

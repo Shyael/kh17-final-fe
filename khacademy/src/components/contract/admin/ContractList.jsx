@@ -3,6 +3,7 @@ import Jumbotron from "@templates/Jumbotron";
 import {
     useCallback,
     useEffect,
+    useMemo,
     useState
 } from "react";
 
@@ -23,6 +24,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDate } from "@utils/format";
 
 import { toast } from "react-toastify";
 
@@ -38,7 +40,8 @@ const initialCondition = {
     accountName: "",
     contractStart: "",
     contractEnd: "",
-    employeeStatus: ""
+    employeeStatus: "",
+    contractStatus:""
 
 };
 
@@ -138,6 +141,7 @@ export default function ContractList() {
 
         }));
 
+        
 
     }, []);
 
@@ -198,6 +202,10 @@ export default function ContractList() {
                 params.employeeStatus =
                         searchCondition.employeeStatus;
 
+            }
+
+            if(searchCondition.contractStatus!==""){
+                params.contractStatus = searchCondition.contractStatus;
             }
 
 
@@ -585,36 +593,6 @@ export default function ContractList() {
 
 
     // =========================
-    // 날짜 출력
-    // =========================
-
-    const toDate =
-            useCallback(value => {
-
-
-        if (
-            value === null
-            ||
-            value === undefined
-            ||
-            value === ""
-        ) {
-
-            return "-";
-
-        }
-
-
-        return value.substring(
-                0,
-                10
-        );
-
-
-    }, []);
-
-
-    // =========================
     // 계약 종료일 출력
     // =========================
 
@@ -635,10 +613,7 @@ export default function ContractList() {
         }
 
 
-        return value.substring(
-                0,
-                10
-        );
+        return formatDate(value);
 
 
     }, []);
@@ -679,7 +654,6 @@ export default function ContractList() {
 
     }, []);
 
-
     return (
         <>
 
@@ -704,7 +678,7 @@ export default function ContractList() {
 
                     {/* 이름 */}
 
-                    <Col md={3}>
+                    <Col md={2}>
 
                         <Form.Label>
                             직원 이름
@@ -723,7 +697,7 @@ export default function ContractList() {
 
                     {/* 계약 시작일 */}
 
-                    <Col md={3}>
+                    <Col md={2}>
 
                         <Form.Label>
                             계약 시작일
@@ -741,7 +715,7 @@ export default function ContractList() {
 
                     {/* 계약 종료일 */}
 
-                    <Col md={3}>
+                    <Col md={2}>
 
                         <Form.Label>
                             계약 종료일
@@ -789,6 +763,40 @@ export default function ContractList() {
 
                         </Form.Select>
 
+                    </Col>
+
+                    <Col md={3}>
+                        <Form.Label>
+                            계약 상태
+                        </Form.Label>
+
+                        <Form.Select
+                            name="contractStatus"
+                            value={condition.contractStatus}
+                            onChange={changeCondition}>
+                            <option value="">
+                                전체
+                            </option>
+
+                            <option value="pending">
+                                서명 대기
+                            </option>
+
+                            <option value="active">
+                                계약 이행중
+                            </option>
+
+                            <option value="scheduled">
+                                근무 예정
+                            </option>
+
+                            <option value="ended">
+                                계약 종료
+                            </option>
+
+                            </Form.Select>
+
+                    
                     </Col>
 
 
@@ -899,12 +907,11 @@ export default function ContractList() {
 
                         <Table
                             hover
-                            bordered
-                            className="align-middle text-center"
+                            className="kh-table align-middle text-center"
                         >
 
 
-                            <thead className="table-light">
+                            <thead>
 
 
                                 <tr>
@@ -1033,17 +1040,24 @@ export default function ContractList() {
                                     )
                                 }
 
+                                
 
                                 {/* =========================
                                     계약 목록
                                 ========================= */}
 
                                 {
+                                    
                                     loading === false
                                     &&
                                     contractList.map(
                                         contract => (
-
+                                             
+                                                        
+                                             
+                                                    
+                                                    
+                                                
 
                                             <tr
                                                 key={contract.contractNo}
@@ -1100,7 +1114,7 @@ export default function ContractList() {
                                                 <td>
 
                                                     {
-                                                        toDate(
+                                                        formatDate(
                                                             contract.contractStart
                                                         )
                                                     }
@@ -1132,7 +1146,7 @@ export default function ContractList() {
 
                                                 <td>
 
-
+                                               
                                                     <Badge
                                                         bg={
                                                             statusColor(
@@ -1148,7 +1162,7 @@ export default function ContractList() {
                                                         }
 
                                                     </Badge>
-
+                                                    
 
                                                 </td>
 
@@ -1158,7 +1172,7 @@ export default function ContractList() {
                                                     {
                                                         contract.signedTime
                                                         ?
-                                                        toDate(
+                                                        formatDate(
                                                             contract.signedTime
                                                         )
                                                         :
@@ -1190,11 +1204,12 @@ export default function ContractList() {
 
 
                                             </tr>
-
-
-                                        )
-                                    )
-                                }
+                                                    
+                                                    )        
+                                                )
+                                            }
+                                    
+                                
 
 
                             </tbody>

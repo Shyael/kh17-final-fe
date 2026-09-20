@@ -34,12 +34,23 @@ export default function PaginationBar({
     }
 
     return (
-        <Pagination className="justify-content-center mt-4 mb-0">
-            <Pagination.First disabled={page === 1} onClick={() => move(1)} />
-            <Pagination.Prev disabled={page === 1} onClick={() => move(page - 1)} />
+        <Pagination className="kh-pagination justify-content-center mt-4 mb-0">
+            <Pagination.First
+                className="kh-page-arrow"
+                disabled={page === 1}
+                onClick={() => move(1)}
+            />
+            <Pagination.Prev
+                className="kh-page-arrow"
+                disabled={page === 1}
+                onClick={() => move(page - 1)}
+            />
 
             {prev && (
-                <Pagination.Ellipsis onClick={() => move(startBlock - 1)} />
+                <Pagination.Ellipsis
+                    className="kh-page-arrow"
+                    onClick={() => move(startBlock - 1)}
+                />
             )}
 
             {pages.map((p) => (
@@ -52,14 +63,19 @@ export default function PaginationBar({
             ))}
 
             {next && (
-                <Pagination.Ellipsis onClick={() => move(endBlock + 1)} />
+                <Pagination.Ellipsis
+                    className="kh-page-arrow"
+                    onClick={() => move(endBlock + 1)}
+                />
             )}
 
             <Pagination.Next
+                className="kh-page-arrow"
                 disabled={page === totalPages}
                 onClick={() => move(page + 1)}
             />
             <Pagination.Last
+                className="kh-page-arrow"
                 disabled={page === totalPages}
                 onClick={() => move(totalPages)}
             />

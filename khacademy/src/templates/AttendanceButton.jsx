@@ -107,14 +107,14 @@ const AttendanceButton = () => {
     return (
         <div className="d-flex align-items-center gap-2">
 
-            <span style={{color:'#adeb3ac5'}}>
-                현재 상태 :{" "}
-                <strong>
+            
+               
+                <strong style={{color:'#adeb3ac5'}}>
                     {working
                         ? "근무 중"
                         : "근무 전"}
                 </strong>
-            </span>
+          
 
             {working ? (
                 <Button

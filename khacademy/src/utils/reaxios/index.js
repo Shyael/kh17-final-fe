@@ -3,6 +3,7 @@ import axios from "axios";
 //jotai에서 관리하는 통합 상태 저장소에 접근할 수 있는 명령(함수) 가져오기
 import { getDefaultStore } from "jotai";
 import { logoutActionState as logoutAction } from "@utils/storage";
+import { isEmployeeState} from "@utils/storage";
 const store = getDefaultStore();//저장소 불러오기
 
 //기본 정보 설정
@@ -52,6 +53,7 @@ apiClient.interceptors.response.use(
   response=>response,
   //요청이 실패한 경우만 분석해서 재작업을 지시
   async function (error) {
+
     // console.log(Object.keys(error));//error 객체의 모든 필드명을 배열로 출력
     // console.log(error?.response?.status);
     if(error?.response?.status !== 401) {
@@ -79,6 +81,8 @@ apiClient.interceptors.response.use(
     console.log("액세스 토큰 만료됨 → 갱신 요청 시작");
     try {
         const {data} = await authClient.post("/refresh");
+         // 갱신된 로그인 정보 반영
+        loginAction(data);
         //현재 화면은 로그인상태이므로 갱신이 필요하지 않음(필요하다면 해도 됨)
         return apiClient(originalRequest);//apiClient에 원래요청을 다시보낸 결과를 반환
     }
@@ -98,12 +102,18 @@ function moveToLoginPage() {
     if (window.location.pathname.includes("/login")) {
         return;
     }
-    store.set(logoutAction);//jotai의 logoutActionState를 호출
 
-    // 현재 관리자/직원 상태인지 여부에 따라 경로 분기
-    // (jotai의 isEmployeeState 값을 읽어오거나 상황에 맞게 설정 가능합니다)
-    const storeState = store.get(isEmployeeState); // 필요 시 상태 참조
-    const loginUrl = storeState ? "/employee/login" : "/member/login";
+    // 로그아웃하기 전에 현재 직원인지 확인
+    const isEmployee = store.get(isEmployeeState);
+
+    // Jotai 로그인 정보 초기화
+    store.set(logoutAction);
+
+    // 직원 → 직원 로그인
+    // 학생/학부모 → 회원 로그인
+    const loginUrl = isEmployee
+        ? "/employee/login"
+        : "/member/login";
 
     window.location.replace(loginUrl);
 }

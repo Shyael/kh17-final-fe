@@ -1,7 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useCallback, useState } from "react";
 import { Button, Form } from "react-bootstrap";
-import { FaRightToBracket } from "react-icons/fa6";
+import { FaRightToBracket, FaEye, FaEyeSlash } from "react-icons/fa6";
 import Swal from "sweetalert2";
 import { Link, useNavigate } from "react-router-dom";
 import { loginActionState } from "@utils/storage";
@@ -15,6 +15,9 @@ export default function AccountLogin() {
         accountPassword: "",
         loginType: "회원"
     });
+
+    // 비밀번호 표시 여부
+    const [showPassword, setShowPassword] = useState(false);
     //jotai state
     //const [loginUser, setLoginUser] = useAtom(loginUserState);
 
@@ -74,6 +77,9 @@ export default function AccountLogin() {
             if (e.status === 403) {
                 navigate("/account/block");
             }
+            else if (e.response?.status === 401) {
+                await Swal.fire("아이디 또는 비밀번호가 올바르지 않습니다.");
+            }
             else if (e.status === 404) {
                 await Swal.fire("정보가 일치하지 않습니다");
             }
@@ -105,14 +111,26 @@ export default function AccountLogin() {
                         placeholder="아이디"
                         autoFocus
                     />
-                    <Form.Control
-                        type="password"
-                        name="accountPassword"
-                        value={account.accountPassword}
-                        onChange={changeStringValue}
-                        placeholder="비밀번호"
-                        className="mt-3 mb-3"
-                    />
+                    <div className="kh-login-password-wrap mt-3 mb-3">
+                        <Form.Control
+                            type={showPassword ? "text" : "password"}
+                            name="accountPassword"
+                            value={account.accountPassword}
+                            onChange={changeStringValue}
+                            placeholder="비밀번호"
+                        />
+                        {showPassword ? (
+                            <FaEyeSlash
+                                className="kh-login-password-toggle"
+                                onClick={() => setShowPassword(false)}
+                            />
+                        ) : (
+                            <FaEye
+                                className="kh-login-password-toggle"
+                                onClick={() => setShowPassword(true)}
+                            />
+                        )}
+                    </div>
 
                     <Button
                         type="submit"

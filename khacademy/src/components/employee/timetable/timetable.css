@@ -1,0 +1,44 @@
+/* =========================================================
+   강의 시간표(FullCalendar) - menu.css의 --kh-* 토큰으로 맞춤
+   FullCalendar v6는 자체 CSS 커스텀 프로퍼티를 노출하므로
+   깊은 선택자 오버라이드 없이 변수만 재정의하면 됨
+   ========================================================= */
+.kh-timetable {
+    --fc-border-color: var(--kh-border);
+    --fc-page-bg-color: var(--kh-surface);
+    --fc-neutral-bg-color: var(--kh-bg);
+    --fc-today-bg-color: var(--kh-primary-light);
+
+    --fc-button-text-color: #fff;
+    --fc-button-bg-color: var(--kh-primary);
+    --fc-button-border-color: var(--kh-primary);
+    --fc-button-hover-bg-color: var(--kh-primary-hover);
+    --fc-button-hover-border-color: var(--kh-primary-hover);
+    --fc-button-active-bg-color: var(--kh-primary-active);
+    --fc-button-active-border-color: var(--kh-primary-active);
+
+    --fc-event-bg-color: var(--kh-primary);
+    --fc-event-border-color: var(--kh-primary);
+
+    background: var(--kh-surface);
+    border: 1px solid var(--kh-border);
+    border-radius: var(--bs-card-border-radius, 0.75rem);
+    padding: 16px;
+}
+
+.kh-timetable .fc .fc-button {
+    text-transform: none;
+    box-shadow: none;
+}
+
+.kh-timetable .fc .fc-toolbar-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--kh-text);
+}
+
+.kh-timetable .fc-event {
+    cursor: default;
+    border-radius: 6px;
+    font-size: 12px;
+}

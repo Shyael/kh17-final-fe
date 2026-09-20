@@ -129,10 +129,9 @@ export default function AdminEmployeeList() {
                     {/* 직원 목록 */}
 
                     <Table
-                        bordered
                         hover
                         responsive
-                        className="text-center align-middle"
+                        className="kh-table text-center align-middle"
                     >
 
                         <thead>

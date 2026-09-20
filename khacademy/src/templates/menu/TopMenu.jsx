@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useAtom, useAtomValue } from "jotai";
+import { useCallback, useEffect, useState } from "react";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { Link } from "react-router-dom";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
@@ -12,7 +12,8 @@ import AcademyConsultReservation from "@components/academy/AcademyConsultReserva
 import useLogout from "@templates/menu/useLogout";
 import useAcademyName from "@templates/menu/useAcademyName";
 import "@templates/menu/menu.css";
-
+import { authClient } from "@utils/reaxios";
+import { loginActionState, logoutActionState } from "@utils/storage";
 /**
  * 외부/회원용 상단 메뉴바
  * - 비로그인
@@ -39,6 +40,21 @@ export default function TopMenu() {
     const [atTop, setAtTop] = useState(
         typeof window === "undefined" || window.scrollY <= 0
     );
+
+    const loginAction = useSetAtom(loginActionState);
+    const logoutAction = useSetAtom(logoutActionState);
+
+    //토큰 갱신 요청
+    const refresh = useCallback(async () => {
+        try {
+            const { data } = await authClient.post("/refresh");
+            loginAction(data);
+        }
+        catch (e) {
+            // 갱신이 안된 경우 (401 unauthorized)
+            logoutAction();
+        }
+    }, []);
     useEffect(() => {
         const onScroll = () => setAtTop(window.scrollY <= 0);
         onScroll();
@@ -61,7 +77,7 @@ export default function TopMenu() {
 
     return (
         <Navbar
-            expand="md"
+            expand="lg"
             className={"kh-topnav sticky-top" + (atTop ? " at-top" : "")}
             data-bs-theme="light"
         >
@@ -76,17 +92,15 @@ export default function TopMenu() {
 
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
-                            <NavDropdown title="외부페이지" id="public-nav-dropdown">
-                                <NavDropdown.Item as={Link} to="/academy">
+                                <Nav.Link as={Link} to="/academy">
                                     학원정보
-                                </NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/academy/tutor">
-                                    외부강사목록
-                                </NavDropdown.Item>
-                            </NavDropdown>
+                                </Nav.Link>
+                                <Nav.Link as={Link} to="/academy/tutor">
+                                    강사목록
+                                </Nav.Link>
                         </Nav>
 
-                        <Nav className="align-items-md-center gap-md-2">
+                        <Nav className="align-items-lg-center gap-lg-2">
                             <Nav.Link onClick={() => setShowModal(true)}>
                                 상담신청
                             </Nav.Link>
@@ -113,18 +127,49 @@ export default function TopMenu() {
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
 
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="me-auto">
-                            <NavDropdown title="학습관리" id="student-nav-dropdown">
-                                <NavDropdown.Item as={Link} to="/student/attendance/list">
-                                    내 출결
-                                </NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/student/assignment">
-                                    내 과제
-                                </NavDropdown.Item>
-                                <NavDropdown.Item as={Link} to="/student/exam">
-                                    내 시험
-                                </NavDropdown.Item>
-                            </NavDropdown>
+                        {/* 좌측: 메뉴 링크들 */}
+                        <Nav className="me-auto gap-lg-3">
+                            <Nav.Link as={Link} to="/academy">
+                                학원정보
+                            </Nav.Link>
+
+                            <Nav.Link as={Link} to="/academy/tutor">
+                                강사목록
+                            </Nav.Link>
+
+                            <Nav.Link
+                                as={Link}
+                                to={isParent ? "/parent/attendance/list" : "/student/attendance/list"}
+                            >
+                                강의
+                            </Nav.Link>
+
+                            <Nav.Link as={Link} to="/student/assignment">
+                                과제
+                            </Nav.Link>
+
+                            <Nav.Link as={Link} to="/student/exam">
+                                시험
+                            </Nav.Link>
+
+
+
+                            {children.length >= 1 ? (
+                                <Nav.Link as={Link} to="/parent/score">
+                                    성적
+                                </Nav.Link>
+                            ) : (
+                                <Nav.Link as={Link} to="/student/score">
+                                    성적
+                                </Nav.Link>
+                            )}
+
+                            {/* 학부모: 수납관리 */}
+                            {children.length >= 1 && (
+                                <Nav.Link as={Link} to={"/parent/payment/list"}>
+                                    수납관리
+                                </Nav.Link>
+                            )}
 
                             {/* 학부모: 자녀 선택 드롭다운 */}
                             {children.length >= 1 && (
@@ -145,10 +190,13 @@ export default function TopMenu() {
                                         </NavDropdown.Item>
                                     ))}
                                 </NavDropdown>
+
+
                             )}
                         </Nav>
 
-                        <Nav className="align-items-md-center gap-md-2">
+                        {/* 우측: 내정보 & 로그아웃 */}
+                        <Nav className="align-items-lg-center gap-lg-2">
                             <Nav.Link as={Link} to={isParent ? "/Parent/myInfo" : "/student/myInfo"}>
                                 내정보
                             </Nav.Link>

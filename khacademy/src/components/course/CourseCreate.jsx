@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button, Col, Form, InputGroup, Modal, Row } from "react-bootstrap";
+import { useAtomValue } from "jotai";
+import { loginUserState } from "@utils/storage"; // EmployeeLayout과 동일한 경로
 import {
     FaCalendarPlus,
     FaCheck,
@@ -12,8 +14,6 @@ import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 
-import { ko } from "date-fns/locale";
-import DatePicker from "react-datepicker";
 import dayjs from "dayjs";
 import "dayjs/locale/ko";
 dayjs.locale("ko"); //한국어로 설정
@@ -36,7 +36,6 @@ const COLORS = {
     danger: "#B86B6B"
 };
 
-
 // ============================================================
 // 기본 일정
 // ============================================================
@@ -51,13 +50,24 @@ const emptySchedule = {
 
 
 export default function CourseCreate() {
-
     const navigate = useNavigate();
 
+    // 1. Jotai Atom에서 로그인 유저 정보 추출
+    const loginUser = useAtomValue(loginUserState);
 
-    // ========================================================
-    // 강좌 정보
-    // ========================================================
+    // 2. 강사 여부 및 사번 확인
+    const isTutor =
+        (loginUser?.roleNames?.includes("TUTOR") ?? false) &&
+        !(loginUser?.roleNames?.includes("ADMIN") ?? false);
+
+    const currentEmployeeNo = Number(loginUser?.typeNo);
+
+    // [1] 선택된 강사
+    const [selectedTutor, setSelectedTutor] = useState(null);
+    // [1-1] 선택된 강사의 기존 수업 일정
+    const [tutorSchedules, setTutorSchedules] = useState([]);
+
+    // [2] 강의 정보 State
     const [course, setCourse] = useState({
         employeeNo: 0,
         academySubjectNo: 0,
@@ -77,7 +87,7 @@ export default function CourseCreate() {
 
 
     // ========================================================
-    // 강좌 등록 초기 데이터
+    // 강의 등록 초기 데이터
     //
     // subjectList
     // gradeList
@@ -91,38 +101,48 @@ export default function CourseCreate() {
         tutorList: []
     });
 
+    const displaySubjectList = useMemo(() => {
+        // 강사이고 본인 정보가 세팅되어 있으며 담당 과목이 있으면 본인 과목만 표시
+        if (isTutor && selectedTutor?.subjectList?.length > 0) {
+            return selectedTutor.subjectList;
+        }
+        // 관리자이거나 아직 강사 선택 전이면 전체 과목 표시
+        return formData.subjectList;
+    }, [isTutor, selectedTutor, formData.subjectList]);
 
     // ========================================================
     // 초기 데이터 조회
     // ========================================================
     const loadFormData = useCallback(async () => {
-
         try {
-
-            const { data } = await apiClient.get(
-                "/employee/course/form-data"
-            );
-
-            console.log("강좌 등록 초기 데이터", data);
-
+            const { data } = await apiClient.get("/employee/course/form-data");
+            console.log("강의 등록 초기 데이터", data);
             setFormData(data);
 
+            // 강사 계정인 경우 본인 정보 자동 매핑
+            if (isTutor && currentEmployeeNo) {
+                const myTutor = data.tutorList?.find(
+                    t => Number(t.employeeNo) === currentEmployeeNo
+                );
+                if (myTutor) {
+                    setSelectedTutor(myTutor);
+                    // 첫 번째 담당 과목 추출
+                    const firstSubject = myTutor.subjectList?.[0];
+
+                    setCourse(prev => ({
+                        ...prev,
+                        employeeNo: myTutor.employeeNo,
+                        // 첫 번째 과목 자동 선택 (과목이 있는 경우)
+                        academySubjectNo: firstSubject ? firstSubject.academySubjectNo : prev.academySubjectNo,
+                        courseSubject: firstSubject ? firstSubject.academySubjectName : prev.courseSubject
+                    }));
+                }
+            }
+        } catch (e) {
+            console.error("강의 등록 초기 데이터 조회 오류", e);
+            Swal.fire("등록 정보 조회 실패", "강의 등록에 필요한 정보를 불러오지 못했습니다.", "error");
         }
-        catch (e) {
-
-            console.error(
-                "강좌 등록 초기 데이터 조회 오류",
-                e
-            );
-
-            Swal.fire(
-                "등록 정보 조회 실패",
-                "강좌 등록에 필요한 정보를 불러오지 못했습니다.",
-                "error"
-            );
-        }
-
-    }, []);
+    }, [isTutor, currentEmployeeNo]);
 
 
     useEffect(() => {
@@ -131,12 +151,78 @@ export default function CourseCreate() {
 
     }, [loadFormData]);
 
+    // ========================================================
+    // 선택된 강사의 기존 수업 일정 조회
+    // ========================================================
+    useEffect(() => {
+
+        if (!selectedTutor?.employeeNo) {
+            setTutorSchedules([]);
+            return;
+        }
+
+        const loadTutorSchedules = async () => {
+
+            try {
+
+                const { data } = await apiClient.get(
+                    `/employee/course/available-schedules/${selectedTutor.employeeNo}`
+                );
+
+                console.log("강사 기존 수업 일정", data);
+
+                setTutorSchedules(data);
+
+            } catch (e) {
+
+                console.error("강사 기존 일정 조회 오류", e);
+
+                setTutorSchedules([]);
+
+            }
+        };
+
+        loadTutorSchedules();
+
+    }, [selectedTutor]);
 
     // ========================================================
-    // 선택된 강사
+    // 강사의 기존 수업 일정을 요일별로 그룹화
     // ========================================================
-    const [selectedTutor, setSelectedTutor] = useState(null);
+    const tutorSchedulesByWeek = useMemo(() => {
 
+        const weekOrder = ["월", "화", "수", "목", "금", "토", "일"];
+
+        const grouped = {};
+
+        weekOrder.forEach(week => {
+            grouped[week] = [];
+        });
+
+        tutorSchedules.forEach(schedule => {
+
+            if (!grouped[schedule.scheduleWeek]) {
+                grouped[schedule.scheduleWeek] = [];
+            }
+
+            grouped[schedule.scheduleWeek].push(schedule);
+
+        });
+
+        // 시간순 정렬
+        Object.keys(grouped).forEach(week => {
+
+            grouped[week].sort((a, b) =>
+                (a.scheduleStart || "").localeCompare(
+                    b.scheduleStart || ""
+                )
+            );
+
+        });
+
+        return grouped;
+
+    }, [tutorSchedules]);
 
     // ========================================================
     // 강사 Modal
@@ -180,22 +266,23 @@ export default function CourseCreate() {
     // ===================
     const changeSubject = useCallback((e) => {
         const subjectNo = Number(e.target.value);
-
         const selectedSubject = formData.subjectList.find(
-            subject =>
-                Number(subject.academySubjectNo) === subjectNo
+            subject => Number(subject.academySubjectNo) === subjectNo
         );
 
         setCourse(prev => ({
             ...prev,
             academySubjectNo: subjectNo,
             courseSubject: selectedSubject?.academySubjectName || "",
-            employeeNo: 0
+            // 강사가 아닐 때만 employeeNo를 0으로 리셋
+            employeeNo: isTutor ? prev.employeeNo : 0
         }));
 
-        setSelectedTutor(null);
-
-    }, [formData.subjectList]);
+        // 강사가 아닐 때만 선택 강사 초기화
+        if (!isTutor) {
+            setSelectedTutor(null);
+        }
+    }, [formData.subjectList, isTutor]);
     // ========================================================
     // 일정 변경
     // =======================================================
@@ -219,26 +306,109 @@ export default function CourseCreate() {
         });
     }, []);
 
-    // 1:00 부터 12:30 까지 30분 간격 Date 객체 24개 생성 (DatePicker 목록 주입용)
-    const TWELVE_HOUR_TIMES = [];
-    for (let h = 1; h <= 12; h++) {
-        TWELVE_HOUR_TIMES.push(dayjs(`2000-01-01 ${String(h).padStart(2, "0")}:00`).toDate());
-        TWELVE_HOUR_TIMES.push(dayjs(`2000-01-01 ${String(h).padStart(2, "0")}:30`).toDate());
-    }
+    // 1:00 ~ 12:30 (30분 간격) 시간 선택지 생성
+    const TIME_OPTIONS = [
+        "01:00", "01:30", "02:00", "02:30", "03:00", "03:30",
+        "04:00", "04:30", "05:00", "05:30", "06:00", "06:30",
+        "07:00", "07:30", "08:00", "08:30", "09:00", "09:30",
+        "10:00", "10:30", "11:00", "11:30", "12:00", "12:30"
+    ];
 
-    // 24시간제 문자열("14:30")을 받아서 오전/오후 반환
+    // ========================================================
+    // 선택한 시작시간 ~ 종료시간이 강사 기존 수업과 겹치는지 확인
+    // ========================================================
+    const isTutorTimeRangeUnavailable = (week, startTime, endTime) => {
+
+        if (!week || !startTime || !endTime) {
+            return false;
+        }
+
+        // 시작시간보다 종료시간이 같거나 빠르면 사용할 수 없음
+        if (endTime <= startTime) {
+            return true;
+        }
+
+        return tutorSchedules.some(existing => {
+
+            if (existing.scheduleWeek !== week) {
+                return false;
+            }
+
+            // 기존 수업과 새 수업의 시간이 겹치는지 확인
+            return (
+                startTime < existing.scheduleEnd &&
+                endTime > existing.scheduleStart
+            );
+
+        });
+    };
+
+    const isDateRangeOverlap = (newSchedule, existingSchedule) => {
+        const newStart = newSchedule.scheduleOpen || "0000-01-01";
+        const newEnd = newSchedule.scheduleClose || "9999-12-31";
+
+        const existingStart = existingSchedule.scheduleOpen || "0000-01-01";
+        const existingEnd = existingSchedule.scheduleClose || "9999-12-31";
+
+        return newStart <= existingEnd && newEnd >= existingStart;
+    };
+
+    // ========================================================
+    // 선택한 일정 전체가 강사의 기존 수업과 겹치는지 확인
+    // ========================================================
+    const isTutorScheduleOverlap = (schedule) => {
+        if (
+            !schedule.scheduleWeek ||
+            !schedule.scheduleStart ||
+            !schedule.scheduleEnd
+        ) {
+            return false;
+        }
+
+        return tutorSchedules.some(existing => {
+
+            // 1. 요일이 다르면 겹치지 않음
+            if (existing.scheduleWeek !== schedule.scheduleWeek) {
+                return false;
+            }
+
+            // 2. 시간 겹침 확인
+            const timeOverlap =
+                schedule.scheduleStart < existing.scheduleEnd &&
+                schedule.scheduleEnd > existing.scheduleStart;
+
+            if (!timeOverlap) {
+                return false;
+            }
+
+            // 3. 날짜 범위 겹침 확인
+            return isDateRangeOverlap(schedule, existing);
+        });
+    };
+
+    // 24시간제("18:30") -> 오전/오후 반환 ("AM" 또는 "PM")
     const getMeridiem = (timeStr) => {
         if (!timeStr) return "AM";
         const hour = parseInt(timeStr.split(":")[0], 10);
         return hour >= 12 ? "PM" : "AM";
     };
 
-    // 24시간제 문자열("14:30")을 12시간제 Date 객체로 변환 (14:30 -> 02:30 Date)
-    const get12HourDate = (timeStr) => {
-        if (!timeStr) return null;
-        let [h, m] = timeStr.split(":").map(Number);
-        const hour12 = h % 12 === 0 ? 12 : h % 12;
-        return dayjs(`2000-01-01 ${String(hour12).padStart(2, "0")}:${String(m).padStart(2, "0")}`).toDate();
+    // 24시간제("18:30") -> 12시간제 문자열("06:30") 반환
+    const get12HourTimeStr = (timeStr) => {
+        if (!timeStr) return "";
+        const [h, m] = timeStr.split(":");
+        const hour = parseInt(h, 10);
+        const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+        return `${String(hour12).padStart(2, "0")}:${m}`;
+    };
+
+    // 오전/오후 및 12시간제 문자열을 조합하여 24시간제("HH:mm")로 변환
+    const convertTo24Hour = (meridiem, time12) => {
+        if (!time12) return "";
+        let [h, m] = time12.split(":").map(Number);
+        if (meridiem === "PM" && h < 12) h += 12;
+        if (meridiem === "AM" && h === 12) h = 0; // 오전 12시는 00시
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
     };
 
     // ========================================================
@@ -256,7 +426,6 @@ export default function CourseCreate() {
 
     }, []);
 
-
     // ========================================================
     // 일정 삭제
     // ========================================================
@@ -270,7 +439,6 @@ export default function CourseCreate() {
 
             return;
         }
-
         setCourse(prev => ({
             ...prev,
             schedules: prev.schedules.filter(
@@ -333,7 +501,7 @@ export default function CourseCreate() {
     // ========================================================
     // 강의실 선택 Modal 열기
     //
-    // 현재 강좌의
+    // 현재 강의의
     // 1. 수강 정원
     // 2. 전체 일정
     //
@@ -369,7 +537,6 @@ export default function CourseCreate() {
 
             const schedule = course.schedules[i];
 
-
             if (!schedule.scheduleWeek) {
 
                 await Swal.fire(
@@ -378,30 +545,30 @@ export default function CourseCreate() {
 
                 return;
             }
-
-
             if (
                 !schedule.scheduleStart ||
                 !schedule.scheduleEnd
             ) {
-
                 await Swal.fire(
                     `${i + 1}번째 일정의 시간을 먼저 입력해주세요.`
                 );
-
                 return;
             }
-
+            if (isTutorScheduleOverlap(schedule)) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "강사 수업 시간이 겹칩니다.",
+                    text: `${schedule.scheduleWeek}요일 ${schedule.scheduleStart} ~ ${schedule.scheduleEnd} 일정이 기존 강사 수업과 겹칩니다.`,
+                });
+                return;
+            }
         }
 
-
         try {
-
             // ------------------------------------------------
             // 어떤 일정의 강의실을 선택하는지 저장
             // ------------------------------------------------
             setClassroomIndex(index);
-
 
             // ------------------------------------------------
             // 사용 가능 강의실 조회 요청
@@ -448,7 +615,6 @@ export default function CourseCreate() {
                 request
             );
 
-
             setClassrooms(data);
 
             setShowClassroomModal(true);
@@ -486,16 +652,13 @@ export default function CourseCreate() {
                 ...prev.schedules
             ];
 
-
             schedules[classroomIndex] = {
 
                 ...schedules[classroomIndex],
 
                 classroomNo:
                     classroom.classroomNo
-
             };
-
 
             return {
                 ...prev,
@@ -527,7 +690,6 @@ export default function CourseCreate() {
             return;
         }
 
-
         if (!course.academySubjectNo) {
 
             await Swal.fire(
@@ -536,7 +698,6 @@ export default function CourseCreate() {
 
             return;
         }
-
 
         if (!course.employeeNo) {
 
@@ -547,16 +708,14 @@ export default function CourseCreate() {
             return;
         }
 
-
         if (!course.courseTitle.trim()) {
 
             await Swal.fire(
-                "강좌명을 입력해주세요."
+                "강의명을 입력해주세요."
             );
 
             return;
         }
-
 
         if (course.schedules.length === 0) {
 
@@ -576,20 +735,16 @@ export default function CourseCreate() {
             i < course.schedules.length;
             i++
         ) {
-
             const schedule =
                 course.schedules[i];
-
 
             if (!schedule.scheduleWeek) {
 
                 await Swal.fire(
                     `${i + 1}번째 일정의 요일을 선택해주세요.`
                 );
-
                 return;
             }
-
 
             if (
                 !schedule.scheduleStart ||
@@ -622,10 +777,10 @@ export default function CourseCreate() {
         const result = await Swal.fire({
 
             title:
-                "강좌를 등록하시겠습니까?",
+                "강의를 등록하시겠습니까?",
 
             text:
-                "등록 후 강좌 정보가 저장됩니다.",
+                "등록 후 강의 정보가 저장됩니다.",
 
             icon:
                 "question",
@@ -651,7 +806,6 @@ export default function CourseCreate() {
 
         }
 
-
         // ----------------------------------------------------
         // 서버 등록
         // ----------------------------------------------------
@@ -663,97 +817,52 @@ export default function CourseCreate() {
                 gradeNo: Number(course.gradeNo),
                 courseLimit: Number(course.courseLimit),
                 courseFee: Number(course.courseFee),
-                schedules: course.schedules.map(schedule => (
-                    {
-                        ...schedule,
-                        classroomNo: Number(schedule.classroomNo)
-                    }))
+                schedules: course.schedules.map(schedule => ({
+                    ...schedule,
+                    classroomNo: Number(schedule.classroomNo)
+                }))
             };
+            console.log("강의 등록 요청", request);
 
-            console.log("강좌 등록 요청", request);
-
-
-            await apiClient.post("/employee/course/", request);
-
+            // 등록 요청 및 응답에서 생성된 번호 수신
+            const response = await apiClient.post("/employee/course/", request);
+            const createdCourseNo = response.data.courseNo;
 
             await Swal.fire({
-
-                title:
-                    "등록 완료",
-
-                text:
-                    "강좌가 정상적으로 등록되었습니다.",
-
-                icon:
-                    "success",
-
-                confirmButtonColor:
-                    COLORS.primary
-
+                title: "등록 완료",
+                text: "강의가 정상적으로 등록되었습니다.",
+                icon: "success",
+                confirmButtonColor: COLORS.primary
             });
-
-
-            navigate(
-                "/employee/course/detail/{"
-            );
-
+            navigate(`/employee/course/detail/${createdCourseNo}`);
         }
         catch (e) {
-
-            console.error(
-                "강좌 등록 오류",
-                e
-            );
-
-
-            const status =
-                e.response?.status;
-
-
+            console.error("강의 등록 오류", e);
+            const status = e.response?.status;
             if (status === 409) {
-
                 await Swal.fire(
-
                     "등록할 수 없습니다.",
-
                     e.response?.data?.message ||
                     "강사 또는 강의실의 수업 시간이 겹칩니다.",
-
                     "warning"
-
                 );
-
             }
             else if (status === 404) {
-
                 await Swal.fire(
-
                     "등록할 수 없습니다.",
-
                     e.response?.data?.message ||
                     "선택한 정보를 찾을 수 없습니다.",
-
                     "warning"
-
                 );
-
             }
             else {
-
                 await Swal.fire(
-
                     "등록 실패",
-
                     "일시적인 서버 오류가 발생했습니다.",
-
                     "error"
-
                 );
-
             }
-
         }
-
     }, [
         course,
         navigate
@@ -798,7 +907,7 @@ export default function CourseCreate() {
                                 marginBottom: "5px"
                             }}
                         >
-                            강좌 등록
+                            강의 등록
                         </h2>
 
                         <p
@@ -808,7 +917,7 @@ export default function CourseCreate() {
                                 marginBottom: 0
                             }}
                         >
-                            고등학교 강좌의 기본 정보와 수업 일정을 등록해주세요.
+                            고등학교 강의의 기본 정보와 수업 일정을 등록해주세요.
                         </p>
 
                     </div>
@@ -835,7 +944,7 @@ export default function CourseCreate() {
                                 "600"
                         }}
                     >
-                        신규 강좌
+                        신규 강의
                     </span>
 
                 </div>
@@ -889,7 +998,7 @@ export default function CourseCreate() {
                                             "3px"
                                     }}
                                 >
-                                    강좌 기본 정보
+                                    강의 기본 정보
                                 </h5>
 
 
@@ -899,7 +1008,7 @@ export default function CourseCreate() {
                                             COLORS.muted
                                     }}
                                 >
-                                    강좌의 기본 정보를 입력해주세요.
+                                    강의의 기본 정보를 입력해주세요.
                                 </small>
 
                             </div>
@@ -972,9 +1081,10 @@ export default function CourseCreate() {
                                             value={course.academySubjectNo}
                                             onChange={changeSubject}
                                         >
+                                            {/* 관리자일 때만 '과목 선택' 안내 옵션을 보여주고, 강사면 안내 옵션 없이 바로 첫 과목 선택 상태 유지 */}
+                                            {!isTutor && <option value="0">과목 선택</option>}
 
-                                            <option value="0">과목 선택</option>
-                                            {formData.subjectList.map(subject => (
+                                            {displaySubjectList.map(subject => (
                                                 <option
                                                     key={subject.academySubjectNo}
                                                     value={subject.academySubjectNo}
@@ -988,11 +1098,11 @@ export default function CourseCreate() {
 
                                 </Row>
 
-                                {/* 강좌명 */}
+                                {/* 강의명 */}
                                 <Form.Group className="mb-3">
 
                                     <Form.Label>
-                                        강좌명
+                                        강의명
                                     </Form.Label>
 
                                     <Form.Control
@@ -1016,7 +1126,7 @@ export default function CourseCreate() {
                                     <Col md={6}>
 
                                         <Form.Label>
-                                            강좌 유형
+                                            강의 유형
                                         </Form.Label>
 
 
@@ -1112,7 +1222,7 @@ export default function CourseCreate() {
                                 <Form.Group>
 
                                     <Form.Label>
-                                        강좌 설명
+                                        강의 설명
                                     </Form.Label>
 
 
@@ -1126,7 +1236,7 @@ export default function CourseCreate() {
                                         onChange={
                                             changeCourseValue
                                         }
-                                        placeholder="강좌에 대한 설명을 입력해주세요."
+                                        placeholder="강의에 대한 설명을 입력해주세요."
                                     />
 
                                 </Form.Group>
@@ -1296,27 +1406,15 @@ export default function CourseCreate() {
                                             }}
                                         >
 
-                                            <div
-                                                style={{
-                                                    fontSize:
-                                                        "11px",
-
-                                                    color:
-                                                        COLORS.muted,
-
-                                                    marginBottom:
-                                                        "4px"
-                                                }}
-                                            >
+                                            <div style={{ fontSize: "11px", color: COLORS.muted, marginBottom: "4px" }}>
                                                 담당 강사
                                             </div>
 
 
-                                            <strong
-                                                style={{
-                                                    fontSize:
-                                                        "18px"
-                                                }}
+                                            <strong style={{
+                                                fontSize:
+                                                    "18px"
+                                            }}
                                             >
                                                 {
                                                     selectedTutor.accountName
@@ -1344,18 +1442,8 @@ export default function CourseCreate() {
 
                                             {selectedTutor.subjectList && (
 
-                                                <div
-                                                    style={{
-                                                        marginTop:
-                                                            "8px",
-
-                                                        fontSize:
-                                                            "12px"
-                                                    }}
-                                                >
-
+                                                <div style={{ marginTop: "8px", fontSize: "12px" }}>
                                                     담당 과목:{" "}
-
                                                     {
                                                         selectedTutor.subjectList
                                                             .map(
@@ -1375,9 +1463,9 @@ export default function CourseCreate() {
                                         <Button
                                             variant="outline-secondary"
                                             className="w-100"
-                                            onClick={
-                                                loadTutors
-                                            }
+                                            onClick={loadTutors}
+                                            // 강사라면 버튼 숨김 또는 비활성화
+                                            style={{ display: isTutor ? "none" : "block" }}
                                         >
                                             강사 변경
                                         </Button>
@@ -1483,7 +1571,213 @@ export default function CourseCreate() {
                             padding: "20px"
                         }}
                     >
+                        {/* =================================================
+    선택 강사의 기존 수업 일정
+================================================= */}
+                        {selectedTutor && (
+                            <div
+                                style={{
+                                    marginBottom: "20px",
+                                    padding: "16px",
+                                    background: COLORS.bg,
+                                    border: `1px solid ${COLORS.border}`,
+                                    borderRadius: "9px"
+                                }}
+                            >
 
+                                <div
+                                    className="d-flex justify-content-between align-items-center"
+                                    style={{
+                                        marginBottom: "12px"
+                                    }}
+                                >
+
+                                    <div>
+
+                                        <div
+                                            style={{
+                                                fontSize: "14px",
+                                                fontWeight: "700",
+                                                marginBottom: "3px"
+                                            }}
+                                        >
+                                            {selectedTutor.accountName} 강사의 기존 수업 일정
+                                        </div>
+
+                                        <small
+                                            style={{
+                                                color: COLORS.muted
+                                            }}
+                                        >
+                                            기존 수업 시간과 겹치지 않도록 일정을 선택해주세요.
+                                        </small>
+
+                                    </div>
+
+                                    <span
+                                        style={{
+                                            fontSize: "11px",
+                                            color: COLORS.muted
+                                        }}
+                                    >
+                                        기존 일정 {tutorSchedules.length}개
+                                    </span>
+
+                                </div>
+
+
+                                {tutorSchedules.length === 0 ? (
+
+                                    <div
+                                        style={{
+                                            padding: "15px",
+                                            textAlign: "center",
+                                            background: COLORS.surface,
+                                            border: `1px dashed ${COLORS.border}`,
+                                            borderRadius: "7px",
+                                            color: COLORS.muted,
+                                            fontSize: "13px"
+                                        }}
+                                    >
+                                        등록된 기존 수업 일정이 없습니다.
+                                    </div>
+
+                                ) : (
+
+                                    <div
+                                        style={{
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            gap: "6px"
+                                        }}
+                                    >
+
+                                        {["월", "화", "수", "목", "금", "토", "일"].map(week => {
+
+                                            const schedules =
+                                                tutorSchedulesByWeek[week] || [];
+
+                                            return (
+                                                <div
+                                                    key={week}
+                                                    style={{
+                                                        display: "flex",
+                                                        alignItems: "stretch",
+                                                        minHeight: "42px",
+                                                        border: `1px solid ${COLORS.border}`,
+                                                        borderRadius: "7px",
+                                                        overflow: "hidden",
+                                                        background: COLORS.surface
+                                                    }}
+                                                >
+
+                                                    {/* 요일 */}
+                                                    <div
+                                                        style={{
+                                                            width: "55px",
+                                                            flexShrink: 0,
+                                                            display: "flex",
+                                                            alignItems: "center",
+                                                            justifyContent: "center",
+                                                            fontSize: "12px",
+                                                            fontWeight: "700",
+                                                            color: COLORS.primaryDark,
+                                                            background: COLORS.primaryLight,
+                                                            borderRight: `1px solid ${COLORS.border}`
+                                                        }}
+                                                    >
+                                                        {week}
+                                                    </div>
+
+
+                                                    {/* 일정 */}
+                                                    <div
+                                                        style={{
+                                                            flex: 1,
+                                                            padding: "6px 10px"
+                                                        }}
+                                                    >
+
+                                                        {schedules.length === 0 ? (
+
+                                                            <div
+                                                                style={{
+                                                                    color: COLORS.muted,
+                                                                    fontSize: "12px",
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    height: "100%"
+                                                                }}
+                                                            >
+                                                                수업 없음
+                                                            </div>
+
+                                                        ) : (
+
+                                                            <div
+                                                                style={{
+                                                                    display: "flex",
+                                                                    flexWrap: "wrap",
+                                                                    gap: "6px"
+                                                                }}
+                                                            >
+
+                                                                {schedules.map((schedule, scheduleIndex) => (
+
+                                                                    <div
+                                                                        key={
+                                                                            schedule.scheduleNo ||
+                                                                            scheduleIndex
+                                                                        }
+                                                                        style={{
+                                                                            display: "inline-flex",
+                                                                            alignItems: "center",
+                                                                            gap: "6px",
+                                                                            padding: "6px 9px",
+                                                                            background: "#F3F0EB",
+                                                                            border: `1px solid ${COLORS.border}`,
+                                                                            borderRadius: "6px",
+                                                                            fontSize: "12px"
+                                                                        }}
+                                                                    >
+
+                                                                        <strong>
+                                                                            {schedule.scheduleStart}
+                                                                            {" ~ "}
+                                                                            {schedule.scheduleEnd}
+                                                                        </strong>
+
+                                                                        {schedule.courseTitle && (
+                                                                            <span
+                                                                                style={{
+                                                                                    color: COLORS.muted
+                                                                                }}
+                                                                            >
+                                                                                {schedule.courseTitle}
+                                                                            </span>
+                                                                        )}
+
+                                                                    </div>
+
+                                                                ))}
+
+                                                            </div>
+
+                                                        )}
+
+                                                    </div>
+
+                                                </div>
+                                            );
+
+                                        })}
+
+                                    </div>
+
+                                )}
+
+                            </div>
+                        )}
                         {course.schedules.map(
                             (schedule, index) => (
 
@@ -1627,88 +1921,82 @@ export default function CourseCreate() {
                                                 </Form.Select>
                                             </Col>
 
-                                            {/* 시작시간 */}
+                                            {/* ==================== 시작시간 ==================== */}
                                             <Col md={3}>
-                                                <Form.Label>시작</Form.Label>
+                                                <Form.Label>시작 시간</Form.Label>
                                                 <div className="d-flex gap-1">
                                                     {/* 1. 오전/오후 선택 */}
                                                     <Form.Select
-                                                        style={{ width: "80px", flexShrink: 0 }}
+                                                        style={{ width: "75px", flexShrink: 0 }}
                                                         value={getMeridiem(schedule.scheduleStart)}
                                                         onChange={(e) => {
                                                             const nextMeridiem = e.target.value;
-                                                            if (!schedule.scheduleStart) return;
-
-                                                            // 오전/오후 변경 시 24시간제로 환산
-                                                            let [h, m] = schedule.scheduleStart.split(":").map(Number);
-                                                            if (nextMeridiem === "PM" && h < 12) h += 12;
-                                                            if (nextMeridiem === "AM" && h >= 12) h -= 12;
-
-                                                            const nextTime = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-                                                            changeScheduleValue(index, "scheduleStart", nextTime);
+                                                            const currentTime12 = get12HourTimeStr(schedule.scheduleStart) || "09:00";
+                                                            const nextTime24 = convertTo24Hour(nextMeridiem, currentTime12);
+                                                            changeScheduleValue(index, "scheduleStart", nextTime24);
                                                         }}
                                                     >
                                                         <option value="AM">오전</option>
                                                         <option value="PM">오후</option>
                                                     </Form.Select>
 
-                                                    {/* 2. 12시간제 전용 DatePicker */}
-                                                    <DatePicker
-                                                        name="scheduleStart"
-                                                        selected={get12HourDate(schedule.scheduleStart)}
-                                                        onChange={(date) => {
-                                                            if (!date) {
-                                                                changeScheduleValue(index, "scheduleStart", "");
-                                                                return;
-                                                            }
-                                                            // 선택된 시(1~12), 분 추출
-                                                            let h = date.getHours();
-                                                            const m = String(date.getMinutes()).padStart(2, "0");
-
-                                                            // 현재 선택된 오전/오후 상태에 맞춰 24시간제로 계산
-                                                            const isPM = getMeridiem(schedule.scheduleStart) === "PM";
-                                                            if (isPM && h < 12) h += 12;
-                                                            if (!isPM && h === 12) h = 0; // 오전 12시는 00시
-
-                                                            const finalTime = `${String(h).padStart(2, "0")}:${m}`;
-                                                            changeScheduleValue(index, "scheduleStart", finalTime);
+                                                    {/* 2. 12시간제 시간 선택 (01:00 ~ 12:30) */}
+                                                    <Form.Select
+                                                        value={get12HourTimeStr(schedule.scheduleStart)}
+                                                        onChange={(e) => {
+                                                            const nextTime12 = e.target.value;
+                                                            const currentMeridiem = getMeridiem(schedule.scheduleStart);
+                                                            const nextTime24 = convertTo24Hour(currentMeridiem, nextTime12);
+                                                            changeScheduleValue(index, "scheduleStart", nextTime24);
                                                         }}
-                                                        showTimeSelect
-                                                        showTimeSelectOnly
-                                                        includeTimes={TWELVE_HOUR_TIMES} // 1:00 ~ 12:30 외의 다른 시간은 아예 숨김
-                                                        timeFormat="h:mm"                // 드롭다운 내부 텍스트에서 AM/PM 제거
-                                                        dateFormat="h:mm"                // Input에 표시될 때도 숫자만 (예: 2:30)
-                                                        timeCaption="시간"
-                                                        placeholderText="시간 선택"
-                                                        customInput={<Form.Control />}
-                                                        wrapperClassName="w-100"
-                                                    />
+                                                    >
+                                                        <option value="">시간 선택</option>
+                                                        {TIME_OPTIONS.map(time => (
+                                                            <option key={time} value={time}>
+                                                                {time}
+                                                            </option>
+                                                        ))}
+                                                    </Form.Select>
                                                 </div>
                                             </Col>
 
+                                            {/* ==================== 종료시간 ==================== */}
+                                            <Col md={3}>
+                                                <Form.Label>종료 시간</Form.Label>
+                                                <div className="d-flex gap-1">
+                                                    {/* 1. 오전/오후 선택 */}
+                                                    <Form.Select
+                                                        style={{ width: "75px", flexShrink: 0 }}
+                                                        value={getMeridiem(schedule.scheduleEnd)}
+                                                        onChange={(e) => {
+                                                            const nextMeridiem = e.target.value;
+                                                            const currentTime12 = get12HourTimeStr(schedule.scheduleEnd) || "10:00";
+                                                            const nextTime24 = convertTo24Hour(nextMeridiem, currentTime12);
+                                                            changeScheduleValue(index, "scheduleEnd", nextTime24);
+                                                        }}
+                                                    >
+                                                        <option value="AM">오전</option>
+                                                        <option value="PM">오후</option>
+                                                    </Form.Select>
 
-                                            {/* 종료시간 */}
-                                            <Col md={2}>
-
-                                                <Form.Label>
-                                                    종료
-                                                </Form.Label>
-
-
-                                                <Form.Control
-                                                    type="time"
-                                                    name="scheduleEnd"
-                                                    value={
-                                                        schedule.scheduleEnd
-                                                    }
-                                                    onChange={e =>
-                                                        changeScheduleValue(
-                                                            index,
-                                                            e
-                                                        )
-                                                    }
-                                                />
-
+                                                    {/* 2. 12시간제 시간 선택 (01:00 ~ 12:30) */}
+                                                    <Form.Select
+                                                        value={get12HourTimeStr(schedule.scheduleEnd)}
+                                                        onChange={(e) => {
+                                                            const nextTime12 = e.target.value;
+                                                            const currentMeridiem = getMeridiem(schedule.scheduleEnd);
+                                                            const nextTime24 = convertTo24Hour(currentMeridiem, nextTime12);
+                                                            changeScheduleValue(index, "scheduleEnd", nextTime24);
+                                                        }}
+                                                    >
+                                                        <option value="">시간 선택</option>
+                                                        {TIME_OPTIONS.map(time => (
+                                                            <option key={time} value={time}>
+                                                                {time}
+                                                            </option>
+                                                        ))}
+                                                    </Form.Select>
+                                                </div>
                                             </Col>
 
 
@@ -1767,7 +2055,7 @@ export default function CourseCreate() {
                     <Button
                         variant="outline-secondary"
                         size="lg"
-                        onClick={() => navigate("/employee/course")}
+                        onClick={() => navigate("/employee/course/list")}
                     >
                         취소
                     </Button>
@@ -1790,7 +2078,7 @@ export default function CourseCreate() {
                             className="me-2"
                         />
 
-                        강좌 등록
+                        강의 등록
 
                     </Button>
 

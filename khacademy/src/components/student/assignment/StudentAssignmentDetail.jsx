@@ -3,9 +3,10 @@ import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Card, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstrap";
-import { FaCheck, FaPen, FaPaperclip, FaDownload } from "react-icons/fa6";
+import { FaCheck, FaPen, FaPaperclip, FaDownload, FaListUl } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { isEmployeeState } from "@utils/storage";
+import { formatDateTime, formatShortDate } from "@utils/format";
 import { toast } from "react-toastify";
 
 export default function StudentAssignmentDetail() {
@@ -113,21 +114,12 @@ export default function StudentAssignmentDetail() {
         }
     };
 
-    // 마감일 표시 (예: 8/26 까지)
+    // 마감일 표시 (예: 08.26 까지)
     const formatDueDate = (value) => {
         if (!value) {
             return "-";
         }
-        const date = new Date(value);
-        return `${date.getMonth() + 1}/${date.getDate()} 까지`;
-    };
-
-    // 날짜 표시
-    const formatDateTime = (value) => {
-        if (!value) {
-            return "-";
-        }
-        return new Date(value).toLocaleString();
+        return `${formatShortDate(value)} 까지`;
     };
 
     // 첨부파일 목록 렌더링
@@ -295,7 +287,7 @@ export default function StudentAssignmentDetail() {
                 {/* 직원 : 피드백 저장 */}
                 {!isStudent && (
                     <Button
-                        variant="success"
+                        variant="primary"
                         onClick={updateComment}>
                         <FaCheck className="me-2" />
                         피드백 저장
@@ -310,6 +302,7 @@ export default function StudentAssignmentDetail() {
                             ? "/student/assignment"
                             : `/employee/assignment/${assignmentNo}`
                     )}>
+                    <FaListUl className="me-2" />
                     목록으로
                 </Button>
             </Col>

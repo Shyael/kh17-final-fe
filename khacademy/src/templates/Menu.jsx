@@ -13,7 +13,6 @@ export default function Menu() {
 
     if (isLogin && isEmployee) {
         return null;
-    }
-
+    }  
     return <TopMenu />;
 }

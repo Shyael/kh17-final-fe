@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, ButtonGroup, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import { FaMagnifyingGlass } from "react-icons/fa6";
+import { FaCheck, FaMagnifyingGlass } from "react-icons/fa6";
 import { useAtomValue } from "jotai";
 import { isParentState, selectedChildState, selectedChildNoState } from "@utils/storage";
 
@@ -250,10 +250,11 @@ export default function StudentAssignmentList() {
             default:
                 return (
                     <Button
-                        variant="outline-primary"
+                        variant={canSubmit ? "primary" : "outline-primary"}
                         size="sm"
                         disabled={!canSubmit}
                         onClick={() => navigate(to)}>
+                        {canSubmit && <FaCheck className="me-1" />}
                         {canSubmit ? "제출하기" : "마감됨"}
                     </Button>
                 );

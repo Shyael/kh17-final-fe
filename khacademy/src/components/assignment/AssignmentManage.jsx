@@ -4,7 +4,7 @@ import { Button, Col, Form, ListGroup, ListGroupItem, Row } from "react-bootstra
 import { Link, useNavigate, useParams } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { FaCheck, FaXmark } from "react-icons/fa6";
+import { FaCheck, FaTrash, FaXmark } from "react-icons/fa6";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 
@@ -16,6 +16,9 @@ export default function AssignmentManage() {
 
     // 과제 번호가 있으면 수정, 없으면 등록
     const isEdit = assignmentNo !== undefined;
+
+    // 마감된 과제 → 상세로 돌려보내는 처리가 중복 실행(중복 토스트)되지 않도록 가드
+    const redirectedRef = useRef(false);
 
     // 과제 입력정보
     const [assignment, setAssignment] = useState({
@@ -138,6 +141,21 @@ export default function AssignmentManage() {
 
             const data = response.data;
 
+            // 마감된 과제는 수정 화면에 못 들어오게 상세로 돌려보냄
+            // (스케줄러 반영 전 공백 구간까지 커버하기 위해 마감일도 같이 확인)
+            const isPastDue =
+                data.assignmentDueDate != null &&
+                new Date(data.assignmentDueDate) <= new Date();
+
+            if (data.assignmentPhase === "마감" || isPastDue) {
+                if (!redirectedRef.current) {
+                    redirectedRef.current = true;
+                    toast.error("마감된 과제는 수정할 수 없습니다.");
+                    navigate(`/employee/assignment/${assignmentNo}`);
+                }
+                return;
+            }
+
             setAssignment({
                 courseNo: data.courseNo,
                 courseTitle: data.courseTitle,
@@ -153,7 +171,7 @@ export default function AssignmentManage() {
         catch (err) {
             console.error("과제 상세 조회 실패", err);
         }
-    }, [assignmentNo]);
+    }, [assignmentNo, navigate]);
 
     // 화면 진입 시 조회
     useEffect(() => {
@@ -172,7 +190,7 @@ export default function AssignmentManage() {
     //등록
     const insertAssignment = async () => {
         if (!assignment.courseNo) {
-            toast.error("강좌를 선택해주세요.");
+            toast.error("강의를 선택해주세요.");
             return;
         }
 
@@ -288,7 +306,7 @@ export default function AssignmentManage() {
         <Row className="mt-4">
             <Col sm={6}>
                 <Form.Label>
-                    <span>강좌</span>
+                    <span>"강의</span>
                 </Form.Label>
 
                 {!isEdit ? (
@@ -297,7 +315,7 @@ export default function AssignmentManage() {
                         value={assignment.courseNo}
                         onChange={changeAssignmentValue}>
                         <option value="">
-                            강좌 선택
+                            강의 선택
                         </option>
 
                         {courseList.map(course => (
@@ -384,7 +402,7 @@ export default function AssignmentManage() {
                         ref={filesRef}
                         onInput={changeFiles} />
                     {files.length > 0 && (
-                        <Button variant="danger" onClick={clearFiles} className="ms-2">
+                        <Button variant="outline-secondary" onClick={clearFiles} className="ms-2">
                             <FaXmark />
                         </Button>
                     )}
@@ -413,8 +431,9 @@ export default function AssignmentManage() {
                         checked={isAllFilesChecked}
                         onChange={checkAllFiles} />
 
-                    <Button variant="danger" onClick={deleteCheckedFiles}>
-                        체크된 항목 삭제
+                    <Button variant="outline-danger" onClick={deleteCheckedFiles}>
+                        <FaTrash className="me-2" />
+                        <span>체크된 항목 삭제</span>
                     </Button>
 
                     <ListGroup>
@@ -448,14 +467,14 @@ export default function AssignmentManage() {
                             ? `/employee/assignment/${assignmentNo}`
                             : `/employee/assignment`
                     }
-                    variant="danger"
+                    variant="outline-secondary"
                     className="ms-2">
                     <FaXmark className="me-2" />
                     <span>취소하기</span>
                 </Button>
                 <Button
                     type="button"
-                    variant="success"
+                    variant="primary"
                     className="ms-2"
                     onClick={
                         isEdit

@@ -6,11 +6,20 @@ import SockJS from "sockjs-client";
 import { apiClient } from "@utils/reaxios";
 import { loginUserState, isLoginState } from "@utils/storage";
 import { Badge, Button, Card, Col, Container, Form, ListGroup, Modal, Row } from "react-bootstrap";
-import { FaPaperPlane } from "react-icons/fa6";
+import { FaArrowLeft, FaPaperPlane } from "react-icons/fa6";
+import Swal from "sweetalert2";
 
 import dayjs from "dayjs";
 import "dayjs/locale/ko";
 dayjs.locale("ko");//한국어로 설정
+
+import './ConsultChat.css'
+
+const badgeColorMap = {
+    '학생': 'info',
+    '학부모': 'success',
+    '직원': 'warning'
+};
 
 export default function ConsultChat() {
 
@@ -23,7 +32,11 @@ export default function ConsultChat() {
     const [room, setRoom] = useState(null);
     const [rooms, setRooms] = useState([]);//채팅방 목록
     const [roomCount, setRoomCount] = useState(0);//채팅방 개수
+    const [users, setUsers] = useState([]);//참여자 목록
     const [history, setHistory] = useState([]);//메세지 이력
+
+    // ✨ 2. 뷰 모드 상태 추가 ("list" | "chat")
+    const [viewMode, setViewMode] = useState("list");
 
     const totalUnreadCount = useMemo(() => {
         return rooms.reduce((sum, currentRoom) => sum + (currentRoom.unreadCnt || 0), 0);
@@ -56,12 +69,10 @@ export default function ConsultChat() {
 
     //연결 함수
     const connectToServer = useCallback(()=>{
-        //연결(socket) 생성
-        const socket = new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`);
-
         //연결을 관리할 도구(client) 생성하여 반환
         const client = new Client({
-            webSocketFactory : () => socket , 
+            webSocketFactory : () => new SockJS(`${import.meta.env.VITE_SERVER_URL}/ws-member`), 
+            reconnectDelay: 5000,
             heartbeatIncoming: 10000, // 서버로부터 10초마다 하트비트를 수신할 것으로 기대
             heartbeatOutgoing: 10000, // 서버로 10초마다 하트비트를 발송
 
@@ -118,6 +129,36 @@ export default function ConsultChat() {
                             return updatedRooms.sort((a, b) => new Date(b.lastTime) - new Date(a.lastTime));
                         });
                     });
+                    client.subscribe(`/public/${r.roomNo}/users`, (message) => {
+                        // 1. 서버에서 보낸 참여자 목록(배열) 파싱
+                        const updatedUsers = JSON.parse(message.body);
+                        
+                        // 2. 현재 내가 화면에 열어두고 있는 방 번호 확인 (오래된 클로저 방지용 ref 사용)
+                        const currentActive = sockRef.current; 
+
+                        // 3. 누군가 참가/퇴장한 방이 '현재 내가 보고 있는 방'일 때만 참여자 목록 즉시 갱신
+                        if (currentActive === r.roomNo) {
+                            setUsers(updatedUsers);
+                        }
+
+                        const isEnter = updatedUsers.some(user => user.accountNo === loginUser.accountNo) ? 'Y' : 'N';
+                        // 4. 좌측 채팅방 목록(rooms)의 해당 방 cnt와 enter 값 실시간 갱신
+                        setRooms(prevRooms => 
+                            prevRooms.map(room => 
+                                room.roomNo === r.roomNo 
+                                    ? { ...room, cnt: updatedUsers.length, enter: isEnter } // 👈 enter 값도 함께 덮어씌움
+                                    : room
+                            )
+                        );
+                    });
+                    client.subscribe(`/private/${r.roomNo}/action/${loginUser.accountNo}`, (message) => {
+                        const json = JSON.parse(message.body);
+                        switch(json) {
+                            case "leave":
+                                leaveRoom();
+                                break;
+                        }
+                    });
                 });
 
                 //신규채팅방 체크
@@ -136,6 +177,33 @@ export default function ConsultChat() {
             onDisconnect: () => {
                 console.log('연결 끊김');
             },
+            onWebSocketClose: async (event) => {
+                console.log("웹소켓 연결 종료 이벤트 발생:", event);
+
+                try {
+                    await apiClient.get("/employee/room/");
+                } catch (error) {
+                    // 401 에러(인증 실패)가 떨어졌다면 세션이 만료된 것!
+                    if (error.response?.status === 401) {
+                        client.deactivate(); // 무한 재연결 시도 중지
+
+                        // 알림창을 띄우고 로그인 페이지로 강제 이동
+                        Swal.fire({
+                            title: "세션 만료",
+                            text: "오랜 시간 응답이 없어 연결이 끊어졌습니다. 다시 로그인해 주세요.",
+                            icon: "warning",
+                            confirmButtonText: "확인",
+                            allowOutsideClick: false // 바깥 클릭 방지
+                        }).then(() => {
+                            // 로컬 스토리지 등에 저장된 만료 정보 삭제 (프로젝트 환경에 맞게 수정)
+                            localStorage.removeItem("loginUserState");
+                            
+                            // 로그인 페이지로 튕겨냄 (새로고침 효과)
+                            window.location.href = "/employee/login"; 
+                        });
+                    }
+                }
+            },
             //디버깅 설정(옵션)
             debug: (str)=>console.log(str)
         });
@@ -153,8 +221,6 @@ export default function ConsultChat() {
 
     //연결 및 해제
     useEffect(()=>{
-        if(rooms.length === 0) return;//방 정보가 존재하지 않으면 연결을 하지마라! (기존과 차이점)
-
         //최초 1회 실행해야할 작업
         const client = connectToServer();
         setClient(client);
@@ -221,12 +287,25 @@ export default function ConsultChat() {
     const handleRoomSelect = useCallback(async (selectedRoom) => {
         setRoom(selectedRoom);
         setActiveRoomNo(selectedRoom.roomNo);
-        
-        const { data } = await apiClient.get(`/employee/room/${selectedRoom.roomNo}`);
-        setHistory(data.history);
+        setViewMode("chat"); // ✨ 방 선택 시 무조건 채팅 화면으로 전환
 
-        // 안읽음 카운트 초기화
-        setRooms(prev => prev.map(r => r.roomNo === selectedRoom.roomNo ? { ...r, unreadCnt: 0 } : r));
+        setUsers([]);
+        setHistory([]);
+        setIsRoomLoading(true);
+
+        try {
+            const { data } = await apiClient.get(`/employee/room/${selectedRoom.roomNo}`);
+            setUsers(data.users);
+            setHistory(data.history);
+            
+            // 안읽음 카운트 초기화
+            setRooms(prev => prev.map(r => r.roomNo === selectedRoom.roomNo ? { ...r, unreadCnt: 0 } : r));
+        } catch(error) {
+            console.error("방 정보 불러오기 실패", error);
+        } finally {
+            // ✨ 요청이 끝나면 로딩 끄기
+            setIsRoomLoading(false);
+        }
     }, []);
 
     //연결 상태 확인
@@ -291,21 +370,93 @@ export default function ConsultChat() {
         }
     }, []);
 
-    return(<>
-        <Jumbotron title="상담 채팅 관리" />
+    const enterRoom = useCallback(async (targetRoomNo) => {
+        try {
+            await apiClient.post(`/employee/room/${targetRoomNo}/enter`);
+            // 2. 요청 성공 시, 해당 방의 정보를 즉시 다시 불러옴
+            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
+            // 3. 참여자 목록(users) 상태를 업데이트 -> 화면(UI) 즉시 변경됨!
+            setUsers(data.users);
+            loadRooms();
+        } catch (error) {
+            console.error("참여 처리 실패", error);
+        }
+    }, []);
+    
+    const leaveRoom = useCallback(async (targetRoomNo) => {
+        try {
+            await apiClient.post(`/employee/room/${targetRoomNo}/leave`);
+            // 2. 요청 성공 시, 방 정보 다시 불러오기
+            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
+            // 3. 참여자 목록 갱신 -> 내가 빠진 목록이 세팅되므로 화면이 즉시 바뀜!
+            setUsers(data.users);
+            loadRooms();
+        } catch (error) {
+            console.error("퇴장 처리 실패", error);
+        }
+    }, []);
+    
+    // 🔴 관리자 전용: 특정 직원 강제 퇴장 처리
+    const kickEmployee = useCallback(async (targetRoomNo, targetAccountNo) => {
+        const result = await Swal.fire({
+            title: "직원 내보내기",
+            text: "해당 직원을 채팅방에서 내보내시겠습니까?",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: "내보내기",
+            confirmButtonColor: "#d33",
+            cancelButtonText: "취소"
+        });
 
-        <Container fluid className="p-3 bg-light">
-            <Row className="bg-white shadow-sm rounded overflow-hidden">
+        if (!result.isConfirmed) return;
+
+        try {
+            await apiClient.post(`/employee/room/${targetRoomNo}/leave/${targetAccountNo}`);
+            
+            // 요청 성공 시, 방 정보 다시 불러오기
+            const { data } = await apiClient.get(`/employee/room/${targetRoomNo}`);
+            setUsers(data.users);
+            loadRooms(); // 목록 갱신
+        } catch (error) {
+            console.error("강제 퇴장 처리 실패", error);
+            Swal.fire("오류", "내보내기 처리에 실패했습니다.", "error");
+        }
+    }, [loadRooms]);
+
+    const consultEmployee = users?.find(user => user.accountType === '직원');
+
+    // ✨ 3. 뒤로가기(목록으로) 함수 추가
+    const handleBackToList = useCallback(() => {
+        setViewMode("list");
+        setActiveRoomNo(null);
+        setRoom(null);
+    }, []);
+
+    // ✨ 1. 방 이동 시 깜빡임 방지용 로딩 상태 추가
+    const [isRoomLoading, setIsRoomLoading] = useState(false);
+
+    return(<>
+        {/* <Jumbotron title="채팅 관리" /> */}
+
+        <Container fluid className="p-0 p-md-3 bg-light">
+            <Row className="bg-white shadow-sm rounded overflow-hidden m-0">
                 
-                {/* 좌측: 채팅방 목록 */}
-                <Col xs={12} md={5} lg={4} className="p-0 border-end d-flex flex-column " style={{ height: "550px" }}>
+                {/* ✨ 좌측: 채팅방 목록 (viewMode가 'chat'일 때 모바일에서 숨김) */}
+                <Col 
+                    xs={12} md={5} lg={4} 
+                    className={`p-0 border-end flex-column chat-col-height ${viewMode === 'chat' ? 'd-none d-md-flex' : 'd-flex'}`}
+                >
                 <div className="p-3 bg-dark text-white d-flex justify-content-between align-items-center">
-                    <h5 className="mb-0">상담 채팅 목록</h5>
-                    {totalUnreadCount > 0 && (
-                        <Badge bg="danger" pill className="fs-6">
-                            새 메시지 {totalUnreadCount}
-                        </Badge>
-                    )}
+                    <h5 className="mb-0">채팅 목록</h5>
+                    <Badge 
+                        bg="danger" 
+                        pill 
+                        className="fs-6"
+                        // ✨ [수정] 요소는 항상 렌더링하되, 카운트가 0일 때는 투명하게 숨김 처리
+                        style={{ visibility: totalUnreadCount > 0 ? "visible" : "hidden" }}
+                    >
+                        새 메시지 {totalUnreadCount > 0 ? totalUnreadCount : 0}
+                    </Badge>
                 </div>
                 <ListGroup variant="flush" className="overflow-auto flex-grow-1">
                     {rooms.map((room) => (
@@ -318,11 +469,37 @@ export default function ConsultChat() {
                     >
                         {/* 상단: 이름과 마지막 채팅 시간 */}
                         <div className="d-flex w-100 justify-content-between align-items-center mb-1">
-                            <h6 className="mb-0 fw-bold text-truncate pe-2">
-                                [{room.accountType}] {room.accountName}
-                            </h6>
+                            <div className="d-flex align-items-center gap-2 text-truncate pe-2">
+                                <Badge bg={badgeColorMap[room.accountType] || 'secondary'} className="px-2 py-1">
+                                    {room.accountType}
+                                </Badge>
+                                <h6 className="mb-0 fw-bold text-truncate">
+                                    {room.accountName}
+                                </h6>
+
+                                {room.enter === 'Y' ? (
+                                    <Badge 
+                                        bg="primary" 
+                                        className="d-flex align-items-center justify-content-center rounded-pill bg-opacity-10 text-primary border border-primary-subtle fw-bold px-2"
+                                        style={{ fontSize: '0.65rem', height: '20px', lineHeight: '1' }}
+                                    >
+                                        참여중
+                                    </Badge>
+                                ) : (
+                                    room.cnt > 1 && (
+                                    <Badge 
+                                        bg="success" 
+                                        className="d-flex align-items-center justify-content-center rounded-pill bg-opacity-10 text-success border border-success-subtle fw-bold px-2"
+                                        style={{ fontSize: '0.65rem', height: '20px', lineHeight: '1' }}
+                                    >
+                                        상담중
+                                    </Badge>
+                                    )
+                                )
+                                }
+                            </div>
                             
-                            {/* ✨ 마지막 채팅 시간 표시 (VO의 필드명이 chatTime인지 lastTime인지 맞춰서 수정) */}
+                            {/* 마지막 채팅 시간 표시 */}
                             <span className={`small text-nowrap ${activeRoomNo === room.roomNo ? 'text-white' : 'text-muted'}`}>
                                 {formatRoomTime(room.lastTime)}
                             </span>
@@ -342,88 +519,205 @@ export default function ConsultChat() {
                 </ListGroup>
                 </Col>
 
-                {/* 우측: 채팅 내용 */}
-                <Col xs={12} md={7} lg={8} className="p-0 d-flex flex-column bg-light" style={{ height: "550px" }}>
+                {/* ✨ 우측: 채팅 내용 (viewMode가 'list'일 때 모바일에서 숨김) */}
+                <Col 
+                    xs={12} md={7} lg={8} 
+                    className={`p-0 flex-column bg-light chat-col-height ${viewMode === 'list' ? 'd-none d-md-flex' : 'd-flex'}`}
+                >
                 {activeRoomNo ? (
                     <>
-                    <div className="p-3 bg-white border-bottom shadow-sm">
-                        <h5 className="mb-0">[{room?.accountType}] {room?.accountName}</h5>
-                    </div>
-
-                    <div className="p-4 flex-grow-1 overflow-auto d-flex flex-column gap-3"
-                        ref={messagesEndRef}>
-                        {history.map((message, index) => {
-                        //내 메세지인지 판정
-                        const my = loginUser.accountNo === message.senderNo;
-                        const isDiffSender = checkSenderVisible(history[index], history[index-1]);
-                        const isDiffTime = checkTimeVisible(history[index], history[index+1]);
-                        const isDiffDate = checkDateVisible(history[index], history[index-1]);
-
-                        return (
-                            <div key={index} className="d-flex flex-column gap-3">
-                            {isDiffDate && (
-                                <div className="d-flex justify-content-center my-2">
-                                    <div className="bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-1" style={{ fontSize: "0.8rem" }}>
-                                        {dayjs(message.time).format("YYYY년 M월 D일 dddd")}
+                    {/* 상단 회원 정보 카드 헤더 영역 */}
+                    <div className="p-4 bg-white border-bottom shadow-sm z-1">
+                        <div className="d-flex justify-content-between align-items-center">
+                            
+                            {/* 좌측: 프로필 아이콘 및 회원 정보 */}
+                            <div className="d-flex align-items-center gap-3">
+                                <div>
+                                    <div className="d-flex align-items-center gap-2 mb-1">
+                                        <Button 
+                                            variant="light" 
+                                            className="d-md-none d-flex align-items-center justify-content-center rounded-circle border-0 me-2 shadow-sm" 
+                                            style={{ width: "38px", height: "38px", backgroundColor: "#f1f3f5" }}
+                                            onClick={handleBackToList}
+                                        >
+                                            <FaArrowLeft size={18} className="text-dark" />
+                                        </Button>
+                                        
+                                        <Badge bg={badgeColorMap[room.accountType] || 'secondary'} className="px-2 py-1">
+                                            {room.accountType}
+                                        </Badge>
+                                        <h5 className="mb-0 fw-bold">{room?.accountName}</h5>
                                     </div>
                                 </div>
-                            )}
-                            {my ? (
-                                <div className="d-flex justify-content-end">
-                                    <div className="d-flex flex-column align-items-end">
-                                        <div className="d-flex align-items-end gap-2">
-                                            <span className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>
-                                                {isDiffTime && dayjs(message.time).format("a h:mm")}
-                                            </span>
-                                            <div className="bg-primary text-white rounded-3 p-2 px-3 shadow-sm">
-                                                {message.content}
+                            </div>
+
+                            {/* 우측 상단 버튼 영역 (높이 42px로 통일하여 레이아웃 덜컹거림 방지) */}
+                            {isRoomLoading ? (
+                                /* 1. 로딩 스피너 (42px) */
+                                <div className="d-flex justify-content-center align-items-center" style={{ minWidth: "115px", height: "42px" }}>
+                                    <div className="spinner-border spinner-border-sm text-primary opacity-50" role="status">
+                                        <span className="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            ) : consultEmployee ? (
+                                consultEmployee.accountNo === loginUser.accountNo ? (
+                                    /* 2. 내가 참가 중일 때 '나가기' 버튼 (py-2 제거하고 높이 42px 지정) */
+                                    <Button 
+                                        variant="outline-danger" 
+                                        className="fw-bold px-4 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm hover-elevate transition-all"
+                                        style={{ height: "42px" }}
+                                        onClick={() => leaveRoom(room.roomNo)}
+                                    >
+                                        <span>나가기</span>
+                                    </Button>
+                                ) : (
+                                    /* 3. 다른 직원이 참가 중일 때 '정보/내보내기' 영역 (높이 42px 지정, 내부 py-1 제거) */
+                                    <div 
+                                        className="d-flex align-items-center bg-white border border-light-subtle rounded-pill shadow-sm" 
+                                        style={{ height: "42px", padding: '0 6px 0 16px' }}
+                                    >
+                                        <div className={`d-flex align-items-center h-100 gap-2 ${loginUser?.roleNames?.includes('ADMIN') ? 'border-end border-light-subtle pe-3' : 'pe-2'}`}>
+                                            <Badge bg={badgeColorMap[consultEmployee.accountType] || 'secondary'} className="px-2 py-1 rounded-pill fw-normal">
+                                                {consultEmployee.accountType}
+                                            </Badge>
+                                            <div className="d-flex flex-column justify-content-center">
+                                                <span className="fw-bold text-dark fs-6" style={{ letterSpacing: '-0.5px' }}>
+                                                    {consultEmployee.accountName}
+                                                </span>
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="d-flex justify-content-start">
-                                    <div className="d-flex flex-column align-items-start">
-                                        {(!my && isDiffSender) && (
-                                            <span className="small text-muted mb-1 fw-bold">
-                                                [{message.senderType}] {message.senderName}
-                                            </span>
+                                        
+                                        {loginUser?.roleNames?.includes('ADMIN') && (
+                                            <Button 
+                                                variant="outline-danger" 
+                                                className="border-0 rounded-pill fw-bold ms-2 px-3 d-flex align-items-center transition-all"
+                                                style={{ fontSize: '0.75rem', height: '30px' }}
+                                                onClick={() => kickEmployee(room.roomNo, consultEmployee.accountNo)}
+                                            >
+                                                내보내기
+                                            </Button>
                                         )}
-                                        <div className="d-flex align-items-end gap-2">
-                                            <div className="bg-white border rounded-3 p-2 px-3 shadow-sm">
-                                                {message.content}
-                                            </div>
-                                            <span className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>
-                                                {isDiffTime && dayjs(message.time).format("a h:mm")}
-                                            </span>
-                                        </div>
                                     </div>
-                                </div>
+                                )
+                            ) : (
+                                /* 4. 아무도 없을 때 '참가하기' 버튼 (py-2 제거하고 높이 42px 지정) */
+                                <Button 
+                                    variant="primary" 
+                                    className="fw-bold px-4 rounded-pill d-flex align-items-center justify-content-center gap-2 shadow-sm hover-elevate transition-all"
+                                    style={{ height: "42px" }}
+                                    onClick={() => enterRoom(room.roomNo)}
+                                >
+                                    <FaPaperPlane size={14} />
+                                    <span>참가하기</span>
+                                </Button>
                             )}
                         </div>
-                        )}, [history])}
+                    </div>
+                    <div className="p-4 flex-grow-1 overflow-auto d-flex flex-column gap-3"
+                        ref={messagesEndRef}>
+                        {isRoomLoading ? (
+                            /* ✨ 로딩 중일 때는 화면 중앙에 큰 스피너 표시 */
+                            <div className="d-flex h-100 justify-content-center align-items-center">
+                                <div className="spinner-border text-secondary opacity-25" role="status">
+                                    <span className="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                        ) : (
+                            history.map((message, index) => {
+                            //내 메세지인지 판정
+                            const my = loginUser.accountNo === message.senderNo;
+                            const isDiffSender = checkSenderVisible(history[index], history[index-1]);
+                            const isDiffTime = checkTimeVisible(history[index], history[index+1]);
+                            const isDiffDate = checkDateVisible(history[index], history[index-1]);
+
+                            return (
+                                <div key={index} className="d-flex flex-column gap-3">
+                                {isDiffDate && (
+                                    <div className="d-flex justify-content-center my-2">
+                                        <div className="bg-secondary bg-opacity-10 text-secondary rounded-pill px-3 py-1" style={{ fontSize: "0.8rem" }}>
+                                            {dayjs(message.time).format("YYYY년 M월 D일 dddd")}
+                                        </div>
+                                    </div>
+                                )}
+                                {my ? (
+                                    <div className="d-flex justify-content-end">
+                                        <div className="d-flex flex-column align-items-end">
+                                            <div className="d-flex align-items-end gap-2">
+                                                <span className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>
+                                                    {isDiffTime && dayjs(message.time).format("a h:mm")}
+                                                </span>
+                                                <div className="bg-primary text-white rounded-3 p-2 px-3 shadow-sm">
+                                                    {message.content}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="d-flex justify-content-start">
+                                        <div className="d-flex flex-column align-items-start">
+                                            {(!my && isDiffSender) && (
+                                                <div className="d-flex align-items-center gap-2 mb-1">
+                                                    <Badge bg={badgeColorMap[message.senderType] || 'secondary'} className="px-2 py-1">
+                                                        {message.senderType}
+                                                    </Badge>
+                                                    <span className="small text-muted fw-bold">
+                                                        {message.senderName}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <div className="d-flex align-items-end gap-2">
+                                                <div className="bg-white border rounded-3 p-2 px-3 shadow-sm">
+                                                    {message.content}
+                                                </div>
+                                                <span className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>
+                                                    {isDiffTime && dayjs(message.time).format("a h:mm")}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            )}, [history])
+                        )}
                     </div>
 
                     <div className="p-3 bg-white border-top">
-                        <div className="d-flex gap-2">
-                            <Form.Control 
-                                type="text" 
-                                placeholder="메시지를 입력하세요"
-                                name="chatContent"
-                                value={input}
-                                onKeyUp={e=>{
-                                    //엔터를 누르면 전송버튼과 동일한 기능을 실행
-                                    if(e.key === "Enter") sendMessage();
-                                }}
-                                onChange={(e)=>setInput(e.target.value)}
-                                className="bg-light border-secondary-subtle"
-                            />
-                            <Button type="button" variant="primary" className="d-flex align-items-center justify-content-center text-nowrap fw-bold px-3"
-                                disabled={isConnect === false} onClick={sendMessage}>
-                                <FaPaperPlane />
-                                <span className="d-none d-md-inline ms-1">전송</span>
-                            </Button>
-                        </div>
+                        {!consultEmployee ? (
+                            <div className="d-flex align-items-center justify-content-center bg-light border border-secondary-subtle rounded-3 px-2 py-2 py-md-0 text-muted shadow-sm text-center" style={{ minHeight: "38px" }}>
+                                <span className="small lh-base">
+                                    <span className="d-block d-lg-inline">대화중인 직원이 없습니다.</span>
+                                    <span className="d-none d-lg-inline"> </span> {/* PC에서만 보이는 띄어쓰기 */}
+                                    <span className="d-block d-lg-inline">상단의 <strong>참가하기</strong> 버튼을 눌러 대화를 시작해 주세요.</span>
+                                </span>
+                            </div>
+                        ) : consultEmployee.accountNo !== loginUser.accountNo ? (
+                            /* 다른 직원이 상담 중일 때 보여줄 대체 UI */
+                            <div className="d-flex align-items-center justify-content-center bg-light border border-secondary-subtle rounded-3 px-2 text-muted shadow-sm" style={{ height: "38px" }}>
+                                <span className="small">
+                                    현재 <strong>{consultEmployee.accountName}</strong> 직원이 대화 중입니다.
+                                </span>
+                            </div>
+                        ) : (
+                            /* 내가 상담 중이거나 아직 담당자가 없을 때 보여줄 입력창 */
+                            <div className="d-flex gap-2" style={{ height: "38px" }}>
+                                <Form.Control 
+                                    type="text" 
+                                    placeholder="메시지를 입력하세요"
+                                    name="chatContent"
+                                    value={input}
+                                    onKeyUp={e=>{
+                                        if(e.key === "Enter") sendMessage();
+                                    }}
+                                    onChange={(e)=>setInput(e.target.value)}
+                                    className="bg-light border-secondary-subtle h-100"
+                                />
+                                <Button type="button" variant="primary" className="d-flex align-items-center justify-content-center text-nowrap fw-bold px-3 h-100"
+                                    disabled={isConnect === false} onClick={sendMessage}>
+                                    <FaPaperPlane />
+                                    <span className="d-none d-md-inline ms-1">전송</span>
+                                </Button>
+                            </div>
+                        )}
                     </div>
                     </>
                 ) : (

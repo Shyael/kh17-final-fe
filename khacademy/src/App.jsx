@@ -11,6 +11,7 @@ import Row from "react-bootstrap/esm/Row"
 import Col from "react-bootstrap/esm/Col"
 import { ToastContainer, Bounce } from "react-toastify";
 import { isLoginState, isEmployeeState } from "@utils/storage"
+import useAlarmSse from "@utils/alarm/useAlarmSse";
 
 // 헤더/푸터 없이 보여줄 인증 화면
 // logo: true / false / (location) => boolean
@@ -29,6 +30,9 @@ function App() {
   const isLogin = useAtomValue(isLoginState);
   const isEmployee = useAtomValue(isEmployeeState);
   const academyName = useAcademyName();
+
+  // 로그인 시 SSE 연결
+    //useAlarmSse(isLogin);
 
   const isExamAttempt = matchPath(
     "/student/exam/:examNo/attempt/:attemptNo",
@@ -55,10 +59,11 @@ function App() {
         </EmployeeLayout>
       ) : authPage ? (
         // 인증 화면: 메뉴/푸터 없이 (로고는 외부 회원용 화면에서만)
-        <Container fluid>
+        // 로고 + 로그인 카드를 한 덩어리로 화면 세로 중앙에 배치
+        <Container fluid className="kh-auth-page">
           {showAuthLogo && (
             <div className="kh-auth-bar">
-              <Link to="/" className="kh-auth-logo">{academyName}</Link>
+              <Link to="/academy" className="kh-auth-logo">{academyName}</Link>
             </div>
           )}
           <Body />

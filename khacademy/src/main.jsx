@@ -13,6 +13,17 @@ import "bootswatch/dist/flatly/bootstrap.min.css";
 
 import './index.css'
 
+// 공용 스크롤바 디자인
+import '@templates/scroll.css'
+//공용 테이블 디자인 (모든 화면의 표에 kh-table 클래스로 적용)
+import '@templates/table.css'
+//공용 페이지네이션 디자인 (PaginationBar 에 kh-pagination 클래스로 적용)
+import '@templates/pagination.css'
+//공용 티켓형 카드 디자인 (kh-ticket-* 클래스로 적용)
+import '@templates/ticketCard.css'
+//전체 서비스 공용 폰트 (Spoqa Han Sans Neo, 무료/상업적 이용 가능)
+import 'spoqa-han-sans/css/SpoqaHanSansNeo.css'
+
 /*
   React Router v6의 라우팅 방식 종류 및 특징
 
@@ -34,13 +45,12 @@ import './index.css'
 
 createRoot(document.getElementById('root')).render(
   // <StrictMode>
-  <BrowserRouter>
+  <BrowserRouter basename="/views">
     <Provider>
       {/* 개발 모드일 때만 표시되도록 조건 설정 */}
       {/* { import.meta.env.DEV && (
         <DevTools position="bottom-right"/>
       ) } */}
-
       <App />
     </Provider>
   </BrowserRouter>

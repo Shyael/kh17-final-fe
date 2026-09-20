@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 export default function EmployeeRegisterFail() {
     
     return(<>
-        <Jumbotron title="회원가입 오류 발생" content="일시적인 오류가 발생했습니다"/>
+        <Jumbotron title="회원등록 오류 발생" content="일시적인 오류가 발생했습니다"/>
 
         <Row className="mt-4">
             <Col>

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import { Button, Card, Col, Form, InputGroup, Row } from "react-bootstrap";
-import { FaCheck, FaPlus, FaRegImage, FaXmark } from "react-icons/fa6";
+import { FaCheck, FaListUl, FaPlus, FaRegImage, FaTrash } from "react-icons/fa6";
 import { Link, useParams } from "react-router-dom";
 import DatePicker, { registerLocale } from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -805,6 +805,13 @@ export default function ExamManage() {
 
     return (
         <>
+            <div className="d-flex justify-content-between align-items-center mb-2">
+                <Button variant="outline-secondary" size="sm" as={Link} to={`/employee/exam`}>
+                    <FaListUl className="me-2" />
+                    <span>목록으로</span>
+                </Button>
+            </div>
+
             <Jumbotron title={isEdit ? "시험 수정" : "시험 등록"} />
 
             {/* 시험 정보 */}
@@ -822,12 +829,12 @@ export default function ExamManage() {
 
                             <Row>
                                 <Col sm={6}>
-                                    <Form.Label>강좌</Form.Label>
+                                    <Form.Label>강의</Form.Label>
                                     <Form.Select
                                         name="courseNo"
                                         value={exam.courseNo}
                                         onChange={changeExam}>
-                                        <option value="">강좌 선택</option>
+                                        <option value="">강의 선택</option>
                                         {courseList.map(course => (
                                             <option
                                                 key={course.courseNo}
@@ -971,7 +978,7 @@ export default function ExamManage() {
                                         variant="outline-danger"
                                         size="sm"
                                         onClick={() => removeQuestion(question.tempId)}>
-                                        <FaXmark className="me-1" />
+                                        <FaTrash className="me-1" />
                                         <span>문항 삭제</span>
                                     </Button>
                                 </div>
@@ -1020,12 +1027,12 @@ export default function ExamManage() {
                                                         objectFit: "cover"
                                                     }} />
                                                 <Button
-                                                    variant="danger"
+                                                    variant="outline-danger"
                                                     size="sm"
                                                     className="position-absolute top-0 end-0 py-0 px-1"
                                                     onClick={() =>
                                                         removeBeforeFile(question.tempId, question.questionNo, attach.attachNo)}>
-                                                    <FaXmark />
+                                                    <FaTrash />
                                                 </Button>
                                             </div>
                                         ))}
@@ -1053,7 +1060,7 @@ export default function ExamManage() {
                                             variant="outline-danger"
                                             onClick={() =>
                                                 removeOption(question.tempId, option.tempId)}>
-                                            <FaXmark />
+                                            <FaTrash />
                                         </Button>
                                     </InputGroup>
                                 ))}
@@ -1090,13 +1097,11 @@ export default function ExamManage() {
 
             <Row className="mt-4 mb-4">
                 <Col className="text-end">
-                    <Button variant="primary" as={Link} to={`/employee/exam`} className="ms-2">
-                        <span>목록으로</span>
-                    </Button>
                     <Button variant="secondary" onClick={saveQuestions} className="ms-2">
                         <span>임시저장</span>
                     </Button>
-                    <Button variant="success" className="ms-2" onClick={completeExam}>
+                    <Button variant="primary" className="ms-2" onClick={completeExam}>
+                        <FaCheck className="me-2" />
                         <span>출제완료</span>
                     </Button>
                 </Col>

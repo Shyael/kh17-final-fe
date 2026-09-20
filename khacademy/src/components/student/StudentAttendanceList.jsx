@@ -1,27 +1,34 @@
 import { useCallback, useEffect, useState, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Container, Row, Col, Card, Table, Badge, Form, Button, Spinner, ProgressBar } from "react-bootstrap";
-import {
-    FaCalendarCheck,
-    FaChalkboardUser,
-    FaRotateRight
-} from "react-icons/fa6";
+import { FaCalendarCheck, FaChalkboardUser, FaUserTie, FaRegMessage } from "react-icons/fa6";
 import Swal from "sweetalert2";
+import { useAtomValue, useSetAtom } from "jotai";
 
 import { apiClient } from "@utils/reaxios";
+import { isParentState, selectedChildNoState, selectedChildState, chatTriggerState } from "@utils/storage";
 import Jumbotron from "@templates/Jumbotron";
 
 export default function StudentAttendanceList() {
-    const { courseNo } = useParams(); // URL의 :courseNo 추출
+    const { courseNo } = useParams();
     const navigate = useNavigate();
+
+    // 💡 Jotai에서 학부모 여부 및 선택된 자녀 정보 가져오기
+    const isParent = useAtomValue(isParentState);
+    const selectedChildNo = useAtomValue(selectedChildNoState);
+    const selectedChild = useAtomValue(selectedChildState);
+
+    // ✨ [추가] 채팅창에 명령을 내리기 위한 세터 함수
+    const setChatTrigger = useSetAtom(chatTriggerState);
 
     const [myCourses, setMyCourses] = useState([]);
     const [attendanceData, setAttendanceData] = useState(null);
     const [loadingCourses, setLoadingCourses] = useState(true);
     const [loadingData, setLoadingData] = useState(false);
-
-    // 상태 필터: ALL | 출석 | 지각조퇴 | 결석
     const [filterState, setFilterState] = useState("ALL");
+
+    // 기본 라우팅 접두사
+    const basePath = isParent ? "/parent" : "/student";
 
     const formatDateTime = (timestamp) => {
         if (!timestamp) return "-";
@@ -37,28 +44,45 @@ export default function StudentAttendanceList() {
         return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
     };
 
-    // 1. 강좌 목록 조회 (마운트 시 1회 실행)
+    // 1. 강의 목록 조회 (학부모인 경우 자녀 번호가 변경될 때마다 자동 재조회)
     useEffect(() => {
         const loadMyCourses = async () => {
+            // 학부모인데 아직 선택된 자녀 번호가 없으면 로딩 중단
+            if (isParent && !selectedChildNo) {
+                setLoadingCourses(false);
+                return;
+            }
+
             try {
                 setLoadingCourses(true);
-                const { data } = await apiClient.get("/academy/student/attendance/my-courses");
+
+                // 💡 API 엔드포인트 분기
+                const apiUrl = isParent
+                    ? `/academy/parent/attendance/child/${selectedChildNo}/courses`
+                    : `/academy/student/attendance/my-courses`;
+
+                const { data } = await apiClient.get(apiUrl);
                 const courseList = data || [];
                 setMyCourses(courseList);
 
-                // URL에 courseNo가 없고 강좌가 존재하면 첫 번째 강좌로 URL 자동 완성
-                if (!courseNo && courseList.length > 0) {
-                    navigate(`/student/attendance/list/${courseList[0].courseNo}`, { replace: true });
+                if (courseList.length > 0) {
+                    const isExist = courseList.some((c) => String(c.courseNo) === String(courseNo));
+                    if (!courseNo || !isExist) {
+                        navigate(`${basePath}/attendance/list/${courseList[0].courseNo}`, { replace: true });
+                    }
+                } else {
+                    setAttendanceData(null);
                 }
             } catch (e) {
-                console.error("수강 강좌 목록 조회 실패:", e);
-                Swal.fire("오류", "수강 중인 강좌 목록을 불러오지 못했습니다.", "error");
+                console.error("수강 강의 목록 조회 실패:", e);
+                Swal.fire("오류", "수강 강의 목록을 불러오지 못했습니다.", "error");
             } finally {
                 setLoadingCourses(false);
             }
         };
+
         loadMyCourses();
-    }, [courseNo, navigate]);
+    }, [courseNo, navigate, isParent, selectedChildNo, basePath]);
 
     // 2. 출결 상세 조회 함수
     const loadAttendanceData = useCallback(async (cNo) => {
@@ -66,9 +90,17 @@ export default function StudentAttendanceList() {
             setAttendanceData(null);
             return;
         }
+        if (isParent && !selectedChildNo) return;
+
         try {
             setLoadingData(true);
-            const { data } = await apiClient.get(`/academy/student/attendance/course/${cNo}`);
+
+            // 💡 출결 상세 API 분기
+            const apiUrl = isParent
+                ? `/academy/parent/attendance/child/${selectedChildNo}/course/${cNo}`
+                : `/academy/student/attendance/course/${cNo}`;
+
+            const { data } = await apiClient.get(apiUrl);
             setAttendanceData(data);
             setFilterState("ALL");
         } catch (e) {
@@ -77,31 +109,52 @@ export default function StudentAttendanceList() {
         } finally {
             setLoadingData(false);
         }
-    }, []);
+    }, [isParent, selectedChildNo]);
 
-    // 3. courseNo가 변경될 때마다 단 1번 상세 조회 실행
+    // 3. courseNo 또는 selectedChildNo 변경 시 상세 데이터 재조회
     useEffect(() => {
         if (courseNo && !isNaN(Number(courseNo)) && Number(courseNo) > 0) {
             loadAttendanceData(courseNo);
         }
     }, [courseNo, loadAttendanceData]);
 
-    // 4. 셀렉트 박스에서 강좌 변경 시 URL 전환
+    // 상담하기 처리
+    const chatTutor = useCallback(async (tutorName, employeeNo) => {
+        try {
+            const { data } = await apiClient.get(`/academy/room/check/employee/${employeeNo}`);
+
+            // AcademyChat 컴포넌트가 감지할 수 있도록 전역 상태에 강사/방 정보 쏘기!
+            setChatTrigger({
+                type: "tutor",
+                tutorInfo: {
+                    accountNo: employeeNo,
+                    accountName: tutorName,
+                    roomNo: data.room.roomNo,
+                    unreadCnt: data.room.unreadCnt,
+                    lastContent: data.room.lastContent,
+                    lastTime: data.room.lastTime
+                }
+            });
+        } catch (error) {
+            console.error("참여 처리 실패", error);
+        }
+    }, []);
+
+    // 4. 셀렉트 박스 강의 변경
     const handleCourseChange = (e) => {
         const nextCourseNo = e.target.value;
         if (nextCourseNo) {
-            navigate(`/student/attendance/list/${nextCourseNo}`);
+            navigate(`${basePath}/attendance/list/${nextCourseNo}`);
         }
     };
 
-    // 상태 필터링 (최신순)
+    // 상태 필터링
     const filteredList = useMemo(() => {
         if (!attendanceData?.attendanceList) return [];
-
         if (filterState === "ALL") return attendanceData.attendanceList;
-        if (filterState === "출석") return attendanceData.attendanceList.filter(item => item.attendanceState === "출석");
-        if (filterState === "지각조퇴") return attendanceData.attendanceList.filter(item => item.attendanceState === "지각" || item.attendanceState === "조퇴");
-        if (filterState === "결석") return attendanceData.attendanceList.filter(item => item.attendanceState === "결석");
+        if (filterState === "출석") return attendanceData.attendanceList.filter((i) => i.attendanceState === "출석");
+        if (filterState === "지각조퇴") return attendanceData.attendanceList.filter((i) => i.attendanceState === "지각" || i.attendanceState === "조퇴");
+        if (filterState === "결석") return attendanceData.attendanceList.filter((i) => i.attendanceState === "결석");
         return attendanceData.attendanceList;
     }, [attendanceData, filterState]);
 
@@ -109,7 +162,7 @@ export default function StudentAttendanceList() {
         return (
             <Container className="py-5 text-center">
                 <Spinner animation="border" variant="primary" />
-                <p className="mt-2 text-muted small">수강 강좌 정보를 불러오는 중입니다...</p>
+                <p className="mt-2 text-muted small">수강 강의 정보를 불러오는 중입니다...</p>
             </Container>
         );
     }
@@ -118,41 +171,41 @@ export default function StudentAttendanceList() {
         return (
             <Container className="py-4">
                 <Jumbotron
-                    title="내 출결 현황 조회"
-                    content="수강 중인 강좌별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
+                    title={isParent ? `${selectedChild?.studentName ?? "자녀"}의 출결 현황` : "내 출결 현황"}
+                    content="수강 중인 강의별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
                 />
                 <Card className="shadow-sm border mt-4 text-center py-5">
                     <Card.Body>
-                        <h6 className="fw-bold text-secondary mb-2">현재 수강 중인 강좌가 없습니다.</h6>
-                        <p className="text-muted small mb-0">학원 데스크를 통해 강좌 수강 등록 여부를 확인해 주세요.</p>
+                        <h6 className="fw-bold text-secondary mb-2">현재 수강 중인 강의가 없습니다.</h6>
+                        <p className="text-muted small mb-0">학원 데스크를 통해 강의 수강 등록 여부를 확인해 주세요.</p>
                     </Card.Body>
                 </Card>
             </Container>
         );
     }
 
-    const { summary, courseTitle, studentCourseStatus } = attendanceData || {};
+    const { summary, courseTitle, studentCourseStatus, tutorName, tutorNo } = attendanceData || {};
 
     return (
         <Container className="py-4">
             <Jumbotron
-                title="내 출결 현황 조회"
-                content="수강 중인 강좌별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
+                title={isParent ? `${selectedChild?.studentName ?? "자녀"}의 출결 현황` : "내 출결 현황"}
+                content="수강 중인 강의별 실시간 출결 현황 및 회차별 상세 이력을 확인합니다."
             />
 
-            {/* 강좌 선택 영역 */}
+            {/* 강의 선택 영역 */}
             <Card className="shadow-sm border mb-4 mt-4">
                 <Card.Body>
                     <Row className="align-items-center g-3">
-                        <Col md={8}>
-                            <Form.Group className="d-flex align-items-center gap-3">
-                                <Form.Label className="fw-bold mb-0 text-nowrap" style={{ minWidth: "90px" }}>
-                                    <FaChalkboardUser className="me-1 text-primary" /> 수강 강좌
+                        <Col xs={12} md={7} lg={7}>
+                            <Form.Group className="d-flex align-items-center gap-2">
+                                <Form.Label className="fw-bold mb-0 text-nowrap" style={{ minWidth: "75px" }}>
+                                    <FaChalkboardUser className="me-1 text-primary" /> 강의
                                 </Form.Label>
                                 <Form.Select
                                     value={courseNo || ""}
                                     onChange={handleCourseChange}
-                                    className="fw-semibold"
+                                    className="fw-semibold text-truncate"
                                 >
                                     {myCourses.map((c) => (
                                         <option key={c.courseNo} value={c.courseNo}>
@@ -162,15 +215,40 @@ export default function StudentAttendanceList() {
                                 </Form.Select>
                             </Form.Group>
                         </Col>
-                        <Col md={4} className="text-md-end">
-                            <Button
-                                variant="outline-primary"
-                                size="sm"
-                                onClick={() => loadAttendanceData(courseNo)}
-                                disabled={!courseNo || loadingData}
-                            >
-                                <FaRotateRight className="me-1" /> 새로고침
-                            </Button>
+
+                        {/* 강사 배지 & 질문하기 일체형 칩 */}
+                        <Col xs={12} md={5} lg={5} className="d-flex justify-content-start justify-content-md-end align-items-center">
+                            {tutorName && (
+                                <div className="d-inline-flex align-items-center bg-white border rounded-pill p-1 shadow-sm">
+                                    <div className="d-flex align-items-center px-2 py-1">
+                                        <FaUserTie className="text-primary me-1.5 flex-shrink-0" size={13} />
+                                        <span className="text-muted small me-1">담당</span>
+                                        <strong 
+                                            className="text-dark small text-truncate" 
+                                            style={{ maxWidth: "100px" }}
+                                            title={tutorName}
+                                        >
+                                            {tutorName}
+                                        </strong>
+                                        <span className="small text-secondary ms-0.5">T</span>
+                                    </div>
+
+                                    <div className="vr my-1 text-secondary opacity-25" style={{ height: "16px" }}></div>
+
+                                    <Button
+                                        variant="primary"
+                                        size="sm"
+                                        className="rounded-pill px-3 py-1 fw-semibold d-flex align-items-center gap-1 shadow-none ms-1"
+                                        style={{ fontSize: "0.78rem" }}
+                                        //onClick={() => navigate(`${basePath}/tutor/${tutorNo}/chat`)}
+                                        onClick={() => chatTutor(tutorName, tutorNo)}
+                                        disabled={!tutorNo}
+                                    >
+                                        <FaRegMessage size={11} />
+                                        <span>질문하기</span>
+                                    </Button>
+                                </div>
+                            )}
                         </Col>
                     </Row>
                 </Card.Body>
@@ -183,16 +261,17 @@ export default function StudentAttendanceList() {
                 </div>
             ) : !attendanceData ? (
                 <div className="text-center py-5 text-muted">
-                    강좌를 선택하시면 출결 데이터가 표시됩니다.
+                    강의를 선택하시면 출결 데이터가 표시됩니다.
                 </div>
             ) : (
                 <>
-                    {/* 선택 강좌의 출결 요약 통계 */}
+                    {/* 선택 강의 요약 통계 */}
                     <Card className="shadow-sm border mb-4">
                         <Card.Body className="p-4">
                             <div className="d-flex justify-content-between align-items-center mb-2">
                                 <div className="d-flex align-items-center gap-2">
                                     <h6 className="fw-bold mb-0 text-dark">{courseTitle}</h6>
+                                    {tutorName && <span className="text-muted small">({tutorName} T)</span>}
                                     <Badge bg={
                                         studentCourseStatus === "수강중" ? "primary" :
                                         studentCourseStatus === "수강완료" ? "secondary" :
@@ -273,7 +352,7 @@ export default function StudentAttendanceList() {
                                     해당 조건에 일치하는 출결 내역이 없습니다.
                                 </div>
                             ) : (
-                                <Table hover responsive className="text-center align-middle mb-0">
+                                <Table hover responsive className="kh-table text-center align-middle mb-0">
                                     <thead>
                                         <tr className="table-light text-secondary small">
                                             <th style={{ width: "80px" }}>회차</th>
@@ -288,8 +367,9 @@ export default function StudentAttendanceList() {
                                             <tr key={item.sessionNo}>
                                                 <td className="fw-bold text-secondary">#{item.roundNo}회</td>
                                                 <td>
-                                                    <span className="fw-semibold">{formatDateTime(item.sessionStart)}</span>
-                                                    <span className="text-muted small ms-1">~ {formatTimeOnly(item.sessionEnd)}</span>
+                                                    <span className="fw-semibold text-dark">
+                                                        {formatDateTime(item.sessionStart)} ~ {formatTimeOnly(item.sessionEnd)}
+                                                    </span>
                                                 </td>
                                                 <td className="text-muted small">
                                                     {item.attendanceAt ? formatDateTime(item.attendanceAt) : "-"}

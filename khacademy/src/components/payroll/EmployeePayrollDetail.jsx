@@ -20,7 +20,9 @@ import {
 import { toast } from "react-toastify";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import Jumbotron from "@templates/Jumbotron";
+import { FaListUl } from "react-icons/fa6";
 
 
 const EmployeePayrollDetail = () => {
@@ -75,69 +77,6 @@ const EmployeePayrollDetail = () => {
             Math.round(
                 Number(value) * 100
             ) / 100
-        );
-    };
-
-
-    // =========================
-    // 날짜 + 시간 표시
-    // =========================
-
-    const formatDateTime = (value) => {
-
-        if (!value) {
-            return "-";
-        }
-
-        const date =
-            new Date(value);
-
-        const year =
-            date.getFullYear();
-
-        const month =
-            String(
-                date.getMonth() + 1
-            ).padStart(
-                2,
-                "0"
-            );
-
-        const day =
-            String(
-                date.getDate()
-            ).padStart(
-                2,
-                "0"
-            );
-
-        const hour =
-            String(
-                date.getHours()
-            ).padStart(
-                2,
-                "0"
-            );
-
-        const minute =
-            String(
-                date.getMinutes()
-            ).padStart(
-                2,
-                "0"
-            );
-
-        const second =
-            String(
-                date.getSeconds()
-            ).padStart(
-                2,
-                "0"
-            );
-
-        return (
-            `${year}-${month}-${day} `
-            + `${hour}:${minute}:${second}`
         );
     };
 
@@ -324,7 +263,19 @@ const EmployeePayrollDetail = () => {
                 <Jumbotron
                     title="급여명세"
                 />
-
+                
+                <Row>
+                <Col className="d-flex justify-content-start mb-3">
+                                    <Button
+                                        variant="outline-secondary"
+                                        className="d-flex align-items-center gap-2"
+                                        onClick={() => navigate(-1)}
+                                    >
+                                        <FaListUl />
+                                        목록으로
+                                    </Button>
+                                </Col>
+                </Row>
                 <Card>
 
                     <Card.Body>

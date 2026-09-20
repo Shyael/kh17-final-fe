@@ -578,11 +578,11 @@ export default function AcademyManage() {
                 <Form.Label column sm={3}>
                     <span>학원소개</span>
                 </Form.Label>
+                <Col sm={9}>
+                    <Form.Control as="textarea" rows={5} name="academyIntro"
+                        value={academy.academy?.academyIntro ?? ""} onChange={changeStringValue} />
+                </Col>
             </Row>
-            <Col sm={9}>
-                <Form.Control as="textarea" rows={5} name="academyIntro"
-                    value={academy.academy?.academyIntro ?? ""} onChange={changeStringValue} />
-            </Col>
 
             <hr className="mt-4" />
 
@@ -627,27 +627,34 @@ export default function AcademyManage() {
             <Row className="mt-5">
                 <Form.Label column sm={3}>상세이미지</Form.Label>
                 <Col sm={9}>
-                    {/* 전체선택/해제 */}
-                    <Form.Check type="checkbox" label="전체 선택"
-                        checked={isAllChecked}
-                        onChange={checkAllDetailImages} />
+                    <div className="d-flex">
+                        {/* 전체선택/해제 */}
+                        <Form.Check type="checkbox" label="전체 선택"
+                            checked={isAllChecked}
+                            onChange={checkAllDetailImages} />
 
-                    <Button variant="danger" onClick={deleteCheckedDetailImages}>
-                        체크된 항목 삭제
-                    </Button>
-                    <ListGroup>
+                        <Button className="ms-4" variant="danger" onClick={deleteCheckedDetailImages}>
+                            <span className="me-2">체크된 항목 삭제</span>
+                            <FaTrash/>
+                        </Button>
+                    </div>
+                    <ListGroup className="mt-2">
                         {beforeImages.map(attach => (
                             <ListGroupItem key={attach.attachNo}>
-                                <div className="d-flex justify-content-between">
-                                    <div>
+                                <div className="d-flex justify-content-between align-items-center gap-2">
+                                    <div
+                                        className="text-truncate"
+                                        style={{ minWidth: 0 }}
+                                        title={attach.attachName}
+                                    >
                                         {attach.attachName}
-                                        <span className="ms-2 text-info">
+                                        <span className="ms-2 text-info text-nowrap">
                                             ({(attach.attachSize / 1024 / 1024).toFixed(2)} MB)
                                         </span>
                                     </div>
-                                    <div>
+                                    <div className="flex-shrink-0">
                                         {/* 하나만 삭제 가능한 기존 버튼 */}
-                                        {/* <FaXmark className="text-danger" 
+                                        {/* <FaXmark className="text-danger"
                                     onClick={e=>deleteDetailImage(attach)}/> */}
 
                                         {/* 체크박스 */}
@@ -692,7 +699,7 @@ export default function AcademyManage() {
                 </Col>
             </Row>
 
-            <Button className="mt-4" onClick={addHistory}>
+            <Button className="mt-4 mb-4" onClick={addHistory}>
                 연혁 추가
             </Button>
 
@@ -767,12 +774,6 @@ export default function AcademyManage() {
 
             <Row className="mt-4">
                 <Col className="text-end">
-                    {/* 위치 나중에 생기면 수정 */}
-                    <Button as={Link} to={`/employee/login/`} variant="danger" className="ms-2">
-                        <FaXmark className="me-2" />
-                        <span>취소하기</span>
-                    </Button>
-
                     <Button type="button" variant="success" className="ms-2"
                         onClick={isRegistered ? updateAcademy : insertAcademy}>
                         <FaCheck className="me-2" />

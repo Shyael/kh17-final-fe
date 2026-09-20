@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { Badge, Button, Col, Form, InputGroup, Row, Table } from "react-bootstrap";
 import { FaPlus, FaMagnifyingGlass } from "react-icons/fa6";
 import PaginationBar from "@templates/PaginationBar";
+import { formatDate, formatDateTime } from "@utils/format";
 
 const PAGE_SIZE = 10;
 const PHASE_FILTERS = ["제출가능", "마감"];
@@ -11,13 +12,18 @@ const PHASE_FILTERS = ["제출가능", "마감"];
 export default function AssignmentList() {
     const navigate = useNavigate();
 
+    // 대시보드 등에서 넘어올 때 필터를 미리 선택해서 진입할 수 있도록
+    // (예: /employee/assignment?assignmentPhase=제출가능)
+    const [searchParams] = useSearchParams();
+    const initialPhase = searchParams.get("assignmentPhase") ?? "";
+
     // 과제 제목 입력값(draft)
     const [assignmentTitle, setAssignmentTitle] = useState("");
     // 실제 조회에 사용하는 파라미터 (검색/필터/페이지 이동 시에만 변경)
     const [params, setParams] = useState({
         page: 1,
         assignmentTitle: "",
-        assignmentPhase: "",
+        assignmentPhase: initialPhase,
         courseNo: null,
     });
     // 강의 필터 목록
@@ -192,10 +198,9 @@ export default function AssignmentList() {
             </div>
 
             <Table
-                bordered
                 hover
                 responsive
-                className="align-middle text-center"
+                className="kh-table align-middle text-center"
                 style={{ minWidth: 720 }}
             >
                 <thead>
@@ -240,21 +245,11 @@ export default function AssignmentList() {
                             </td>
 
                             <td className="text-nowrap">
-                                {assignment.assignmentDueDate
-                                    ? new Date(
-                                        assignment.assignmentDueDate
-                                    ).toLocaleString()
-                                    : "-"
-                                }
+                                {formatDateTime(assignment.assignmentDueDate)}
                             </td>
 
                             <td className="text-nowrap">
-                                {assignment.assignmentWtime
-                                    ? new Date(
-                                        assignment.assignmentWtime
-                                    ).toLocaleDateString()
-                                    : "-"
-                                }
+                                {formatDate(assignment.assignmentWtime)}
                             </td>
 
                             <td className="text-nowrap">

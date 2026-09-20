@@ -8,8 +8,10 @@ import {
 } from "react-icons/fa6";
 import { useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
+import { formatDate, formatDateTime } from "@utils/format";
 import { toast } from "react-toastify";
-
+import { isAdminState } from "@utils/storage";
+import { useAtomValue } from "jotai";
 
 export default function ContractHistory() {
     //parameter
@@ -21,7 +23,7 @@ export default function ContractHistory() {
     //state
     const [contractList, setContractList] = useState([]);
     const [loading, setLoading] = useState(true);
-
+    const isAdmin = useAtomValue(isAdminState);
 
     //계약 이력 조회
     const loadData = useCallback(async ()=>{
@@ -30,7 +32,7 @@ export default function ContractHistory() {
             setLoading(true);
 
             const {data} = await apiClient.get(
-                `/employee/contract/detail/${employeeNo}`
+                `/employee/contract/${employeeNo}`
             );
 
             setContractList(data ?? []);
@@ -102,7 +104,7 @@ export default function ContractHistory() {
             return "기간의 정함 없음";
         }
 
-        return value.substring(0, 10);
+        return formatDate(value);
 
     }, []);
 
@@ -322,7 +324,8 @@ export default function ContractHistory() {
 
                         {
                             contract.signedTime
-                            ?? "미체결"
+                            ? formatDateTime(contract.signedTime)
+                            : "미체결"
                         }
 
                     </Col>
@@ -333,7 +336,7 @@ export default function ContractHistory() {
                 <Row className="mt-4">
 
                     <Col className="text-end">
-
+                        {!isAdmin&&
                         <Button
                             variant="outline-primary"
                             onClick={()=>
@@ -344,6 +347,24 @@ export default function ContractHistory() {
                         >
                             상세보기
                         </Button>
+                        }
+                        
+                        {isAdmin&&
+                        <Button
+                            variant="outline-primary"
+                            onClick={()=>
+                                navigate(
+                                    `/admin/contract/detail/${contract.contractNo}`
+                                )
+                            }
+                        >
+                            상세보기
+                        </Button>
+                        }
+
+                        {
+
+                        }
 
                     </Col>
 
@@ -362,7 +383,7 @@ export default function ContractHistory() {
             <Col className="text-end">
 
                 <Button
-                    variant="secondary"
+                    variant="outline-secondary"
                     onClick={()=>navigate(-1)}
                 >
 

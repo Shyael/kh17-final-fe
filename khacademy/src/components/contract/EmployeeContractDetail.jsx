@@ -9,7 +9,8 @@ import {
 
 import {
     FaArrowLeft,
-    FaLock
+    FaLock,
+    FaListUl
 } from "react-icons/fa6";
 
 import {
@@ -18,6 +19,7 @@ import {
 } from "react-router-dom";
 
 import { apiClient } from "@utils/reaxios";
+import { formatDateTime } from "@utils/format";
 import { toast } from "react-toastify";
 
 import ContractDocument from "@components/contract/admin/ContractDocument.jsx";
@@ -30,7 +32,7 @@ export default function EmployeeContractDetail() {
     // =========================
 
     const { contractNo } =
-            useParams();
+        useParams();
 
 
     // =========================
@@ -38,7 +40,7 @@ export default function EmployeeContractDetail() {
     // =========================
 
     const navigate =
-            useNavigate();
+        useNavigate();
 
 
     // =========================
@@ -46,10 +48,10 @@ export default function EmployeeContractDetail() {
     // =========================
 
     const [contract, setContract] =
-            useState(null);
+        useState(null);
 
     const [loading, setLoading] =
-            useState(true);
+        useState(true);
 
 
     // =========================
@@ -57,44 +59,44 @@ export default function EmployeeContractDetail() {
     // =========================
 
     const loadData =
-            useCallback(async () => {
+        useCallback(async () => {
 
-        try {
+            try {
 
-            setLoading(true);
+                setLoading(true);
 
 
-            const { data } =
+                const { data } =
                     await apiClient.get(
                         `/employee/contract/detail/${contractNo}`
                     );
 
 
-            setContract(
+                setContract(
                     data
-            );
+                );
 
-        }
-        catch(e) {
+            }
+            catch (e) {
 
-            console.error(e);
-
-
-            toast.error(
-                e?.response?.data?.message
-                ?? "근로계약 정보를 불러오지 못했습니다"
-            );
+                console.error(e);
 
 
-            setContract(null);
+                toast.error(
+                    e?.response?.data?.message
+                    ?? "근로계약 정보를 불러오지 못했습니다"
+                );
 
-        }
-        finally {
 
-            setLoading(false);
-        }
+                setContract(null);
 
-    }, [contractNo]);
+            }
+            finally {
+
+                setLoading(false);
+            }
+
+        }, [contractNo]);
 
 
     useEffect(() => {
@@ -109,28 +111,28 @@ export default function EmployeeContractDetail() {
     // =========================
 
     const statusText =
-            useCallback(status => {
+        useCallback(status => {
 
-        if (status === "pending") {
-            return "서명 대기";
-        }
+            if (status === "pending") {
+                return "서명 대기";
+            }
 
-        if (status === "scheduled") {
-            return "시작 예정";
-        }
+            if (status === "scheduled") {
+                return "시작 예정";
+            }
 
-        if (status === "active") {
-            return "진행 중";
-        }
+            if (status === "active") {
+                return "진행 중";
+            }
 
-        if (status === "ended") {
-            return "종료";
-        }
+            if (status === "ended") {
+                return "종료";
+            }
 
 
-        return status;
+            return status;
 
-    }, []);
+        }, []);
 
 
     // =========================
@@ -138,28 +140,28 @@ export default function EmployeeContractDetail() {
     // =========================
 
     const statusColor =
-            useCallback(status => {
+        useCallback(status => {
 
-        if (status === "pending") {
-            return "warning";
-        }
+            if (status === "pending") {
+                return "warning";
+            }
 
-        if (status === "scheduled") {
-            return "info";
-        }
+            if (status === "scheduled") {
+                return "info";
+            }
 
-        if (status === "active") {
-            return "success";
-        }
+            if (status === "active") {
+                return "success";
+            }
 
-        if (status === "ended") {
-            return "secondary";
-        }
+            if (status === "ended") {
+                return "secondary";
+            }
 
 
-        return "dark";
+            return "dark";
 
-    }, []);
+        }, []);
 
 
     // =========================
@@ -167,47 +169,47 @@ export default function EmployeeContractDetail() {
     // =========================
 
     const weeklyHolidayDayText =
-            useCallback(day => {
+        useCallback(day => {
 
-        if (day === null
+            if (day === null
                 || day === undefined) {
 
-            return "해당 없음";
-        }
+                return "해당 없음";
+            }
 
 
-        if (day === "MONDAY") {
-            return "월요일";
-        }
+            if (day === "MONDAY") {
+                return "월요일";
+            }
 
-        if (day === "TUESDAY") {
-            return "화요일";
-        }
+            if (day === "TUESDAY") {
+                return "화요일";
+            }
 
-        if (day === "WEDNESDAY") {
-            return "수요일";
-        }
+            if (day === "WEDNESDAY") {
+                return "수요일";
+            }
 
-        if (day === "THURSDAY") {
-            return "목요일";
-        }
+            if (day === "THURSDAY") {
+                return "목요일";
+            }
 
-        if (day === "FRIDAY") {
-            return "금요일";
-        }
+            if (day === "FRIDAY") {
+                return "금요일";
+            }
 
-        if (day === "SATURDAY") {
-            return "토요일";
-        }
+            if (day === "SATURDAY") {
+                return "토요일";
+            }
 
-        if (day === "SUNDAY") {
-            return "일요일";
-        }
+            if (day === "SUNDAY") {
+                return "일요일";
+            }
 
 
-        return day;
+            return day;
 
-    }, []);
+        }, []);
 
 
     // =========================
@@ -215,7 +217,7 @@ export default function EmployeeContractDetail() {
     // =========================
 
     if (loading === true
-            && contract === null) {
+        && contract === null) {
 
         return (
             <h1>
@@ -266,6 +268,17 @@ export default function EmployeeContractDetail() {
         ========================= */}
 
         <Row className="mt-5">
+
+            <Col className="d-flex justify-content-start mb-3">
+                <Button
+                    variant="outline-secondary"
+                    className="d-flex align-items-center gap-2"
+                    onClick={() => navigate(-1)}
+                >
+                    <FaListUl />
+                    목록으로
+                </Button>
+            </Col>
 
             <Col
                 sm={3}
@@ -328,7 +341,8 @@ export default function EmployeeContractDetail() {
 
                 {
                     contract.signedTime
-                    ?? "양측 서명 전"
+                        ? formatDateTime(contract.signedTime)
+                        : "양측 서명 전"
                 }
 
             </Col>
@@ -405,7 +419,7 @@ export default function EmployeeContractDetail() {
                         }
                     >
 
-                        <FaLock/>
+                        <FaLock />
 
                         <span className="ms-2">
                             계약 서명
@@ -418,23 +432,23 @@ export default function EmployeeContractDetail() {
 
                 {/* 체결 완료 */}
                 {contract.signedTime !== null
-                        && contract.signedTime !== undefined && (
+                    && contract.signedTime !== undefined && (
 
-                    <Button
-                        variant="outline-dark"
-                        className="ms-2"
-                        onClick={() =>
-                            navigate(
-                                `/employee/contract/sign/${contractNo}`
-                            )
-                        }
-                    >
+                        <Button
+                            variant="outline-dark"
+                            className="ms-2"
+                            onClick={() =>
+                                navigate(
+                                    `/employee/contract/sign/${contractNo}`
+                                )
+                            }
+                        >
 
-                        서명 보기
+                            서명 보기
 
-                    </Button>
+                        </Button>
 
-                )}
+                    )}
 
 
                 {/* 이전 */}
@@ -446,7 +460,7 @@ export default function EmployeeContractDetail() {
                     }
                 >
 
-                    <FaArrowLeft/>
+                    <FaArrowLeft />
 
                     <span className="ms-2">
                         이전

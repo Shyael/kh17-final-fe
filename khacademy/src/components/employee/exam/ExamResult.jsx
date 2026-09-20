@@ -4,7 +4,8 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiClient } from "@utils/reaxios";
 import { toast } from "react-toastify";
 import { Badge, Button, ButtonGroup, Card, Col, Row, Table } from "react-bootstrap";
-import { FaLock } from "react-icons/fa6";
+import { FaLock, FaListUl } from "react-icons/fa6";
+import { formatShortDateTime } from "@utils/format";
 import Swal from "sweetalert2";
 
 //정답률이 이 값 미만이면 "낮은 문항"으로 표시
@@ -87,19 +88,6 @@ export default function ExamResult() {
         loadResult();
     }, [loadResult]);
 
-    // 짧은 날짜 출력 (월/일 시:분)
-    const formatShortDate = (date) => {
-
-        if (!date) return "-";
-
-        return new Date(date).toLocaleString("ko-KR", {
-            month: "numeric",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit"
-        });
-    };
-
     // 시험 마감 (수동 조기 마감)
     const closeExam = useCallback(async () => {
 
@@ -149,7 +137,7 @@ export default function ExamResult() {
         ? "success"
         : statusLabel === "예정"
             ? "info"
-            : "secondary";
+            : "dark";
 
     // 문항 수
     const questionCount = statistics.questionStatistics?.length
@@ -188,6 +176,13 @@ export default function ExamResult() {
     };
     
     return (<>
+        <div className="d-flex justify-content-between align-items-center mb-2">
+            <Button variant="outline-secondary" size="sm" as={Link} to={`/employee/exam`}>
+                <FaListUl className="me-2" />
+                <span>목록으로</span>
+            </Button>
+        </div>
+
         <Jumbotron title={isResultView ? "시험 결과" : "응시 현황"} />
 
         {/* 1. 시험 정보 */}
@@ -200,7 +195,7 @@ export default function ExamResult() {
                             <span className="mx-1">·</span>
                             {questionCount}문항
                             <span className="mx-1">·</span>
-                            {formatShortDate(exam?.examStart)} ~ {formatShortDate(exam?.examEnd)}
+                            {formatShortDateTime(exam?.examStart)} ~ {formatShortDateTime(exam?.examEnd)}
                         </div>
                         <div className="d-flex justify-content-between align-items-center">
                             <h4 className="mb-0">{exam?.examTitle ?? "-"}</h4>
@@ -342,7 +337,7 @@ export default function ExamResult() {
                             </ButtonGroup>
                         </div>
 
-                        <Table responsive hover className="align-middle text-nowrap mb-0">
+                        <Table responsive hover className="kh-table align-middle text-nowrap">
                             <thead>
                                 <tr>
                                     <th>이름</th>
@@ -378,9 +373,9 @@ export default function ExamResult() {
                                                     ? <Badge bg="warning" text="dark">미응시</Badge>
                                                     : isInProgress
                                                         ? <span className="text-muted">
-                                                            {item.startedAt ? `${formatShortDate(item.startedAt)} 진행` : "진행중"}
+                                                            {item.startedAt ? `${formatShortDateTime(item.startedAt)} 진행` : "진행중"}
                                                         </span>
-                                                        : formatShortDate(item.submittedAt)}
+                                                        : formatShortDateTime(item.submittedAt)}
                                             </td>
 
                                             <td className="text-end">
@@ -405,13 +400,5 @@ export default function ExamResult() {
             </Col>
         </Row>
 
-        {/* 6 · 7. 하단 버튼 */}
-        <Row className="mt-4 mb-4">
-            <Col className="text-end">
-                <Button variant="outline-secondary" as={Link} to={`/employee/exam`}>
-                    목록으로
-                </Button>
-            </Col>
-        </Row>
     </>);
 }

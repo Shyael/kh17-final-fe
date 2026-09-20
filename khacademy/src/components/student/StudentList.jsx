@@ -128,8 +128,8 @@ export default function StudentList() {
                             </Row>
 
                             <div className="table-responsive flex-grow-1">
-                                <Table hover className="align-middle text-center border-top mb-0">
-                                    <thead className="table-light">
+                                <Table hover className="kh-table align-middle text-center">
+                                    <thead>
                                         <tr>
                                             <th>이름</th>
                                             <th>학교</th>
@@ -140,49 +140,58 @@ export default function StudentList() {
                                     </thead>
                                     <tbody>
                                         {/* 🌟 수정: students 배열 대신 pageData.list 사용 */}
-                                        {pageData.list.length === 0 ? (
-                                            <tr>
-                                                <td colSpan="5" className="py-5 text-muted">등록된 학생 데이터가 없습니다.</td>
-                                            </tr>
-                                        ) : (
-                                            pageData.list.map((student) => (
-                                                <tr 
-                                                    key={student.studentNo}
-                                                    onClick={() => setSelectedStudent(student)}
-                                                    style={{ cursor: "pointer" }}
-                                                    className={selectedStudent?.studentNo === student.studentNo ? "table-primary" : ""}
+                                        {pageData.list.map((student) => {
+                                        // 🌟 가독성을 위해 선택 여부를 변수로 뺍니다.
+                                        const isSelected = selectedStudent?.studentNo === student.studentNo;
+
+                                        return (
+                                            <tr 
+                                                key={student.studentNo}
+                                                onClick={() => setSelectedStudent(student)}
+                                                style={{ cursor: "pointer",
+                                                        backgroundColor: isSelected ? "#eef4fd" : undefined,
+                                                        borderLeft: isSelected ? "4px solid #0d6efd" : "4px solid transparent",
+                                                        transition: "background-color 0.15s ease-in-out"
+                                                 }} // 🌟 tr에는 커서만 남깁니다!
+                                                // 배경색은 부트스트랩의 table-primary 클래스가 알아서 완벽하게 처리해 줍니다.
+                                                className={isSelected ? "kh-table" : ""}
+                                            >
+                                                <td 
+                                                    className="fw-semibold"
                                                 >
-                                                    <td className="fw-semibold">
-                                                        {student.studentName}
-                                                        {student.studentAcademicStatus === '대기' && (
-                                                            <Badge bg="warning" text="dark" className="ms-2">대기</Badge>
-                                                        )}
-                                                    </td>
-                                                    <td className="text-muted">{student.studentSchool}</td>
-                                                    <td style={{ width: "20%" }}>
-                                                        <ProgressBar 
-                                                            now={student.attendanceRate} 
-                                                            variant={student.attendanceRate < 50 ? "danger" : "primary"} 
-                                                            style={{ height: "8px" }} 
-                                                        />
-                                                    </td>
-                                                    <td>
-                                                        {student.unpaidAmount > 0 ? (
-                                                            <span className="text-danger fw-bold">
-                                                                {student.unpaidAmount?.toLocaleString()}원
-                                                            </span>
-                                                        ) : (
-                                                            <span className="text-muted">없음</span>
-                                                        )}
-                                                    </td>
-                                                    <td>
-                                                        <Badge bg={getRiskBadgeVariant(student.riskLevel)}>
-                                                            {student.riskLevel}
-                                                        </Badge>
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
+                                                    {student.studentName}
+                                                    {student.studentAcademicStatus === '대기' && (
+                                                        <Badge bg="warning" text="dark" className="ms-2">대기</Badge>
+                                                    )}
+                                                </td>
+                                                
+                                                <td className="text-muted">{student.studentSchool}</td>
+                                                
+                                                {/* ... 나머지 td 코드들은 기존과 동일하게 유지 ... */}
+                                                <td style={{ width: "20%" }}>
+                                                    <ProgressBar 
+                                                        now={student.attendanceRate} 
+                                                        variant={student.attendanceRate < 50 ? "danger" : "kh-table"} 
+                                                        style={{ height: "8px" }} 
+                                                    />
+                                                </td>
+                                                <td>
+                                                    {student.unpaidAmount > 0 ? (
+                                                        <span className="text-danger fw-bold">
+                                                            {student.unpaidAmount?.toLocaleString()}원
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-muted">없음</span>
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    <Badge bg={getRiskBadgeVariant(student.riskLevel)}>
+                                                        {student.riskLevel}
+                                                    </Badge>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
                                     </tbody>
                                 </Table>
                             </div>
@@ -213,7 +222,7 @@ export default function StudentList() {
                                         {selectedStudent.studentName} <span className="fs-6 text-muted ms-2">{selectedStudent.studentGrade}</span>
                                     </h4>
                                     <p className="text-muted mb-0">
-                                        수강 강좌 : <strong>정보 없음</strong>
+                                        수강 강의 : <strong>정보 없음</strong>
                                     </p>
                                 </div>
 
@@ -242,25 +251,44 @@ export default function StudentList() {
                                     <Col xs={4}>
                                         <Card className="border-0 shadow-sm">
                                             <Card.Body className="p-3">
-                                                <div className="text-muted" style={{ fontSize: "0.8rem" }}>과제 제출</div>
-                                                <div className="fs-4 fw-bold text-dark">
-                                                    -<span className="fs-6 text-muted">/-</span>
+                                                <div className="text-muted" style={{ fontSize: "0.8rem" }}>이탈 위험</div>
+                                                <div className={`fs-4 fw-bold ${
+                                                    selectedStudent?.riskLevel === '위험' ? 'text-danger' : 
+                                                    selectedStudent?.riskLevel === '경고' ? 'text-warning' : 
+                                                    'text-dark'
+                                                }`}>
+                                                    {selectedStudent?.riskLevel}
                                                 </div>
                                             </Card.Body>
                                         </Card>
                                     </Col>
                                 </Row>
+                                
+                                {selectedStudent?.riskLevel==='위험' && (
+                                    <>
+                                        <h6 className="fw-bold mb-2">이탈 위험 기준 안내</h6>
+                                        <Card className="border-0 shadow-sm mb-4 flex-grow-1">
+                                            <Card.Body className="d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
+                                                <p className="text-muted small mb-0">출석률이 70%미만이며 미납액이 10만원 이상일 시 이탈위험 '위험'으로 판단합니다</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </>
+                                )}
 
-                                <h6 className="fw-bold mb-2">최근 과제 제출 내역</h6>
-                                <Card className="border-0 shadow-sm mb-4 flex-grow-1">
-                                    <Card.Body className="d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
-                                        <p className="text-muted small mb-0">아직 제출된 과제 상세 데이터가 없습니다.</p>
-                                    </Card.Body>
-                                </Card>
+                                {selectedStudent?.riskLevel==='경고' && (
+                                    <>
+                                        <h6 className="fw-bold mb-2">이탈 위험 기준 안내</h6>
+                                        <Card className="border-0 shadow-sm mb-4 flex-grow-1">
+                                            <Card.Body className="d-flex align-items-center justify-content-center" style={{ minHeight: "100px" }}>
+                                                <p className="text-muted small mb-0">출석률이 85%미만이며 미납액이 1원 이상일 시 이탈률 '경고'로 판단합니다</p>
+                                            </Card.Body>
+                                        </Card>
+                                    </>
+                                )}
 
                                 <Button 
                                     as={Link} 
-                                    to={`/student/detail/${selectedStudent.studentNo}`}
+                                    to={`/employee/student/detail/${selectedStudent.studentNo}`}
                                     variant="primary" 
                                     className="w-100 py-2 fw-bold mt-auto"
                                 >

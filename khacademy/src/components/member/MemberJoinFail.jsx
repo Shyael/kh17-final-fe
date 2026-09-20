@@ -17,7 +17,7 @@ export default function MemberJoinFail() {
         <Row className="mt-4">
             <Col>
                 <Button variant="info" className="w-100"
-                    as={Link} to={`/employee/register`}>
+                    as={Link} to={`/member/join`}>
                     <FaUserPlus/>
                     <span className="ms-2">다시 가입하기</span>
                 </Button>
