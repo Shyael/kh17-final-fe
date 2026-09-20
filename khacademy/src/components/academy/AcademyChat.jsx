@@ -187,8 +187,8 @@ export default function AcademyChat() {
                 const handleMessage = (message, targetRoomNo, isConsult) => {
                     const json = JSON.parse(message.body);
     
-                    // 1) 메세지가 온 방이 '현재 선택(세팅)된 방'인지 판별 (창이 닫혀있어도 true 가능)
-                    const isMatchingRoom = sockRef.current === targetRoomNo;
+                    // ✨ [수정] 방 번호가 String인지 Number인지 달라서 일치하지 않는 버그를 원천 차단
+                    const isMatchingRoom = String(sockRef.current) === String(targetRoomNo);
                     
                     // 2) 실제로 유저가 '화면을 열고 보고 있는 상태'인지 판별
                     const isCurrentlyReading = isChatOpenRef.current && isMatchingRoom;
