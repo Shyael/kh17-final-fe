@@ -14,6 +14,8 @@ registerLocale("ko", ko);
 //시간 선택 시 현재 이후만 선택 가능
 const filterFutureTime = (time) => new Date().getTime() < new Date(time).getTime();
 
+let tempIdSequence = 0;
+
 const createTempId = () => {
     tempIdSequence += 1;
     return `${Date.now()}-${tempIdSequence}`;
