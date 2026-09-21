@@ -275,7 +275,7 @@ export default function MemberJoin() {
                     accountBirth: copy.accountBirth,
                     accountPhone: copy.accountPhone
                 };
-                response = await apiClient.post("/academy/parent", parentPayload);
+                response = await apiClient.post("/academy/parent/", parentPayload);
             }
 
             const msg = response.data?.message || "회원 등록 신청이 완료되었습니다.";
