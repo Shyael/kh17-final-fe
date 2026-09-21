@@ -22,32 +22,7 @@ export default function DeskDashboard({ dashboard }) {
     const navigate = useNavigate();
     return (
         <Row className="g-3 mt-3">
-            <div className="d-flex align-items-center gap-2 ms-auto">
-        
-
-            <Button 
-                
-                onClick={() => {
-
-                    navigate("/admin/payroll")
-
-                }}
-
-                variant="info"
-            >
-
-                급여 관리
-
-
-
-            </Button>
-
-                </div>
-
-            
-
-           
-
+         
             {/* 급여 지급 */}
             <Col xs={12} lg={4}>
                 <Card className="h-100">
@@ -66,7 +41,7 @@ export default function DeskDashboard({ dashboard }) {
                             <Badge
                                 bg={
                                     dashboard.payrollDueList?.length > 0
-                                        ? "success"
+                                        ? "info"
                                         : "secondary"
                                 }
                             >
@@ -132,6 +107,25 @@ export default function DeskDashboard({ dashboard }) {
                             ))
                         )}
 
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="mt-2 align-self-end"
+
+                            onClick={() => {
+
+                                navigate("/admin/payroll")
+
+                            }}
+
+
+                        >
+
+                            급여 관리<FaArrowRight className="ms-1" />
+
+
+
+                        </Button>
                     </Card.Body>
                 </Card>
             </Col>
