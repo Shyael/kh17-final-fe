@@ -1455,7 +1455,7 @@ export default function ContractAdd() {
                                                         column
                                                         sm={3}
                                                     >
-                                                        기타 근로조건
+                                                        근로 조건 내용
                                                     </Form.Label>
 
 

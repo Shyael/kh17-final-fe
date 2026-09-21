@@ -291,13 +291,12 @@ export default function EmployeeSearchDetail() {
                         return;
                     }
 
-                    if (!contractList.some((e) => e.contractStatus === "active")) {
+                    if (contractList.some((e) => e.contractNo === null)) {
                         navigate(
                             `/admin/contract/add/${employee.employeeNo}`
                         );
                         return;
                     }
-
 
                     // 계약 있음
                     navigate(
