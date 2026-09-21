@@ -382,40 +382,43 @@ export default function ContractSign() {
     // 저장된 서명 조회
     // =========================================================
 
-    const loadSignature =
-        useCallback(
-            async () => {
+    const loadSignature = useCallback(async () => {
 
-                try {
+        console.log("① loadSignature 함수 진입");
+        console.log("contractNo:", contractNo);
 
-                    const { data } = await apiClient.get(
-                        `/admin/contract/${contractNo}/findSignature`
-                    );
+        try {
 
-                    console.log("서명 조회 응답 전체:", data);
-                    console.log("서명 조회 원장 서명:", data?.employerSignature);
+            const url =
+                `/admin/contract/${contractNo}/findSignature`;
 
-                    setSignatureInfo(data);
+            console.log("② 요청 직전:", url);
 
-                }
-                catch (e) {
+            const response = await apiClient.get(url);
 
-                    console.error(e);
+            console.log("③ HTTP 상태:", response.status);
+            console.log("④ 응답 전체:", response.data);
+            console.log(
+                "⑤ 원장 서명:",
+                response.data?.employerSignature
+            );
 
+            setSignatureInfo(response.data);
 
-                    toast.error(
-                        e?.response?.data?.message
-                        ?? "저장된 서명을 불러오지 못했습니다"
-                    );
+        }
+        catch (e) {
 
-                }
+            console.error("서명 조회 실패:", e);
+            console.error("HTTP 상태:", e.response?.status);
+            console.error("서버 응답:", e.response?.data);
 
-            },
-            [
-                contractNo
-            ]
-        );
+        }
 
+    }, [contractNo]);
+
+    useEffect(() => {
+    loadSignature();
+}, [loadSignature]); 
 
     // =========================================================
     // loading
@@ -549,7 +552,7 @@ export default function ContractSign() {
                         {/* =============================================
                             직원 서명
                         ============================================= */}
-                        {!isAdmin && !contract?.employeeSignature && (<>
+                        {!isAdmin && !signatureInfo?.employeeSignature && (<>
                             <Row className="mt-5">
 
                                 <Col>
@@ -632,7 +635,7 @@ export default function ContractSign() {
                         {/* =============================================
                             원장 서명
                         ============================================= */}
-                        {isAdmin && !contract?.employerSignature && (<>
+                        {isAdmin && !signatureInfo?.employerSignature && (<>
                             <Row className="mt-5">
 
                                 <Col>
