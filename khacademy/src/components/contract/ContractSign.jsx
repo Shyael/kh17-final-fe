@@ -60,13 +60,10 @@ export default function ContractSign() {
                         `/employee/contract/recallBefore/${contractNo}`
                     );
 
+                console.log("API 응답 전체:", data);
+                console.log("API 원장 서명:", data?.employerSignature);
 
-                console.log(data);
-
-
-                setContract(
-                    data
-                );
+                setContract(data);
 
             }
             catch (e) {
@@ -391,15 +388,14 @@ export default function ContractSign() {
 
                 try {
 
-                    const { data } =
-                        await apiClient.get(
-                            `/employee/contract/${contractNo}/findSignature`
-                        );
-
-
-                    setSignatureInfo(
-                        data
+                    const { data } = await apiClient.get(
+                        `/admin/contract/${contractNo}/findSignature`
                     );
+
+                    console.log("서명 조회 응답 전체:", data);
+                    console.log("서명 조회 원장 서명:", data?.employerSignature);
+
+                    setSignatureInfo(data);
 
                 }
                 catch (e) {
@@ -553,168 +549,168 @@ export default function ContractSign() {
                         {/* =============================================
                             직원 서명
                         ============================================= */}
-                {!isAdmin &&(contract.employeeSignature===null)&&(<>
-                        <Row className="mt-5">
+                        {!isAdmin && !contract?.employeeSignature && (<>
+                            <Row className="mt-5">
 
-                            <Col>
+                                <Col>
 
-                                <h4 className="fw-bold">
+                                    <h4 className="fw-bold">
 
-                                    을(직원) 서명
+                                        을(직원) 서명
 
-                                </h4>
+                                    </h4>
 
-                            </Col>
+                                </Col>
 
-                        </Row>
-
-                        
-                        <Row className="mt-4">
-
-                            <Form.Label
-                                column
-                                sm={3}
-                            >
-
-                                직원 서명
-
-                            </Form.Label>
+                            </Row>
 
 
-                            <Col sm={9}>
+                            <Row className="mt-4">
 
-                                <Form.Control
-                                    type="text"
-                                    value={
-                                        employeeSignature
-                                    }
-                                    onChange={
-                                        changeEmployeeSignature
-                                    }
-                                    disabled={
-                                        sending
-                                        === true
-                                    }
-                                    placeholder="직원 서명을 입력하세요"
-                                />
-
-                            </Col>
-
-                        </Row>  
-                        
-
-                        <Row className="mt-4">
-
-                            <Col className="text-end">
-
-                                <Button
-                                    variant="success"
-                                    onClick={
-                                        employeeSign
-                                    }
-                                    disabled={
-                                        sending
-                                        === true
-                                    }
+                                <Form.Label
+                                    column
+                                    sm={3}
                                 >
 
-                                    <FaCheck />
+                                    직원 서명
 
-                                    <span className="ms-2">
+                                </Form.Label>
 
-                                        직원 서명 저장
 
-                                    </span>
+                                <Col sm={9}>
 
-                                </Button>
+                                    <Form.Control
+                                        type="text"
+                                        value={
+                                            employeeSignature
+                                        }
+                                        onChange={
+                                            changeEmployeeSignature
+                                        }
+                                        disabled={
+                                            sending
+                                            === true
+                                        }
+                                        placeholder="직원 서명을 입력하세요"
+                                    />
 
-                            </Col>
+                                </Col>
 
-                        </Row>
-                          </>)}         
+                            </Row>
+
+
+                            <Row className="mt-4">
+
+                                <Col className="text-end">
+
+                                    <Button
+                                        variant="success"
+                                        onClick={
+                                            employeeSign
+                                        }
+                                        disabled={
+                                            sending
+                                            === true
+                                        }
+                                    >
+
+                                        <FaCheck />
+
+                                        <span className="ms-2">
+
+                                            직원 서명 저장
+
+                                        </span>
+
+                                    </Button>
+
+                                </Col>
+
+                            </Row>
+                        </>)}
 
                         {/* =============================================
                             원장 서명
                         ============================================= */}
-                        {(isAdmin && (contract.employerSignature===null))&&(<>
-                        <Row className="mt-5">
+                        {isAdmin && !contract?.employerSignature && (<>
+                            <Row className="mt-5">
 
-                            <Col>
+                                <Col>
 
-                                <h4 className="fw-bold">
+                                    <h4 className="fw-bold">
 
-                                    갑(원장) 서명
+                                        갑(원장) 서명
 
-                                </h4>
+                                    </h4>
 
-                            </Col>
+                                </Col>
 
-                        </Row>
-                          
-
-                        <Row className="mt-4">
-
-                            <Form.Label
-                                column
-                                sm={3}
-                            >
-
-                                원장 서명
-
-                            </Form.Label>
+                            </Row>
 
 
-                            <Col sm={9}>
+                            <Row className="mt-4">
 
-                                <Form.Control
-                                    type="text"
-                                    value={
-                                        employerSignature
-                                    }
-                                    onChange={
-                                        changeEmployerSignature
-                                    }
-                                    disabled={
-                                        sending
-                                        === true
-                                    }
-                                    placeholder="원장 서명을 입력하세요"
-                                />
-
-                            </Col>
-
-                        </Row>
-
-
-                        <Row className="mt-4">
-
-                            <Col className="text-end">
-
-                                <Button
-                                    variant="dark"
-                                    onClick={
-                                        employerSign
-                                    }
-                                    disabled={
-                                        sending
-                                        === true
-                                    }
+                                <Form.Label
+                                    column
+                                    sm={3}
                                 >
 
-                                    <FaCheck />
+                                    원장 서명
 
-                                    <span className="ms-2">
+                                </Form.Label>
 
-                                        원장 서명 저장
 
-                                    </span>
+                                <Col sm={9}>
 
-                                </Button>
+                                    <Form.Control
+                                        type="text"
+                                        value={
+                                            employerSignature
+                                        }
+                                        onChange={
+                                            changeEmployerSignature
+                                        }
+                                        disabled={
+                                            sending
+                                            === true
+                                        }
+                                        placeholder="원장 서명을 입력하세요"
+                                    />
 
-                            </Col>
+                                </Col>
 
-                        </Row>
-                    </>)}
+                            </Row>
+
+
+                            <Row className="mt-4">
+
+                                <Col className="text-end">
+
+                                    <Button
+                                        variant="dark"
+                                        onClick={
+                                            employerSign
+                                        }
+                                        disabled={
+                                            sending
+                                            === true
+                                        }
+                                    >
+
+                                        <FaCheck />
+
+                                        <span className="ms-2">
+
+                                            원장 서명 저장
+
+                                        </span>
+
+                                    </Button>
+
+                                </Col>
+
+                            </Row>
+                        </>)}
 
                     </>
 
@@ -831,44 +827,44 @@ export default function ContractSign() {
             ===================================================== */}
 
             <Row className="mt-5 mb-5">
-                {!isAdmin&&
-                <Col className="text-end">
-                    
-                    <Button
-                        variant="secondary"
-                        onClick={
-                            () =>
-                                navigate(
-                                    `/employee/contract/detail/${contractNo}`
-                                )
-                        }
-                    >
+                {!isAdmin &&
+                    <Col className="text-end">
 
-                        계약 상세
+                        <Button
+                            variant="secondary"
+                            onClick={
+                                () =>
+                                    navigate(
+                                        `/employee/contract/detail/${contractNo}`
+                                    )
+                            }
+                        >
 
-                    </Button>
-                    
-                </Col>
+                            계약 상세
+
+                        </Button>
+
+                    </Col>
                 }
 
-                {isAdmin&&
-                <Col className="text-end">
-                    
-                    <Button
-                        variant="secondary"
-                        onClick={
-                            () =>
-                                navigate(
-                                    `/admin/contract/detail/${contractNo}`
-                                )
-                        }
-                    >
+                {isAdmin &&
+                    <Col className="text-end">
 
-                        계약 상세
+                        <Button
+                            variant="secondary"
+                            onClick={
+                                () =>
+                                    navigate(
+                                        `/admin/contract/detail/${contractNo}`
+                                    )
+                            }
+                        >
 
-                    </Button>
-                    
-                </Col>
+                            계약 상세
+
+                        </Button>
+
+                    </Col>
                 }
 
             </Row>
