@@ -16,7 +16,7 @@ const filterFutureTime = (time) => new Date().getTime() < new Date(time).getTime
 
 //새 보기 생성
 const createOption = (order) => ({
-    tempId: crypto.randomUUID(),
+    tempId: createTempId(),
     optionNo: null,
 
     optionContent: "",
@@ -27,7 +27,7 @@ const createOption = (order) => ({
 
 //새 문제 생성
 const createQuestion = (order) => ({
-    tempId: crypto.randomUUID(),
+    tempId: createTempId(),
     questionNo: null,
 
     questionContent: "",
@@ -121,7 +121,7 @@ export default function ExamManage() {
             setQuestionList(
                 data.questionList.map(question => ({
                     //React에서 사용할 식별값
-                    tempId: crypto.randomUUID(),
+                    tempId: createTempId(),
                     questionNo: question.questionNo,
                     questionContent: question.questionContent,
                     questionScore: question.questionScore,
@@ -131,7 +131,7 @@ export default function ExamManage() {
                     //DB에 저장된 기존 첨부파일
                     beforeFiles: question.fileList ?? question.attachList ?? [],
                     options: question.optionList.map(option => ({
-                            tempId: crypto.randomUUID(),
+                            tempId: createTempId(),
                             optionNo: option.optionNo,
                             optionContent: option.optionContent,
                             optionIsAnswer: option.optionIsAnswer,
