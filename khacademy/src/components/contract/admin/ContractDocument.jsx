@@ -436,7 +436,7 @@ export default function ContractDocument({ contract,
                 <section className="contract-section">
 
                     <h5>
-                        제6조 [기타 근로조건]
+                        제6조 [내용]
                     </h5>
 
 
@@ -445,7 +445,7 @@ export default function ContractDocument({ contract,
                         {
                             contract.contractContent
                             ||
-                            "기타 근로조건"
+                            "근로 조건 내용"
                         }
 
                     </div>
