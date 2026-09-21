@@ -88,7 +88,7 @@ export default function ParentList() {
     const handleStudentClick = (e, studentNo) => {
         e.stopPropagation(); // 부모 tr 클릭(학부모 선택) 이벤트 전파 방지
         setTimeout(() => {
-            navigate(`/student/detail/${studentNo}`);
+            navigate(`/employee/student/detail/${studentNo}`);
         }, 120);
     };
 
